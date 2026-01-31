@@ -3,8 +3,9 @@
 
 // Site settings
 define('SITE_NAME', 'Silent Signal');
-// Updated BASE_URL - remove index.php for cleaner URLs
-define('BASE_URL', 'http://localhost/2026BSIT2DGroup5/silent-signal/');
+
+// Updated BASE_URL for live server - IMPORTANT: use https and end with slash!
+define('BASE_URL', 'https://rgdioma.helioho.st/');
 
 // Database configuration
 define('DB_HOST', 'localhost');
