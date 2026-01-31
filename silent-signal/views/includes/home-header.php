@@ -26,22 +26,22 @@
 <body>
 <header class="header">
     <div class="container">
-            
-            <input type="checkbox" id="sidebar-active">
-            <label for="sidebar-active" class="open-sidebar-btn">
-                <i class="ri-menu-line"></i>
-            </label>
-            
-            <div class="links-container">
-                <label for="sidebar-active" class="close-sidebar-btn">
-                    <i class="ri-close-line"></i>
-                </label>
-                
-                <div class="logo">
-                    <img src="<?php echo BASE_URL; ?>assets/images/logo.png" alt="Silent Signal Logo" class="logo-icon">
-                    <span class="logo-text">Silent Signal.</span>
-                </div>
+        <nav class="navbar">
+            <!-- Logo -->
+            <a href="<?php echo BASE_URL; ?>index.php?action=home" class="logo">
+                <img src="<?php echo BASE_URL; ?>assets/images/logo.png" alt="Silent Signal Logo" class="logo-icon">
+                <span class="logo-text">Silent Signal.</span>
+            </a>
 
+            <!-- Hamburger Menu Button -->
+            <button class="hamburger" aria-label="Toggle menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+
+            <!-- Navigation Links Container -->
+            <div class="nav-container">
                 <ul class="nav-menu">
                     <li><a href="<?php echo isset($isHome) && $isHome ? '#home' : BASE_URL . 'index.php?action=home#home'; ?>" class="nav-link">Home</a></li>
                     <li><a href="<?php echo isset($isHome) && $isHome ? '#features' : BASE_URL . 'index.php?action=home#features'; ?>" class="nav-link">Features</a></li>
@@ -60,7 +60,7 @@
                         <a href="<?php echo BASE_URL; ?>index.php?action=signup" class="btn btn-primary">Sign Up</a>
                     <?php endif; ?>
                 </div>
-
             </div>
+        </nav>
     </div>
 </header>
