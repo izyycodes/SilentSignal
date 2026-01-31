@@ -200,3 +200,22 @@ body {
         padding: 30px;
     }
 }
+
+.back-to-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 20px;
+    transition: color 0.3s ease;
+}
+
+.back-to-home:hover {
+    color: #007bff;
+}
+
+.back-to-home i {
+    font-size: 18px;
+}
