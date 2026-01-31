@@ -6,14 +6,21 @@ class HomeController {
     public function index() {
         // Load any data needed for the home page
         $pageTitle = "Home - Silent Signal";
-        $pageDescription = "Emergency Communication Made Accessible for the Deaf and Mute";
+        $heroTitle = "Emergency Communication Made Accessible for the Deaf and Mute";
+        $heroDescription = "A PWD-focused emergency alert and monitoring system <br>
+                    designed for deaf and mute individuals to communicate, <br>
+                    stay safe, and get help during emergencies.";
+        $features = [
+            ['icon'=>'<i class="ri-alarm-warning-line"></i>', 'title'=>'Emergency Alert System', 'desc'=>'Send an SOS with one tap. Automatically shares your GPS location, medical information, and status via SMS.'],
+            ['icon'=>'<i class="ri-alert-line"></i>', 'title'=>'Disaster Monitoring & Auto-Alert', 'desc'=>'Stay informed about disasters in your area with real-time alerts.'],
+            ['icon'=>'<i class="ri-team-line"></i>', 'title'=>'Family Check-In System', 'desc'=>'Let your family know you are safe — without speaking.'],
+            ['icon'=>'<i class="fa-regular fa-message"></i>', 'title'=>'Visual Communication Hub', 'desc'=>'Communicate clearly during emergencies using visual tools.'],
+            ['icon'=>'<i class="fa-regular fa-user"></i>', 'title'=>'Medical Profile & Pre-Registration', 'desc'=>'Important medical details ready when responders need them.'],
+        ];
         $howItWorks = [
-            ['1', 'Sign Up & Set Up Profile', 'Users (or their parents/guardians) can add emergency contacts '],
-            ['2', 'Activate & Stay Alert', 'Receive disaster alerts, check
-            and receive updates.'],
-            ['3', 'Get Help Instantly', 'In an emergency, tap buttons to
-            send pre-configured messages
-            (with/without location).'],
+            ['number'=>'1', 'title'=>'Register & Set Up Profile', 'desc'=>'Add medical info and emergency contacts.'],
+            ['number'=>'2', 'title'=>'Monitor & Stay Alert', 'desc'=>'Receive disaster alerts and location updates.'],
+            ['number'=>'3', 'title'=>'Get Help Instantly', 'desc'=>'One tap sends SOS with your location.'],
         ];
 
         // Load the view

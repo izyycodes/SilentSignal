@@ -7,14 +7,19 @@ require_once __DIR__ . '/../config/config.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $pageTitle ?? 'Silent Signal'; ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://kit.fontawesome.com/c835d6c14b.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="assets/css/home-header.css">
+    <link rel="stylesheet" href="assets/css/login.css">
+    <link rel="stylesheet" href="assets/css/home-footer.css">
 </head>
 <body>
-    <?php require_once VIEW_PATH . 'includes/header.php'; ?>
+    <?php require_once VIEW_PATH . 'includes/home-header.php'; ?>
 
     <!-- Main Container -->
     <div class="main-container">
@@ -93,7 +98,7 @@ require_once __DIR__ . '/../config/config.php';
         </div>
     </div>
 
-    <?php require_once VIEW_PATH . 'includes/footer.php'; ?>
+    <?php require_once VIEW_PATH . 'includes/home-footer.php'; ?>
 
 </body>
 </html>
