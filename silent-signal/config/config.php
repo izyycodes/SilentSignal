@@ -3,7 +3,8 @@
 
 // Site settings
 define('SITE_NAME', 'Silent Signal');
-define('BASE_URL', 'http://localhost/phpmyadmin/silent-signal/index.php');
+// Updated BASE_URL - remove index.php for cleaner URLs
+define('BASE_URL', 'http://localhost/2026BSIT2DGroup5/silent-signal/');
 
 // Database configuration
 define('DB_HOST', 'localhost');
@@ -21,5 +22,6 @@ define('CONTACT_WEBSITE', 'www.silentsignal.com');
 define('VIEW_PATH', __DIR__ . '/../views/');
 define('CONTROLLER_PATH', __DIR__ . '/../controllers/');
 define('MODEL_PATH', __DIR__ . '/../models/');
+define('ASSETS_PATH', BASE_URL . 'assets/');
 
 ?>

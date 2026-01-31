@@ -43,3 +43,5 @@
             </div>
         </div>
     </footer>
+
+    <script src="assets/js/home.js"></script>

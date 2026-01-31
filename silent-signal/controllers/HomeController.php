@@ -4,8 +4,11 @@
 class HomeController {
     
     public function index() {
-        // Load any data needed for the home page
+        // Set page variables
         $pageTitle = "Home - Silent Signal";
+        $isHome = true; // Important: This tells the header we're on the home page
+        
+        // Load any data needed for the home page
         $heroTitle = "Emergency Communication Made Accessible for the Deaf and Mute";
         $heroDescription = "A PWD-focused emergency alert and monitoring system <br>
                     designed for deaf and mute individuals to communicate, <br>
@@ -24,7 +27,9 @@ class HomeController {
         ];
 
         // Load the view
+        require_once VIEW_PATH . 'includes/home-header.php';
         require_once VIEW_PATH . 'home.php';
+        require_once VIEW_PATH . 'includes/home-footer.php';
     }
     
     public function submitContact() {
@@ -37,7 +42,7 @@ class HomeController {
             
             // Here you would process the form data
             // For now, we'll just redirect back
-            header('Location: ' . BASE_URL . '?success=1');
+            header('Location: ' . BASE_URL . 'index.php?action=home&success=1');
             exit;
         }
     }

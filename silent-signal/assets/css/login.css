@@ -14,6 +14,7 @@ body {
 /* Main Container */
 .main-container {
     display: flex;
+    flex-wrap: wrap;
     padding: 40px;
     gap: 40px;
     max-width: 1400px;
@@ -118,6 +119,10 @@ body {
     margin-bottom: 20px;
 }
 
+.form-group {
+    margin-bottom: 15px;
+}
+
 .form-group input,
 .form-group select {
     width: 100%;
@@ -128,6 +133,7 @@ body {
     transition: border-color 0.3s;
     background: #ffffff;
     color: #333;
+    margin-top: 5px;
 }
 
 .form-group input:focus,
@@ -172,4 +178,25 @@ body {
     background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
+}
+
+@media screen and (max-width: 435px) {
+    .welcome-section {
+        padding: 50px 30px;
+    }
+    .form-section {
+        padding: 30px 40px;
+    }
+    .welcome-section h1 {
+        font-size: 45px;
+    }
+    .welcome-section p {
+        font-size: 14px;
+    }
+}
+
+@media screen and (max-width: 350px) {
+    .main-container {
+        padding: 30px;
+    }
 }

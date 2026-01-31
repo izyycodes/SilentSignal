@@ -5,6 +5,7 @@ session_start();
 require_once 'config/config.php';
 
 $action = $_GET['action'] ?? 'home';
+$isHome = ($action === 'home');
 
 switch ($action) {	
     case 'home':
@@ -13,23 +14,43 @@ switch ($action) {
         $controller->index();
         break;
 
-    // Auth routes - redirect to AuthController
     case 'login':
         require_once CONTROLLER_PATH . 'AuthController.php';
         $controller = new AuthController();
-        $controller->login();
+        $controller->showLogin();
         break;
 		
 	case 'signup':
 		require_once CONTROLLER_PATH . 'AuthController.php';
         $controller = new AuthController();
-        $controller->signup();
+        $controller->showSignup();
+        break;
+        
+    case 'process_login':
+        require_once CONTROLLER_PATH . 'AuthController.php';
+        $controller = new AuthController();
+        $controller->processLogin();
+        break;
+        
+    case 'process_signup':
+        require_once CONTROLLER_PATH . 'AuthController.php';
+        $controller = new AuthController();
+        $controller->processSignup();
         break;
 
     case 'logout':
-        // These are handled by AuthController
-        header("Location: controllers/AuthController.php?action=" . $action);
-        exit();
+        require_once CONTROLLER_PATH . 'AuthController.php';
+        $controller = new AuthController();
+        $controller->logout();
+        break;
+        
+    case 'dashboard':
+        // Check if user is logged in
+        if(!isset($_SESSION['user_id'])) {
+            header("Location: index.php?action=login");
+            exit();
+        }
+        require_once VIEW_PATH . 'dashboard.php';
         break;
 
     default:

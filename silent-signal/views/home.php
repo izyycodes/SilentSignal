@@ -1,24 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $pageTitle ?? 'Silent Signal'; ?></title>
-    <link rel="icon" type="image/png" href="assets/images/logo.png">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/c835d6c14b.js" crossorigin="anonymous"></script>
-    
-    <link rel="stylesheet" href="assets/css/home.css">
-    <link rel="stylesheet" href="assets/css/home-header.css">
-    <link rel="stylesheet" href="assets/css/home-footer.css">
-</head>
-<body>
-
-    <?php require_once VIEW_PATH . 'includes/home-header.php'; ?>
 
     <!-- Hero Section -->
     <section id="home" class="hero">
@@ -162,10 +141,3 @@
             </div>
         </div>
     </section>
-
-    <?php require_once VIEW_PATH . 'includes/home-footer.php'; ?>
-
-    <script src="assets/js/home.js"></script>
-
-</body>
-</html>
