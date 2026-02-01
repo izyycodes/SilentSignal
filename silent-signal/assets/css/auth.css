@@ -1,0 +1,578 @@
+/* ========================================= */
+/* AUTH SLIDER - LOGIN & SIGNUP ANIMATION   */
+/* ========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+}
+
+/* Main Container */
+.main-container {
+    padding: 40px; 
+    max-width: 1400px;
+    margin: 80px auto 0;
+}
+
+/* Back to Home */
+.back-to-home-wrapper {
+    margin-bottom: 20px;
+}
+
+.back-to-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.back-to-home:hover {
+    background: rgba(255, 255, 255, 0.9);
+    color: #2c7a94;
+    transform: translateX(-5px);
+}
+
+.back-to-home i {
+    font-size: 18px;
+}
+
+/* Auth Container */
+.auth-container {
+    background: #fff;
+    border-radius: 30px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 1200px;
+    min-height: 750px;
+    margin: 0 auto;
+    z-index: 1; 
+}
+
+/* Form Containers */
+.form-container {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
+}
+
+.login {
+    left: 0;
+    width: 50%;
+    z-index: 2;
+}
+
+.sign-up {
+    left: 0;
+    width: 50%;
+    opacity: 0;
+    z-index: 1;
+}
+
+.auth-container.active .login {
+    transform: translateX(100%);
+}
+
+.auth-container.active .sign-up {
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+    animation: move 0.6s;
+}
+
+@keyframes move {
+    0%, 49.99% {
+        opacity: 0;
+        z-index: 1;
+    }
+    50%, 100% {
+        opacity: 1;
+        z-index: 5;
+    }
+}
+
+/* Form Styling */
+form {
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 0 50px;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+h2 {
+    color: #2c5f7f;
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+/* Social Login */
+.social-login {
+    display: flex;
+    gap: 15px;
+}
+
+.social-btn {
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.social-btn:hover {
+    border-color: #2c5f7f;
+    color: #2c5f7f;
+    transform: translateY(-3px);
+}
+
+/* Divider */
+.divider {
+    font-size: 13px;
+    color: #999;
+    margin: 15px 0;
+}
+
+/* Form Groups */
+.form-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.form-group {
+    position: relative;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+    background: #ffffff;
+    color: #333;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2c7a94;
+}
+
+/* Password Group */
+.password-group {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #666;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+.toggle-password:hover {
+    color: #2c7a94;
+}
+
+/* Forgot Link */
+.forgot-link {
+    width: 100%;
+    text-align: right;
+    margin-bottom: 15px;
+}
+
+.forgot-link a {
+    color: #2c7a94;
+    font-size: 13px;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.forgot-link a:hover {
+    color: #1a5670;
+    text-decoration: underline;
+}
+
+/* Submit Button */
+.submit-btn {
+    background: #2c7a94;
+    color: #fff;
+    border: none;
+    padding: 12px 45px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background: #1a5670;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(44, 122, 148, 0.3);
+}
+
+/* Alert Messages */
+.alert {
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Toggle Container */
+.toggle-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: all 0.6s ease-in-out;
+    z-index: 1000;
+}
+
+.auth-container.active .toggle-container {
+    transform: translateX(-100%);
+}
+
+.toggle {
+    background: linear-gradient(135deg, #4a9aba 0%, #1a5670 100%);
+    height: 100%;
+    color: #fff;
+    position: relative;
+    left: -100%;
+    width: 200%;
+    transform: translateX(0);
+    transition: all 0.6s ease-in-out;
+}
+
+.auth-container.active .toggle {
+    transform: translateX(50%);
+}
+
+.toggle-panel {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 40px;
+    text-align: center;
+    top: 0;
+    transform: translateX(0);
+    transition: all 0.6s ease-in-out;
+}
+
+.toggle-left {
+    transform: translateX(-200%);
+}
+
+.auth-container.active .toggle-left {
+    transform: translateX(0);
+}
+
+.toggle-right {
+    right: 0;
+    transform: translateX(0);
+}
+
+.auth-container.active .toggle-right {
+    transform: translateX(200%);
+}
+
+.toggle-panel h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.toggle-panel p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+.toggle-btn {
+    background: transparent;
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 12px 45px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+    background: #fff;
+    color: #2c7a94;
+    transform: scale(1.05);
+}
+
+/* ========================
+RESPONSIVE - TABLET      
+======================== 
+@media screen and (max-width: 768px) {
+    .main-container {
+        padding: 110px 15px 30px; /* Increased from 100px to 110px 
+    }
+
+    .auth-container {
+        /* min-height: 600px; 
+        max-width: 450px;
+    }
+
+    .login,
+    .sign-up {
+        width: 100%;
+        left: 0;
+    }
+
+    .auth-container.active .login {
+        transform: translateX(0);
+        opacity: 0;
+    }
+
+    .auth-container.active .sign-up {
+        transform: translateX(0);
+    }
+
+    form {
+        padding: 0 30px;
+    }
+
+    h2 {
+        font-size: 28px;
+    }
+
+    /* Toggle Container - Move to Bottom 
+    .toggle-container {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 200px;
+        transform: none;
+    }
+
+    .auth-container.active .toggle-container {
+        transform: none;
+    }
+
+    .toggle {
+        left: 0;
+        width: 100%;
+        height: 200%;
+        transform: translateY(0);
+    }
+
+    .auth-container.active .toggle {
+        transform: translateY(-50%);
+    }
+
+    .toggle-panel {
+        width: 100%;
+        height: 50%;
+        padding: 20px 30px;
+    }
+
+    .toggle-left {
+        transform: translateY(-200%);
+    }
+
+    .auth-container.active .toggle-left {
+        transform: translateY(0);
+    }
+
+    .toggle-right {
+        bottom: 0;
+        transform: translateY(0);
+    }
+
+    .auth-container.active .toggle-right {
+        transform: translateY(200%);
+    }
+
+    .toggle-panel h1 {
+        font-size: 28px;
+        margin-bottom: 15px;
+    }
+
+    .toggle-panel p {
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+
+    /* Adjust Form Container Position 
+    .form-container {
+        height: calc(100% - 200px);
+    }
+}
+
+/* ======================== 
+RESPONSIVE - MOBILE      
+======================== 
+@media screen and (max-width: 480px) {
+    .main-container {
+        padding: 100px 10px 20px; /* Increased from 90px to 100px 
+    }
+
+    .auth-container {
+        border-radius: 20px;
+        min-height: 550px;
+    }
+
+    form {
+        padding: 0 20px;
+    }
+
+    h2 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .social-login {
+        gap: 10px;
+        margin: 15px 0;
+    }
+
+    .social-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .submit-btn {
+        padding: 10px 35px;
+        font-size: 13px;
+    }
+
+    .toggle-container {
+        height: 180px;
+    }
+
+    .toggle-panel {
+        padding: 15px 20px;
+    }
+
+    .toggle-panel h1 {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    .toggle-panel p {
+        font-size: 12px;
+        margin-bottom: 15px;
+    }
+
+    .toggle-btn {
+        padding: 10px 35px;
+        font-size: 12px;
+    }
+
+    .form-container {
+        height: calc(100% - 180px);
+    }
+
+    .back-to-home {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+
+    .back-to-home i {
+        font-size: 16px;
+    }
+}
+
+/* ========================
+EXTRA SMALL MOBILE       
+========================
+@media screen and (max-width: 350px) {
+    .auth-container {
+        min-height: 500px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    .toggle-panel h1 {
+        font-size: 20px;
+    }
+
+    .toggle-panel p {
+        font-size: 11px;
+    }
+} */
