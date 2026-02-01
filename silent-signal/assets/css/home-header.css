@@ -156,6 +156,24 @@ body {
     transform: rotate(-45deg) translate(6px, -6px);
 }
 
+/* Overlay - Hidden by default */
+.nav-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.nav-overlay.active {
+    opacity: 1;
+}
+
 /* ==================== */
 /* RESPONSIVE - TABLET  */
 /* ==================== */
@@ -187,6 +205,16 @@ body {
         display: flex;
     }
     
+    /* Show Overlay on Mobile */
+    .nav-overlay {
+        display: block;
+        pointer-events: none;
+    }
+    
+    .nav-overlay.active {
+        pointer-events: auto;
+    }
+    
     /* Mobile Navigation Container */
     .nav-container {
         position: fixed;
@@ -202,6 +230,7 @@ body {
         gap: 30px;
         transition: right 0.3s ease;
         box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+        z-index: 999;
     }
     
     /* Show Mobile Menu when Active */
@@ -234,18 +263,6 @@ body {
         width: 100%;
         text-align: center;
         padding: 12px 25px;
-    }
-    
-    /* Overlay when menu is open */
-    .nav-container.active::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: -1;
     }
 }
 

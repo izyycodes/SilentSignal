@@ -9,46 +9,64 @@ document.addEventListener('DOMContentLoaded', function() {
     const navContainer = document.querySelector('.nav-container');
     const navLinks = document.querySelectorAll('.nav-link');
     
-    // Toggle mobile menu
+    // Create overlay element dynamically (so you don't need to edit HTML)
+    const overlay = document.createElement('div');
+    overlay.className = 'nav-overlay';
+    document.body.appendChild(overlay);
+    
+    // Function to close the menu
+    function closeMenu() {
+        if (hamburger) hamburger.classList.remove('active');
+        if (navContainer) navContainer.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    // Function to open the menu
+    function openMenu() {
+        if (hamburger) hamburger.classList.add('active');
+        if (navContainer) navContainer.classList.add('active');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    // Toggle mobile menu on hamburger click
     if (hamburger && navContainer) {
-        hamburger.addEventListener('click', function() {
-            hamburger.classList.toggle('active');
-            navContainer.classList.toggle('active');
-            
-            // Prevent body scroll when menu is open
-            document.body.style.overflow = navContainer.classList.contains('active') ? 'hidden' : '';
+        hamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (navContainer.classList.contains('active')) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
         });
     }
+    
+    // Close menu when clicking on the overlay
+    overlay.addEventListener('click', function() {
+        closeMenu();
+    });
     
     // Close menu when clicking on a nav link
     navLinks.forEach(link => {
         link.addEventListener('click', function() {
-            if (navContainer.classList.contains('active')) {
-                hamburger.classList.remove('active');
-                navContainer.classList.remove('active');
-                document.body.style.overflow = '';
+            if (navContainer && navContainer.classList.contains('active')) {
+                closeMenu();
             }
         });
     });
     
-    // Close menu when clicking outside (on the overlay)
-    document.addEventListener('click', function(e) {
-        if (navContainer && navContainer.classList.contains('active')) {
-            // Check if click is outside the nav-container and hamburger
-            if (!navContainer.contains(e.target) && !hamburger.contains(e.target)) {
-                hamburger.classList.remove('active');
-                navContainer.classList.remove('active');
-                document.body.style.overflow = '';
-            }
+    // Close menu on window resize (if resizing to desktop)
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 800 && navContainer && navContainer.classList.contains('active')) {
+            closeMenu();
         }
     });
     
-    // Close menu on window resize (if resizing to desktop)
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 768 && navContainer.classList.contains('active')) {
-            hamburger.classList.remove('active');
-            navContainer.classList.remove('active');
-            document.body.style.overflow = '';
+    // Close menu when pressing Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && navContainer && navContainer.classList.contains('active')) {
+            closeMenu();
         }
     });
     
