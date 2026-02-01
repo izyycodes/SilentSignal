@@ -58,8 +58,13 @@ require_once VIEW_PATH . 'includes/home-header.php';
             <!-- Signup Form -->
             <form action="<?php echo BASE_URL; ?>index.php?action=process_signup" method="POST">
                 <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" id="name" name="name" required>
+                    <label for="fname">First Name</label>
+                    <input type="text" id="fname" name="fname" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lname">Last Name</label>
+                    <input type="text" id="lname" name="lname" required>
                 </div>
     
                 <div class="form-group">
@@ -84,7 +89,10 @@ require_once VIEW_PATH . 'includes/home-header.php';
     
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <div class="password-box">
+                         <input type="password" id="password" name="password" required>
+                         <i class="fas fa-eye toggle-password" onclick="togglePassword(this)"></i>
+                     </div>
                 </div>
     
                 <button type="submit" class="submit-btn">SIGN UP</button>
@@ -94,6 +102,8 @@ require_once VIEW_PATH . 'includes/home-header.php';
 </div>
 
 <?php require_once VIEW_PATH . 'includes/home-footer.php'; ?>
+
+<script src="<?php echo BASE_URL; ?>assets/js/login.js"></script>
 
 </body>
 </html>
