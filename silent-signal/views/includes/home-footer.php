@@ -3,7 +3,7 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="footer-logo">
-                        <img src="assets/images/logo.png" alt="Silent Signal Logo" class="logo-icon">
+                        <img src="<?php echo BASE_URL; ?>assets/images/logo.png" alt="Silent Signal Logo" class="logo-icon">
                         <span class="logo-text">Silent Signal.</span>
                     </div>
                     <p class="footer-description">
@@ -44,4 +44,6 @@
         </div>
     </footer>
 
-    <script src="assets/js/home.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/home.js"></script>
+</body>
+</html>
