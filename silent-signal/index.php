@@ -14,16 +14,11 @@ switch ($action) {
         $controller->index();
         break;
 
-    case 'login':
+    // Combined Auth Page (Login & Signup)
+    case 'auth':
         require_once CONTROLLER_PATH . 'AuthController.php';
         $controller = new AuthController();
-        $controller->showLogin();
-        break;
-		
-	case 'signup':
-		require_once CONTROLLER_PATH . 'AuthController.php';
-        $controller = new AuthController();
-        $controller->showSignup();
+        $controller->showAuth();
         break;
         
     case 'process_login':
@@ -47,7 +42,7 @@ switch ($action) {
     case 'dashboard':
         // Check if user is logged in
         if(!isset($_SESSION['user_id'])) {
-            header("Location: index.php?action=login");
+            header("Location: index.php?action=auth");
             exit();
         }
         require_once VIEW_PATH . 'dashboard.php';

@@ -56,8 +56,8 @@
                         <a href="<?php echo BASE_URL; ?>index.php?action=logout" class="btn btn-primary">Logout</a>
                     <?php else: ?>
                         <!-- Guest user -->
-                        <a href="<?php echo BASE_URL; ?>index.php?action=login" class="btn btn-secondary">Login</a>
-                        <a href="<?php echo BASE_URL; ?>index.php?action=signup" class="btn btn-primary">Sign Up</a>
+                        <a href="<?php echo BASE_URL; ?>index.php?action=auth" class="btn btn-secondary">Login</a>
+                        <a href="<?php echo BASE_URL; ?>index.php?action=auth&mode=signup" class="btn btn-primary">Sign Up</a>
                     <?php endif; ?>
                 </div>
             </div>
