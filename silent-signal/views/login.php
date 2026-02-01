@@ -58,7 +58,13 @@ require_once VIEW_PATH . 'includes/home-header.php';
      
                  <div class="form-group">
                      <label for="password">Password</label>
-                     <input type="password" id="password" name="password" required>
+                     <div class="password-box">
+                         <input type="password" id="password" name="password" required>
+                         <i class="fas fa-eye toggle-password" onclick="togglePassword(this)"></i>
+                     </div>
+                 </div>
+                 <div class="fogot-link">
+                    <a href="#">Forgot password?</a>
                  </div>
      
                  <button type="submit" class="submit-btn">LOGIN</button>
@@ -76,6 +82,8 @@ require_once VIEW_PATH . 'includes/home-header.php';
 </div>
 
 <?php require_once VIEW_PATH . 'includes/home-footer.php'; ?>
+
+<script src="<?php echo BASE_URL; ?>assets/js/login.js"></script>
 
 </body>
 </html>
