@@ -7,6 +7,9 @@ define('SITE_NAME', 'Silent Signal');
 // Updated BASE_URL for live server - IMPORTANT: use https and end with slash!
 define('BASE_URL', 'https://rgdioma.helioho.st/');
 
+// BASE_URL for localhost - uncomment if you want to open in live server
+// define('BASE_URL', 'http://localhost/2026BSIT2DGroup5/silent-signal/');
+
 // Database configuration
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');

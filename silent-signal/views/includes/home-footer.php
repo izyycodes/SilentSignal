@@ -21,10 +21,10 @@
                 <div class="footer-section">
                     <h4 class="footer-title">Quick Links</h4>
                     <ul class="footer-links">
-                        <li><a href="#home">Home</a></li>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#how-it-works">How It Works</a></li>
-                        <li><a href="#contact">Contact</a></li>
+                        <li><a href="<?php echo isset($isHome) && $isHome ? '#home' : BASE_URL . 'index.php?action=home#home'; ?>">Home</a></li>
+                        <li><a href="<?php echo isset($isHome) && $isHome ? '#features' : BASE_URL . 'index.php?action=home#features'; ?>">Features</a></li>
+                        <li><a href="<?php echo isset($isHome) && $isHome ? '#how-it-works' : BASE_URL . 'index.php?action=home#how-it-works'; ?>">How It Works</a></li>
+                        <li><a href="<?php echo isset($isHome) && $isHome ? '#contact' : BASE_URL . 'index.php?action=home#contact'; ?>">Contact</a></li>
                     </ul>
                 </div>
                 

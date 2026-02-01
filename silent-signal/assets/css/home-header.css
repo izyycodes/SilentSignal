@@ -177,7 +177,7 @@ body {
 /* ==================== */
 /* RESPONSIVE - MOBILE  */
 /* ==================== */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 800px) {
     .container {
         padding: 0 20px;
     }
