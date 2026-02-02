@@ -39,16 +39,38 @@ switch ($action) {
         $controller->logout();
         break;
         
-    case 'dashboard':
-        // Check if user is logged in
-        if(!isset($_SESSION['user_id'])) {
-            header("Location: index.php?action=auth");
-            exit();
-        }
-        require_once VIEW_PATH . 'dashboard.php';
+    case 'emergency-alert':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->emergencyAlert();
         break;
 
-    default:
+    case 'disaster-monitor':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->disasterMonitor();
+        break;
+
+    case 'dashboard':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->dashboard();
+        break;
+
+
+    case 'family-checkin':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->familyCheckin();
+        break;
+
+    case 'communication-hub':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->communicationHub();
+        break;
+
+        default:
         require_once CONTROLLER_PATH . 'HomeController.php';
         $controller = new HomeController();
         $controller->index();

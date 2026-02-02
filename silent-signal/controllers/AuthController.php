@@ -26,36 +26,71 @@ class AuthController {
     /**
      * Process login form submission
      */
-    public function processLogin() {
-        if($_SERVER["REQUEST_METHOD"] == "POST") {
-            $email_or_phone = $_POST['email_phone'];
-            $password = $_POST['password'];
+  public function processLogin() {
+    if($_SERVER["REQUEST_METHOD"] == "POST") {
+        $email_or_phone = $_POST['email_phone'];
+        $password = $_POST['password'];
 
-            // Validate inputs
-            if(empty($email_or_phone) || empty($password)) {
-                $_SESSION['error'] = "All fields are required!";
-                header("Location: " . BASE_URL . "index.php?action=auth");
-                exit();
-            }
+        // Validate inputs
+        if(empty($email_or_phone) || empty($password)) {
+            $_SESSION['error'] = "All fields are required!";
+            header("Location: " . BASE_URL . "index.php?action=auth");
+            exit();
+        }
 
-            // TODO: Implement actual authentication with database
-            // For now, demo credentials
-            if($email_or_phone == 'admin@silentsignal.com' && $password == 'admin123') {
-                $_SESSION['user_id'] = 1;
-                $_SESSION['user_name'] = 'Admin User';
-                $_SESSION['user_email'] = 'admin@silentsignal.com';
-                $_SESSION['user_role'] = 'admin';
+        // Demo credentials array for easy testing
+        $demoUsers = [
+            [
+                'email' => 'admin@silentsignal.com',
+                'password' => 'admin123',
+                'id' => 1,
+                'name' => 'Admin User',
+                'role' => 'admin'
+            ],
+            [
+                'email' => 'user@silentsignal.com',
+                'password' => 'user123',
+                'id' => 2,
+                'name' => 'Juan Dela Cruz',
+                'role' => 'pwd'
+            ],
+            [
+                'email' => 'family@silentsignal.com',
+                'password' => 'family123',
+                'id' => 3,
+                'name' => 'Maria Santos',
+                'role' => 'family'
+            ]
+        ];
+
+        // Check credentials
+        $loggedIn = false;
+        foreach ($demoUsers as $user) {
+            if ($email_or_phone == $user['email'] && $password == $user['password']) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = $user['role'];
                 $_SESSION['success'] = "Login successful!";
+                $loggedIn = true;
                 
-                header("Location: " . BASE_URL . "index.php?action=dashboard");
-                exit();
-            } else {
-                $_SESSION['error'] = "Invalid credentials! Try admin@silentsignal.com / admin123";
-                header("Location: " . BASE_URL . "index.php?action=auth");
+                // Redirect based on role
+                if ($user['role'] == 'admin') {
+                    header("Location: " . BASE_URL . "index.php?action=admin-dashboard");
+                } else {
+                    header("Location: " . BASE_URL . "index.php?action=dashboard");
+                }
                 exit();
             }
         }
+
+        if (!$loggedIn) {
+            $_SESSION['error'] = "Invalid credentials!";
+            header("Location: " . BASE_URL . "index.php?action=auth");
+            exit();
+        }
     }
+}
 
     /**
      * Process signup form submission
