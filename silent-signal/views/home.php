@@ -10,7 +10,7 @@
                 <p class="hero-description">
                     <?php echo $heroDescription; ?>
                 </p>
-                <a href="index.php?action=signup" class="btn-hero">Get Started</a>
+                <a href="index.php?action=auth" class="btn-hero">Get Started</a>
             </div>
         </div>
     </section>
