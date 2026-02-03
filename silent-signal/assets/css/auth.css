@@ -1,7 +1,9 @@
 /* ========================================= */
-/* AUTH SLIDER - LOGIN & SIGNUP ANIMATION   */
+/* AUTH.CSS - Combined Login & Signup Page  */
+/* Sliding Animation with Responsive Design */
 /* ========================================= */
 
+/* Reset and Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -10,17 +12,27 @@
 
 body {
     font-family: 'Poppins', sans-serif;
+    color: #333;
+    line-height: 1.6;
+    background: #f5f7fa;
     min-height: 100vh;
 }
 
-/* Main Container */
+/* ================================
+   MAIN CONTAINER
+   ================================ */
 .main-container {
-    padding: 40px; 
+    display: flex;
+    flex-direction: column;
+    padding: 40px;
     max-width: 1400px;
     margin: 80px auto 0;
+    min-height: calc(100vh - 80px);
 }
 
-/* Back to Home */
+/* ================================
+   BACK TO HOME LINK
+   ================================ */
 .back-to-home-wrapper {
     margin-bottom: 20px;
 }
@@ -29,7 +41,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #333;
+    color: #2c7a94;
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
@@ -41,29 +53,38 @@ body {
 
 .back-to-home:hover {
     background: rgba(255, 255, 255, 0.9);
-    color: #2c7a94;
+    color: #1a5a6e;
     transform: translateX(-5px);
 }
 
 .back-to-home i {
     font-size: 18px;
+    transition: transform 0.3s;
 }
 
-/* Auth Container */
+.back-to-home:hover i {
+    transform: translateX(-3px);
+}
+
+/* ================================
+   AUTH CONTAINER (Main Card)
+   ================================ */
 .auth-container {
     background: #fff;
     border-radius: 30px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
     position: relative;
     overflow: hidden;
     width: 100%;
     max-width: 1200px;
-    min-height: 750px;
+    min-height: 700px;
     margin: 0 auto;
-    z-index: 1; 
+    z-index: 1;
 }
 
-/* Form Containers */
+/* ================================
+   FORM CONTAINERS (Login & Signup)
+   ================================ */
 .form-container {
     position: absolute;
     top: 0;
@@ -71,19 +92,20 @@ body {
     transition: all 0.6s ease-in-out;
 }
 
-.login {
+.form-container.login {
     left: 0;
     width: 50%;
     z-index: 2;
 }
 
-.sign-up {
+.form-container.sign-up {
     left: 0;
     width: 50%;
     opacity: 0;
     z-index: 1;
 }
 
+/* Active State - Show Signup */
 .auth-container.active .login {
     transform: translateX(100%);
 }
@@ -106,8 +128,10 @@ body {
     }
 }
 
-/* Form Styling */
-form {
+/* ================================
+   FORM STYLING
+   ================================ */
+.auth-container form {
     background: #fff;
     display: flex;
     flex-direction: column;
@@ -117,31 +141,36 @@ form {
     align-items: center;
 }
 
-h2 {
+.auth-container form h2 {
     color: #2c5f7f;
     font-size: 32px;
     margin-bottom: 20px;
+    text-align: center;
 }
 
-/* Social Login */
+/* ================================
+   SOCIAL LOGIN BUTTONS
+   ================================ */
 .social-login {
     display: flex;
+    justify-content: center;
     gap: 15px;
+    margin-bottom: 15px;
 }
 
 .social-btn {
-    border: 2px solid #ddd;
-    border-radius: 50%;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
     width: 45px;
     height: 45px;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #ffffff;
     font-size: 18px;
     color: #666;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: #fff;
 }
 
 .social-btn:hover {
@@ -150,14 +179,19 @@ h2 {
     transform: translateY(-3px);
 }
 
-/* Divider */
+/* ================================
+   DIVIDER
+   ================================ */
 .divider {
-    font-size: 13px;
+    text-align: center;
     color: #999;
+    font-size: 13px;
     margin: 15px 0;
 }
 
-/* Form Groups */
+/* ================================
+   FORM GROUPS & INPUTS
+   ================================ */
 .form-row {
     display: flex;
     gap: 10px;
@@ -170,15 +204,23 @@ h2 {
     margin-bottom: 15px;
 }
 
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+}
+
 .form-group input,
 .form-group select {
     width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: border-color 0.3s;
-    background: #ffffff;
+    padding: 14px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s;
+    background: #f9f9f9;
     color: #333;
 }
 
@@ -186,11 +228,20 @@ h2 {
 .form-group select:focus {
     outline: none;
     border-color: #2c7a94;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(44, 122, 148, 0.1);
 }
 
-/* Password Group */
+/* ================================
+   PASSWORD GROUP WITH TOGGLE
+   ================================ */
 .password-group {
     position: relative;
+}
+
+.password-group input {
+    width: 100%;
+    padding-right: 45px;
 }
 
 .toggle-password {
@@ -208,52 +259,60 @@ h2 {
     color: #2c7a94;
 }
 
-/* Forgot Link */
+/* ================================
+   FORGOT PASSWORD LINK
+   ================================ */
 .forgot-link {
     width: 100%;
     text-align: right;
     margin-bottom: 15px;
+    margin-top: -5px;
 }
 
 .forgot-link a {
     color: #2c7a94;
-    font-size: 13px;
     text-decoration: none;
-    transition: color 0.3s ease;
+    font-size: 13px;
+    transition: color 0.3s;
 }
 
 .forgot-link a:hover {
-    color: #1a5670;
+    color: #1a5a6e;
     text-decoration: underline;
 }
 
-/* Submit Button */
+/* ================================
+   SUBMIT BUTTON
+   ================================ */
 .submit-btn {
-    background: #2c7a94;
-    color: #fff;
+    width: 100%;
+    padding: 14px 45px;
+    background: linear-gradient(135deg, #2c7a94 0%, #2c5f7f 100%);
+    color: #ffffff;
     border: none;
-    padding: 12px 45px;
     border-radius: 25px;
     font-size: 14px;
     font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s;
     margin-top: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .submit-btn:hover {
-    background: #1a5670;
+    background: linear-gradient(135deg, #2c5f7f 0%, #1a4a5e 100%);
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(44, 122, 148, 0.3);
+    box-shadow: 0 5px 20px rgba(44, 122, 148, 0.3);
 }
 
-/* Alert Messages */
+/* ================================
+   ALERT MESSAGES
+   ================================ */
 .alert {
     width: 100%;
-    padding: 10px 15px;
-    border-radius: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
     margin-bottom: 15px;
     font-size: 13px;
     text-align: center;
@@ -271,7 +330,9 @@ h2 {
     border: 1px solid #f5c6cb;
 }
 
-/* Toggle Container */
+/* ================================
+   TOGGLE CONTAINER (Sliding Panel)
+   ================================ */
 .toggle-container {
     position: absolute;
     top: 0;
@@ -288,7 +349,7 @@ h2 {
 }
 
 .toggle {
-    background: linear-gradient(135deg, #4a9aba 0%, #1a5670 100%);
+    background: linear-gradient(135deg, #4a9aba 0%, #2c7a94 50%, #1a5a6e 100%);
     height: 100%;
     color: #fff;
     position: relative;
@@ -302,6 +363,9 @@ h2 {
     transform: translateX(50%);
 }
 
+/* ================================
+   TOGGLE PANELS (Welcome Messages)
+   ================================ */
 .toggle-panel {
     position: absolute;
     width: 50%;
@@ -335,24 +399,26 @@ h2 {
 }
 
 .toggle-panel h1 {
-    font-size: 48px;
+    font-size: 42px;
     margin-bottom: 20px;
+    font-weight: 700;
 }
 
 .toggle-panel p {
     font-size: 16px;
-    line-height: 1.6;
+    line-height: 1.7;
     margin-bottom: 30px;
     opacity: 0.9;
+    max-width: 350px;
 }
 
 .toggle-btn {
     background: transparent;
     color: #fff;
     border: 2px solid #fff;
-    padding: 12px 45px;
-    border-radius: 25px;
-    font-size: 16px;
+    padding: 14px 45px;
+    border-radius: 30px;
+    font-size: 15px;
     font-weight: 600;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -363,140 +429,156 @@ h2 {
 .toggle-btn:hover {
     background: #fff;
     color: #2c7a94;
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* ========================
-RESPONSIVE - TABLET      
-======================== 
-@media screen and (max-width: 768px) {
+/* ============================================ */
+/* RESPONSIVE - TABLET (max-width: 1024px)     */
+/* ============================================ */
+@media screen and (max-width: 1024px) {
     .main-container {
-        padding: 110px 15px 30px; /* Increased from 100px to 110px 
+        padding: 20px;
+        margin-top: 70px;
+        min-height: auto;
     }
 
     .auth-container {
-        /* min-height: 600px; 
-        max-width: 450px;
+        min-height: auto;
+        border-radius: 20px;
     }
 
-    .login,
-    .sign-up {
+    /* Stack layout on tablet */
+    .form-container.login,
+    .form-container.sign-up {
+        position: relative;
         width: 100%;
+        height: auto;
         left: 0;
+        transform: none !important;
+        opacity: 1;
     }
 
-    .auth-container.active .login {
-        transform: translateX(0);
-        opacity: 0;
+    .form-container.sign-up {
+        display: none;
     }
 
-    .auth-container.active .sign-up {
-        transform: translateX(0);
+    .auth-container.active .form-container.login {
+        display: none;
     }
 
-    form {
-        padding: 0 30px;
+    .auth-container.active .form-container.sign-up {
+        display: block;
     }
 
-    h2 {
+    .auth-container form {
+        padding: 40px 30px;
+        height: auto;
+    }
+
+    .auth-container form h2 {
         font-size: 28px;
+        margin-bottom: 18px;
     }
 
-    /* Toggle Container - Move to Bottom 
+    /* Toggle container becomes top banner */
     .toggle-container {
-        top: auto;
-        bottom: 0;
+        position: relative;
         left: 0;
         width: 100%;
-        height: 200px;
-        transform: none;
-    }
-
-    .auth-container.active .toggle-container {
-        transform: none;
+        height: auto;
+        transform: none !important;
     }
 
     .toggle {
         left: 0;
         width: 100%;
-        height: 200%;
-        transform: translateY(0);
-    }
-
-    .auth-container.active .toggle {
-        transform: translateY(-50%);
+        transform: none !important;
     }
 
     .toggle-panel {
+        position: relative;
         width: 100%;
-        height: 50%;
-        padding: 20px 30px;
+        height: auto;
+        padding: 40px 30px;
+        transform: none !important;
     }
 
     .toggle-left {
-        transform: translateY(-200%);
-    }
-
-    .auth-container.active .toggle-left {
-        transform: translateY(0);
+        display: none;
     }
 
     .toggle-right {
-        bottom: 0;
-        transform: translateY(0);
+        display: flex;
+    }
+
+    .auth-container.active .toggle-left {
+        display: flex;
     }
 
     .auth-container.active .toggle-right {
-        transform: translateY(200%);
+        display: none;
     }
 
     .toggle-panel h1 {
-        font-size: 28px;
+        font-size: 32px;
         margin-bottom: 15px;
     }
 
     .toggle-panel p {
-        font-size: 13px;
-        margin-bottom: 20px;
+        font-size: 14px;
+        margin-bottom: 25px;
     }
 
-    /* Adjust Form Container Position 
-    .form-container {
-        height: calc(100% - 200px);
+    .toggle-btn {
+        padding: 12px 35px;
+        font-size: 14px;
     }
 }
 
-/* ======================== 
-RESPONSIVE - MOBILE      
-======================== 
-@media screen and (max-width: 480px) {
+/* ============================================ */
+/* RESPONSIVE - MOBILE (max-width: 768px)      */
+/* ============================================ */
+@media screen and (max-width: 768px) {
     .main-container {
-        padding: 100px 10px 20px; /* Increased from 90px to 100px 
+        padding: 15px;
+        margin-top: 65px;
     }
 
-    .auth-container {
-        border-radius: 20px;
-        min-height: 550px;
-    }
-
-    form {
-        padding: 0 20px;
-    }
-
-    h2 {
-        font-size: 24px;
+    .back-to-home-wrapper {
         margin-bottom: 15px;
     }
 
+    .back-to-home {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+
+    .auth-container {
+        border-radius: 16px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .auth-container form {
+        padding: 35px 25px;
+    }
+
+    .auth-container form h2 {
+        font-size: 24px;
+    }
+
     .social-login {
-        gap: 10px;
-        margin: 15px 0;
+        gap: 12px;
     }
 
     .social-btn {
         width: 40px;
         height: 40px;
         font-size: 16px;
+    }
+
+    .divider {
+        font-size: 12px;
     }
 
     .form-row {
@@ -508,71 +590,141 @@ RESPONSIVE - MOBILE
         margin-bottom: 12px;
     }
 
+    .form-group label {
+        font-size: 13px;
+        margin-bottom: 5px;
+    }
+
     .form-group input,
     .form-group select {
-        padding: 10px 12px;
+        padding: 12px 14px;
+        font-size: 14px;
+        border-radius: 8px;
+    }
+
+    .submit-btn {
+        padding: 14px 30px;
+        font-size: 13px;
+    }
+
+    .toggle-panel {
+        padding: 35px 25px;
+    }
+
+    .toggle-panel h1 {
+        font-size: 28px;
+    }
+
+    .toggle-panel p {
+        font-size: 13px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .toggle-btn {
+        padding: 11px 30px;
+        font-size: 13px;
+    }
+}
+
+/* ============================================ */
+/* RESPONSIVE - SMALL MOBILE (max-width: 480px) */
+/* ============================================ */
+@media screen and (max-width: 480px) {
+    .main-container {
+        padding: 10px;
+        margin-top: 60px;
+    }
+
+    .back-to-home {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+
+    .auth-container {
+        border-radius: 14px;
+    }
+
+    .auth-container form {
+        padding: 30px 20px;
+    }
+
+    .auth-container form h2 {
+        font-size: 22px;
+    }
+
+    .social-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 11px 12px;
         font-size: 13px;
     }
 
     .submit-btn {
-        padding: 10px 35px;
-        font-size: 13px;
+        padding: 13px 25px;
+        font-size: 12px;
     }
 
-    .toggle-container {
-        height: 180px;
+    .alert {
+        padding: 10px 14px;
+        font-size: 12px;
     }
 
     .toggle-panel {
-        padding: 15px 20px;
+        padding: 30px 20px;
     }
 
     .toggle-panel h1 {
         font-size: 24px;
-        margin-bottom: 10px;
     }
 
     .toggle-panel p {
         font-size: 12px;
-        margin-bottom: 15px;
+        margin-bottom: 18px;
     }
 
     .toggle-btn {
-        padding: 10px 35px;
+        padding: 10px 28px;
         font-size: 12px;
-    }
-
-    .form-container {
-        height: calc(100% - 180px);
-    }
-
-    .back-to-home {
-        font-size: 13px;
-        padding: 6px 12px;
-    }
-
-    .back-to-home i {
-        font-size: 16px;
     }
 }
 
-/* ========================
-EXTRA SMALL MOBILE       
-========================
+/* ============================================ */
+/* RESPONSIVE - VERY SMALL (max-width: 350px)  */
+/* ============================================ */
 @media screen and (max-width: 350px) {
-    .auth-container {
-        min-height: 500px;
+    .main-container {
+        padding: 8px;
     }
 
-    h2 {
+    .auth-container form {
+        padding: 25px 15px;
+    }
+
+    .auth-container form h2 {
         font-size: 20px;
+    }
+
+    .social-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+
+    .toggle-panel {
+        padding: 25px 15px;
     }
 
     .toggle-panel h1 {
-        font-size: 20px;
+        font-size: 22px;
     }
 
     .toggle-panel p {
         font-size: 11px;
     }
-} */
+}
