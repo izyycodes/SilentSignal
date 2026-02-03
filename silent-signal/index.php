@@ -70,7 +70,7 @@ switch ($action) {
         $controller->communicationHub();
         break;
 
-        default:
+    default:
         require_once CONTROLLER_PATH . 'HomeController.php';
         $controller = new HomeController();
         $controller->index();
