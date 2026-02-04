@@ -292,4 +292,115 @@ class UserController {
         $pageTitle = "Communication Hub - Silent Signal";
         require_once VIEW_PATH . 'communication-hub.php';
     }
+    
+    /**
+     * Medical Profile & Pre-Registration Page
+     */
+    public function medicalProfile() {
+        $this->requireLogin();
+        $pageTitle = "Medical Profile - Silent Signal";
+        
+        // Tab navigation
+        $tabs = [
+            ['id' => 'medical-profile', 'icon' => 'ri-heart-pulse-line', 'label' => 'Medical Profile'],
+            ['id' => 'emergency-contacts', 'icon' => 'ri-contacts-line', 'label' => 'Emergency Contacts'],
+            ['id' => 'medication-reminders', 'icon' => 'ri-alarm-line', 'label' => 'Medication Reminders'],
+        ];
+        
+        // Personal Information (would come from database)
+        $personalInfo = [
+            'firstName' => 'Jerome',
+            'lastName' => 'Buenavista',
+            'dateOfBirth' => '2003-10-05',
+            'gender' => 'Male',
+            'pwdId' => 'PWD-2024-123456',
+            'phone' => '+639123456789',
+            'email' => 'jerome.buenavista@gmail.com',
+            'streetAddress' => '123 Main Street, Barangay San Juan',
+            'city' => 'Bacolod City',
+            'province' => 'Negros Occidental',
+            'zipCode' => '6100',
+        ];
+        
+        // Disability Status
+        $disabilityStatus = [
+            'primary' => 'Deaf/Mute',
+            'verified' => true,
+        ];
+        
+        // Allergies
+        $allergies = ['Penicillin', 'Peanuts'];
+        
+        // Current Medications
+        $medications = ['Lisinopril 10mg', 'Metformin 500mg'];
+        
+        // Medical Conditions
+        $medicalConditions = ['Hypertension', 'Diabetes Type 2'];
+        
+        // Blood Type
+        $bloodType = 'O+';
+        
+        // Emergency Contacts (Tab 2)
+        $emergencyContacts = [
+            [
+                'name' => 'Maria Santos',
+                'relation' => 'Mother',
+                'phone' => '+639123456789',
+                'initials' => 'MS',
+                'color' => '#4caf50',
+            ],
+            [
+                'name' => 'Jose Santos',
+                'relation' => 'Father',
+                'phone' => '+639234567890',
+                'initials' => 'JS',
+                'color' => '#ffc107',
+            ],
+            [
+                'name' => 'Dr. Cruz',
+                'relation' => 'Family Doctor',
+                'phone' => '+639345678901',
+                'initials' => 'DC',
+                'color' => '#2196f3',
+            ],
+        ];
+        
+        // SMS Configuration
+        $smsConfig = [
+            'name' => 'Juan Santos',
+            'pwdId' => 'PWD-2024-123456',
+            'phone' => '+63 912 345 6789',
+            'address' => '123 Real Street, Barangay San Juan, Bacolod City',
+            'status' => 'Emergency SOS Activated',
+            'bloodType' => 'O+',
+            'allergies' => 'Penicillin, Peanuts',
+            'medications' => 'Lisinopril 10mg, Metformin 500mg',
+        ];
+        
+        // Medication Reminders (Tab 3)
+        $medicationReminders = [
+            [
+                'name' => 'Lisinopril 10mg',
+                'frequency' => 'Daily reminder',
+                'time' => '8:00 AM, 8:00 PM',
+                'color' => '#4caf50',
+            ],
+            [
+                'name' => 'Metformin 500mg',
+                'frequency' => 'Daily reminder',
+                'time' => '9:00 AM, 6:00 PM',
+                'color' => '#2196f3',
+            ],
+        ];
+        
+        // Reminder Features
+        $reminderFeatures = [
+            'Full-screen visual alerts',
+            'Strong vibration pattern',
+            'LED flasher alert flash',
+            'Customizable reminder times',
+        ];
+        
+        require_once VIEW_PATH . 'medical-profile.php';
+    }
 }
