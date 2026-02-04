@@ -70,6 +70,13 @@ switch ($action) {
         $controller->communicationHub();
         break;
 
+    case 'medical-profile':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->medicalProfile();
+        break;
+
+
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';
         $controller = new HomeController();
