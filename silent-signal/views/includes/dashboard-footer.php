@@ -4,7 +4,7 @@
 
 // Footer links array
 $footerLinks = [
-    ['label' => 'Home', 'action' => 'home'],
+    ['label' => 'Home', 'action' => 'dashboard'],
     ['label' => 'Emergency Alert', 'action' => 'emergency-alert'],
     ['label' => 'Disaster Monitor', 'action' => 'disaster-monitor'],
     ['label' => 'Family Check-in', 'action' => 'family-checkin'],
@@ -94,28 +94,5 @@ $footerSocial = [
     </div>
 </footer>
 
-<!-- Mobile Navigation Script -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const mobileNav = document.getElementById('mobileNav');
-    const mobileNavOverlay = document.getElementById('mobileNavOverlay');
-    const mobileNavClose = document.getElementById('mobileNavClose');
-    
-    function openMobileNav() {
-        mobileNav.classList.add('active');
-        mobileNavOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeMobileNav() {
-        mobileNav.classList.remove('active');
-        mobileNavOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-    
-    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMobileNav);
-    if (mobileNavClose) mobileNavClose.addEventListener('click', closeMobileNav);
-    if (mobileNavOverlay) mobileNavOverlay.addEventListener('click', closeMobileNav);
-});
-</script>
+<!-- Dashboard Shared Scripts -->
+<script src="<?php echo BASE_URL; ?>assets/js/dashboard.js"></script>

@@ -4,17 +4,22 @@
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: " . BASE_URL . "index.php?action=login");
+    header("Location: " . BASE_URL . "index.php?action=auth");
     exit();
 }
 
-// Navigation items array
+// Navigation items array - Easy to modify
 $navItems = [
     ['action' => 'dashboard', 'icon' => 'ri-home-line', 'label' => 'Home'],
     ['action' => 'emergency-alert', 'icon' => 'ri-alarm-warning-line', 'label' => 'Emergency Alert'],
     ['action' => 'disaster-monitor', 'icon' => 'ri-earth-line', 'label' => 'Disaster Monitor'],
     ['action' => 'family-checkin', 'icon' => 'ri-team-line', 'label' => 'Family Check-in'],
     ['action' => 'communication-hub', 'icon' => 'ri-message-2-line', 'label' => 'Communication Hub'],
+];
+
+// User menu items (shown in dropdown/mobile)
+$userMenuItems = [
+    ['action' => 'medical-profile', 'icon' => 'ri-heart-pulse-line', 'label' => 'Medical Profile'],
 ];
 
 // Get current action for active state
@@ -63,17 +68,40 @@ $currentAction = $_GET['action'] ?? 'dashboard';
             <?php endforeach; ?>
         </nav>
         
-        <!-- User Menu -->
+        <!-- User Menu (Desktop) -->
         <div class="header-user">
-            <div class="user-info">
-                <span class="user-name"><?php echo $_SESSION['user_name'] ?? 'User'; ?></span>
-                <div class="user-avatar">
-                    <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)); ?>
+            <div class="user-dropdown" id="userDropdown">
+                <button class="user-dropdown-btn" id="userDropdownBtn">
+                    <div class="user-avatar">
+                        <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)); ?>
+                    </div>
+                    <i class="ri-arrow-down-s-line dropdown-arrow"></i>
+                </button>
+                
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <div class="dropdown-user-info">
+                        <div class="user-avatar large">
+                            <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)); ?>
+                        </div>
+                        <div>
+                            <span class="dropdown-user-name"><?php echo $_SESSION['user_name'] ?? 'User'; ?></span>
+                            <span class="dropdown-user-role"><?php echo ucfirst($_SESSION['user_role'] ?? 'User'); ?></span>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <?php foreach ($userMenuItems as $item): ?>
+                        <a href="<?php echo BASE_URL; ?>index.php?action=<?php echo $item['action']; ?>" class="dropdown-item">
+                            <i class="<?php echo $item['icon']; ?>"></i>
+                            <span><?php echo $item['label']; ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                    <div class="dropdown-divider"></div>
+                    <a href="<?php echo BASE_URL; ?>index.php?action=logout" class="dropdown-item logout">
+                        <i class="ri-logout-box-r-line"></i>
+                        <span>Logout</span>
+                    </a>
                 </div>
             </div>
-            <a href="<?php echo BASE_URL; ?>index.php?action=logout" class="logout-btn" title="Logout">
-                <i class="ri-logout-box-r-line"></i>
-            </a>
         </div>
         
         <!-- Mobile Menu Button -->
@@ -105,6 +133,16 @@ $currentAction = $_GET['action'] ?? 'dashboard';
     
     <div class="mobile-nav-items">
         <?php foreach ($navItems as $item): ?>
+            <a href="<?php echo BASE_URL; ?>index.php?action=<?php echo $item['action']; ?>" 
+               class="mobile-nav-item <?php echo ($currentAction === $item['action']) ? 'active' : ''; ?>">
+                <i class="<?php echo $item['icon']; ?>"></i>
+                <span><?php echo $item['label']; ?></span>
+            </a>
+        <?php endforeach; ?>
+        
+        <div class="mobile-nav-divider"></div>
+        
+        <?php foreach ($userMenuItems as $item): ?>
             <a href="<?php echo BASE_URL; ?>index.php?action=<?php echo $item['action']; ?>" 
                class="mobile-nav-item <?php echo ($currentAction === $item['action']) ? 'active' : ''; ?>">
                 <i class="<?php echo $item['icon']; ?>"></i>
