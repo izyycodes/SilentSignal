@@ -40,22 +40,22 @@ class AuthController {
             exit();
         }
 
-        // Attempt login
-            if($this->user->login($email_or_phone, $password)) {
-                $_SESSION['user_id'] = $this->user->id;
-                $_SESSION['user_name'] = $this->user->name;
-                $_SESSION['user_email'] = $this->user->email;
-                $_SESSION['user_role'] = $this->user->role;
-                $_SESSION['success'] = "Login successful!";
+        // // Attempt login
+        //     if($this->user->login($email_or_phone, $password)) {
+        //         $_SESSION['user_id'] = $this->user->id;
+        //         $_SESSION['user_name'] = $this->user->name;
+        //         $_SESSION['user_email'] = $this->user->email;
+        //         $_SESSION['user_role'] = $this->user->role;
+        //         $_SESSION['success'] = "Login successful!";
                 
-                // Redirect to dashboard or home page
-                header("Location: " . BASE_URL . "index.php?action=dashboard");
-                exit();
-            } else {
-                $_SESSION['error'] = "Invalid credentials!";
-                header("Location: " . BASE_URL . "index.php?action=auth");
-                exit();
-            }
+        //         // Redirect to dashboard or home page
+        //         header("Location: " . BASE_URL . "index.php?action=dashboard");
+        //         exit();
+        //     } else {
+        //         $_SESSION['error'] = "Invalid credentials!";
+        //         header("Location: " . BASE_URL . "index.php?action=auth");
+        //         exit();
+        //     }
 
         // Demo credentials array for easy testing
         $demoUsers = [
