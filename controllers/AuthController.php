@@ -58,56 +58,56 @@ class AuthController {
             }
 
         // Demo credentials array for easy testing
-        // $demoUsers = [
-        //     [
-        //         'email' => 'admin@silentsignal.com',
-        //         'password' => 'admin123',
-        //         'id' => 1,
-        //         'name' => 'Admin User',
-        //         'role' => 'admin'
-        //     ],
-        //     [
-        //         'email' => 'user@silentsignal.com',
-        //         'password' => 'user123',
-        //         'id' => 2,
-        //         'name' => 'Juan Dela Cruz',
-        //         'role' => 'pwd'
-        //     ],
-        //     [
-        //         'email' => 'family@silentsignal.com',
-        //         'password' => 'family123',
-        //         'id' => 3,
-        //         'name' => 'Maria Santos',
-        //         'role' => 'family'
-        //     ]
-        // ];
+        $demoUsers = [
+            [
+                'email' => 'admin@silentsignal.com',
+                'password' => 'admin123',
+                'id' => 1,
+                'name' => 'Admin User',
+                'role' => 'admin'
+            ],
+            [
+                'email' => 'user@silentsignal.com',
+                'password' => 'user123',
+                'id' => 2,
+                'name' => 'Juan Dela Cruz',
+                'role' => 'pwd'
+            ],
+            [
+                'email' => 'family@silentsignal.com',
+                'password' => 'family123',
+                'id' => 3,
+                'name' => 'Maria Santos',
+                'role' => 'family'
+            ]
+        ];
 
-        // // Check credentials
-        // $loggedIn = false;
-        // foreach ($demoUsers as $user) {
-        //     if ($email_or_phone == $user['email'] && $password == $user['password']) {
-        //         $_SESSION['user_id'] = $user['id'];
-        //         $_SESSION['user_name'] = $user['name'];
-        //         $_SESSION['user_email'] = $user['email'];
-        //         $_SESSION['user_role'] = $user['role'];
-        //         $_SESSION['success'] = "Login successful!";
-        //         $loggedIn = true;
+        // Check credentials
+        $loggedIn = false;
+        foreach ($demoUsers as $user) {
+            if ($email_or_phone == $user['email'] && $password == $user['password']) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = $user['role'];
+                $_SESSION['success'] = "Login successful!";
+                $loggedIn = true;
                 
-        //         // Redirect based on role
-        //         if ($user['role'] == 'admin') {
-        //             header("Location: " . BASE_URL . "index.php?action=admin-dashboard");
-        //         } else {
-        //             header("Location: " . BASE_URL . "index.php?action=dashboard");
-        //         }
-        //         exit();
-        //     }
-        // }
+                // Redirect based on role
+                if ($user['role'] == 'admin') {
+                    header("Location: " . BASE_URL . "index.php?action=admin-dashboard");
+                } else {
+                    header("Location: " . BASE_URL . "index.php?action=dashboard");
+                }
+                exit();
+            }
+        }
 
-        // if (!$loggedIn) {
-        //     $_SESSION['error'] = "Invalid credentials!";
-        //     header("Location: " . BASE_URL . "index.php?action=auth");
-        //     exit();
-        // }
+        if (!$loggedIn) {
+            $_SESSION['error'] = "Invalid credentials!";
+            header("Location: " . BASE_URL . "index.php?action=auth");
+            exit();
+        }
     }
 }
 
