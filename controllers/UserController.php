@@ -281,6 +281,10 @@ class UserController {
     public function familyCheckin() {
         $this->requireLogin();
         $pageTitle = "Family Check-in - Silent Signal";
+
+
+        // put data here
+
         require_once VIEW_PATH . 'family-checkin.php';
     }
     
@@ -290,6 +294,10 @@ class UserController {
     public function communicationHub() {
         $this->requireLogin();
         $pageTitle = "Communication Hub - Silent Signal";
+
+
+        // put data here
+
         require_once VIEW_PATH . 'communication-hub.php';
     }
     
