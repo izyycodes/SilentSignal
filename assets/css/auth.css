@@ -76,7 +76,7 @@ body {
     overflow: hidden;
     width: 100%;
     max-width: 1200px;
-    min-height: 800px;
+    min-height: 900px;
     margin: 0 auto;
     z-index: 1;
 }

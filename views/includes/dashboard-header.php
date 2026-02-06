@@ -73,7 +73,7 @@ $currentAction = $_GET['action'] ?? 'dashboard';
             <div class="user-dropdown" id="userDropdown">
                 <button class="user-dropdown-btn" id="userDropdownBtn">
                     <div class="user-avatar">
-                        <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)); ?>
+                        <?php echo strtoupper(substr($_SESSION['user_fname'] ?? 'U', 0, 1)); ?>
                     </div>
                     <i class="ri-arrow-down-s-line dropdown-arrow"></i>
                 </button>
@@ -81,10 +81,10 @@ $currentAction = $_GET['action'] ?? 'dashboard';
                 <div class="user-dropdown-menu" id="userDropdownMenu">
                     <div class="dropdown-user-info">
                         <div class="user-avatar large">
-                            <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)); ?>
+                            <?php echo strtoupper(substr($_SESSION['user_fname'] ?? 'U', 0, 1)); ?>
                         </div>
                         <div>
-                            <span class="dropdown-user-name"><?php echo $_SESSION['user_name'] ?? 'User'; ?></span>
+                            <span class="dropdown-user-name"><?php echo $_SESSION['user_fname'] . ' ' . $_SESSION['user_lname'] ?? 'User'; ?></span>
                             <span class="dropdown-user-role"><?php echo ucfirst($_SESSION['user_role'] ?? 'User'); ?></span>
                         </div>
                     </div>
@@ -119,10 +119,10 @@ $currentAction = $_GET['action'] ?? 'dashboard';
     <div class="mobile-nav-header">
         <div class="mobile-user-info">
             <div class="user-avatar large">
-                <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)); ?>
+                <?php echo strtoupper(substr($_SESSION['user_fname'] ?? 'U', 0, 1)); ?>
             </div>
             <div>
-                <span class="user-name"><?php echo $_SESSION['user_name'] ?? 'User'; ?></span>
+                <span class="user-name"><?php echo $_SESSION['user_fname'] . ' ' . $_SESSION['user_lname'] ?? 'User'; ?></span>
                 <span class="user-role"><?php echo ucfirst($_SESSION['user_role'] ?? 'User'); ?></span>
             </div>
         </div>

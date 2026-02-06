@@ -18,7 +18,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <p>Manage your medical information for emergencies</p>
         </div>
         <button class="btn btn-save" id="saveChangesBtn">
-            <i class="ri-save-line"></i> Save Changes
+            <i class="ri-edit-line"></i> Edit Profile
         </button>
     </div>
 
@@ -48,51 +48,51 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <div class="form-grid">
                     <div class="form-group">
                         <label>First Name</label>
-                        <input type="text" class="form-control" value="<?php echo $personalInfo['firstName']; ?>">
+                        <input type="text" name="firstName" class="form-control" value="<?php echo $personalInfo['firstName']; ?>">
                     </div>
                     <div class="form-group">
                         <label>Last Name</label>
-                        <input type="text" class="form-control" value="<?php echo $personalInfo['lastName']; ?>">
+                        <input type="text" name="lastName" class="form-control" value="<?php echo $personalInfo['lastName']; ?>">
                     </div>
                     <div class="form-group">
                         <label>Date of Birth</label>
-                        <input type="date" class="form-control" value="<?php echo $personalInfo['dateOfBirth']; ?>">
+                        <input type="date" name="dateOfBirth" class="form-control" value="<?php echo $personalInfo['dateOfBirth']; ?>">
                     </div>
                     <div class="form-group">
                         <label>Gender</label>
-                        <select class="form-control">
-                            <option value="male" <?php echo $personalInfo['gender'] === 'Male' ? 'selected' : ''; ?>>Male</option>
-                            <option value="female" <?php echo $personalInfo['gender'] === 'Female' ? 'selected' : ''; ?>>Female</option>
-                            <option value="other">Other</option>
+                        <select name="gender" class="form-control">
+                            <option value="Male" <?php echo $personalInfo['gender'] === 'Male' ? 'selected' : ''; ?>>Male</option>
+                            <option value="Female" <?php echo $personalInfo['gender'] === 'Female' ? 'selected' : ''; ?>>Female</option>
+                            <option value="Other" <?php echo $personalInfo['gender'] === 'Other' ? 'selected' : ''; ?>>Other</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>PWD ID Number</label>
-                        <input type="text" class="form-control" value="<?php echo $personalInfo['pwdId']; ?>">
+                        <input type="text" name="pwdId" class="form-control" value="<?php echo $personalInfo['pwdId']; ?>">
                     </div>
                     <div class="form-group">
                         <label>Phone Number</label>
-                        <input type="tel" class="form-control" value="<?php echo $personalInfo['phone']; ?>">
+                        <input type="tel" name="phone" class="form-control" value="<?php echo $personalInfo['phone']; ?>">
                     </div>
                     <div class="form-group">
                         <label>Email Address</label>
-                        <input type="email" class="form-control" value="<?php echo $personalInfo['email']; ?>">
+                        <input type="email" name="email" class="form-control" value="<?php echo $personalInfo['email']; ?>">
                     </div>
                     <div class="form-group">
                         <label>Street Address</label>
-                        <input type="text" class="form-control" value="<?php echo $personalInfo['streetAddress']; ?>">
+                        <input type="text" name="streetAddress" class="form-control" value="<?php echo $personalInfo['streetAddress']; ?>">
                     </div>
                     <div class="form-group">
                         <label>City</label>
-                        <input type="text" class="form-control" value="<?php echo $personalInfo['city']; ?>">
+                        <input type="text" name="city" class="form-control" value="<?php echo $personalInfo['city']; ?>">
                     </div>
                     <div class="form-group">
                         <label>Province</label>
-                        <input type="text" class="form-control" value="<?php echo $personalInfo['province']; ?>">
+                        <input type="text" name="province" class="form-control" value="<?php echo $personalInfo['province']; ?>">
                     </div>
                     <div class="form-group">
                         <label>Zip Code</label>
-                        <input type="text" class="form-control" value="<?php echo $personalInfo['zipCode']; ?>">
+                        <input type="text" name="zipCode" class="form-control" value="<?php echo $personalInfo['zipCode']; ?>">
                     </div>
                 </div>
             </div>
@@ -308,6 +308,9 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 </div>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
+<script>
+    const BASE_URL = '<?php echo BASE_URL; ?>';
+</script>
 <script src="<?php echo BASE_URL; ?>assets/js/medical-profile.js"></script>
 </body>
 </html>

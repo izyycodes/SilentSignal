@@ -39,6 +39,12 @@ switch ($action) {
         $controller->logout();
         break;
         
+    case 'dashboard':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->dashboard();
+        break;
+
     case 'emergency-alert':
         require_once CONTROLLER_PATH . 'UserController.php';
         $controller = new UserController();
@@ -50,13 +56,6 @@ switch ($action) {
         $controller = new UserController();
         $controller->disasterMonitor();
         break;
-
-    case 'dashboard':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->dashboard();
-        break;
-
 
     case 'family-checkin':
         require_once CONTROLLER_PATH . 'UserController.php';
@@ -76,6 +75,11 @@ switch ($action) {
         $controller->medicalProfile();
         break;
 
+    case 'save-medical-profile':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->saveMedicalProfile();
+        break;
 
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';
