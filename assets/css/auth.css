@@ -292,6 +292,7 @@ body {
     border-radius: 25px;
     font-size: 14px;
     font-weight: 600;
+    font-family: 'Poppins', sans-serif;
     cursor: pointer;
     transition: all 0.3s;
     margin-top: 10px;
@@ -419,6 +420,7 @@ body {
     border-radius: 30px;
     font-size: 15px;
     font-weight: 600;
+    font-family: 'Poppins', sans-serif;
     letter-spacing: 1px;
     text-transform: uppercase;
     cursor: pointer;
