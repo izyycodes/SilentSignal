@@ -16,7 +16,7 @@ if ($isLocal) {
     // ========================================
     // LOCAL DEVELOPMENT SETTINGS
     // ========================================
-    define('BASE_URL', 'http://localhost/2026BSIT2DGroup5/silent-signal/');
+    define('BASE_URL', 'http://localhost/SilentSignal/');
     
     // Local Database
     define('DB_HOST', 'localhost');
