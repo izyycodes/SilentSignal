@@ -1,5 +1,6 @@
 <?php
 // config/Database.php
+//how it wokrs
 
 class Database {
     private $host;
