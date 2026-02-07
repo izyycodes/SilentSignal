@@ -1,308 +1,585 @@
-/* ================================================
-RESET & BASE
-================================================ */
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+/* Family Check-in Styles - Updated to match disaster-monitoring and emergency-alert dimensions */
 
-/* ================================================
-PAGE HEADER CARD - IMPROVED MOBILE
-================================================ */
-.page-header {
-display:flex; align-items:center; gap:14px;
-padding:18px; background:#fff; border-radius:14px;
-box-shadow:0 2px 12px rgba(0,0,0,.06); margin-bottom:18px;
+/* Page Container */
+.page-container {
+max-width: 800px;
+margin: 0 auto;
+padding: 20px;
 }
+
+/* Page Header */
+.page-header {
+display: flex;
+align-items: center;
+gap: 15px;
+margin-bottom: 25px;
+padding: 20px;
+background: rgb(255, 255, 255);
+border-radius: 16px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
 .page-header-icon {
-width:48px; height:48px;
-background:linear-gradient(135deg,#1976d2,#1565c0);
-border-radius:12px;
-display:flex; align-items:center; justify-content:center;
-color:#fff; font-size:22px; flex-shrink:0;
+width: 50px;
+height: 50px;
+background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+border-radius: 12px;
+display: flex;
+align-items: center;
+justify-content: center;
+color: white;
+font-size: 24px;
 }
-.page-header-content { flex:1; min-width:0; }
+
+.page-header-content {
+flex: 1;
+}
+
 .page-header-content h1 {
-font-size:17px;
-font-weight:600;
-color:#1a1a2e;
-margin:0;
-white-space:nowrap;
-overflow:hidden;
-text-overflow:ellipsis;
+font-size: 20px;
+font-weight: 600;
+color: #1a1a2e;
+margin: 0;
 }
+
 .page-header-content p {
-font-size:12px;
-color:#777;
-margin:2px 0 0;
-}
-.page-header-meta { text-align:right; flex-shrink:0; }
-.page-header-meta .family-label { font-size:13px; font-weight:600; color:#1a1a2e; }
-.page-header-meta .family-sub { font-size:11px; color:#999; }
-
-/* ================================================
-CARD - IMPROVED MOBILE
-================================================ */
-.card {
-background:#fff; border-radius:14px; padding:18px;
-margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,.06);
-}
-.card-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
-.card-icon {
-width:32px; height:32px; border-radius:10px;
-display:flex; align-items:center; justify-content:center;
-font-size:16px; flex-shrink:0;
-}
-.card-icon.blue { background:#e3f2fd; color:#1976d2; }
-.card-icon.green { background:#e8f5e9; color:#388e3c; }
-.card-icon.purple { background:#ece5ff; color:#7b1fa2; }
-.card-icon.orange { background:#fff3e0; color:#ef6c00; }
-.card-header h2 { font-size:14.5px; font-weight:600; color:#1a1a2e; margin:0; }
-
-/* ================================================
-STATUS BUTTONS - OPTIMIZED FOR MOBILE
-================================================ */
-.status-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.status-btn {
-display:flex; flex-direction:column; align-items:center; justify-content:center;
-gap:8px; padding:24px 12px 20px;
-border:2px solid transparent; border-radius:12px;
-cursor:pointer; transition:all .2s;
-background:#f5f7fa; text-align:center;
-position:relative; overflow:hidden;
-min-height:140px;
--webkit-tap-highlight-color:transparent;
-}
-.status-btn:active { transform:scale(.96); }
-.status-btn.safe { background:#eef7f0; border-color:#c8e6c9; }
-.status-btn.help { background:#fef5f0; border-color:#f5cfc5; }
-
-/* persistent selection ring */
-.status-btn.chosen.safe {
-border-color:#2e7d32;
-box-shadow:0 0 0 3px rgba(46,125,50,.18);
-background:#e1f5e3;
-}
-.status-btn.chosen.help {
-border-color:#c62828;
-box-shadow:0 0 0 3px rgba(198,40,40,.18);
-background:#fdeadf;
+font-size: 13px;
+color: #666;
+margin: 3px 0 0 0;
 }
 
-.status-btn .status-icon-wrap {
-width:52px; height:52px; border-radius:50%;
-display:flex; align-items:center; justify-content:center;
-font-size:26px;
-}
-.status-btn.safe .status-icon-wrap { background:#c8e6c9; color:#2e7d32; }
-.status-btn.help .status-icon-wrap { background:#f5cfc5; color:#c62828; }
-.status-btn .status-label { font-size:14px; font-weight:700; color:#1a1a2e; margin-top:4px; }
-.status-btn .status-desc { font-size:11px; color:#777; margin-top:2px; line-height:1.4; }
-
-/* ripple effect */
-.ripple {
-position:absolute; border-radius:50%;
-transform:scale(0); opacity:1;
-animation:rippleAnim .6s ease-out;
-pointer-events:none;
-}
-@keyframes rippleAnim {
-to { transform:scale(2.5); opacity:0; }
-}
-
-/* ================================================
-GPS LOCATION - IMPROVED MOBILE
-================================================ */
-.gps-location {
-background:#f0f4ff; border:1.5px solid #cfe0ff; border-radius:12px;
-padding:14px 16px; position:relative;
-}
-.gps-location-label {
-font-size:12px; font-weight:600; color:#1a4d7f;
-margin-bottom:6px; letter-spacing:.3px;
-}
-.gps-location-main { display:flex; align-items:flex-start; gap:12px; }
-.gps-location-info { flex:1; min-width:0; }
-.gps-location-address {
-font-size:13.5px; font-weight:600; color:#1a1a2e; line-height:1.4;
-margin-bottom:4px;
-}
-.gps-location-meta {
-font-size:11px; color:#777;
-display:flex; align-items:center; gap:4px;
-}
-.gps-location-meta i { font-size:13px; }
-.gps-pin-btn {
-width:44px; height:44px; background:#5e72e4; border:none;
-border-radius:10px; color:#fff; font-size:20px;
-cursor:pointer; transition:all .2s; position:relative;
-overflow:hidden; flex-shrink:0;
-display:flex; align-items:center; justify-content:center;
--webkit-tap-highlight-color:transparent;
-}
-.gps-pin-btn:active { transform:scale(.92); background:#4c5fcf; }
-
-/* ================================================
-PHOTO/VIDEO - IMPROVED MOBILE
-================================================ */
-.media-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.media-btn {
-display:flex; flex-direction:column; align-items:center; justify-content:center;
-gap:10px; padding:22px 12px;
-background:#fbf9ff; border:1.5px solid #ece5ff;
-border-radius:12px; cursor:pointer;
-transition:all .2s; position:relative; overflow:hidden;
-min-height:110px;
--webkit-tap-highlight-color:transparent;
-}
-.media-btn:active { transform:scale(.96); }
-.media-btn.flash { animation:flashAnim .4s ease; }
-@keyframes flashAnim {
-0%, 100% { background:#fbf9ff; }
-50% { background:#f3eaff; }
-}
-.media-btn .media-icon {
-width:48px; height:48px; background:#ece5ff;
-border-radius:50%; color:#7b1fa2;
-display:flex; align-items:center; justify-content:center;
-font-size:24px;
-}
-.media-btn .media-label { font-size:13px; font-weight:600; color:#1a1a2e; }
-
-/* ================================================
-FAMILY STATUS LIST - IMPROVED MOBILE
-================================================ */
-.family-list { display:flex; flex-direction:column; gap:12px; }
-.family-item {
-display:flex; align-items:center; gap:12px;
-padding:14px; background:#fafbfc; border-radius:12px;
-transition:all .2s;
-}
-.family-item:active { background:#f0f2f5; }
-.family-avatar-wrap {
-width:44px; height:44px; border-radius:11px;
-display:flex; align-items:center; justify-content:center;
-color:#fff; font-weight:700; font-size:15px;
-flex-shrink:0;
-}
-.family-avatar-wrap.ms { background:linear-gradient(135deg,#66bb6a,#43a047); }
-.family-avatar-wrap.js { background:linear-gradient(135deg,#42a5f5,#1e88e5); }
-.family-avatar-wrap.as { background:linear-gradient(135deg,#ef5350,#e53935); }
-.family-info { flex:1; min-width:0; }
-.family-info .name { font-size:14px; font-weight:600; color:#1a1a2e; margin-bottom:2px; }
-.family-info .loc {
-font-size:11px; color:#777;
-display:flex; align-items:center; gap:4px;
-}
-.family-info .loc i { font-size:13px; }
-.family-status-right { text-align:right; flex-shrink:0; }
-.family-status-badge {
-padding:5px 10px; border-radius:6px;
-font-size:10px; font-weight:700; letter-spacing:.5px;
-margin-bottom:4px; display:inline-block;
-}
-.family-status-badge.safe { background:#c8e6c9; color:#2e7d32; }
-.family-status-badge.needs-help { background:#f5cfc5; color:#c62828; }
-.family-time {
-font-size:10px; color:#999;
-display:flex; align-items:center; justify-content:flex-end; gap:3px;
-}
-.family-time i { font-size:11px; }
-
-/* ================================================
-BREADCRUMB BUTTON - IMPROVED
-================================================ */
-.breadcrumb-btn {
-width:100%; padding:14px 20px; background:#1976d2;
-border:none; border-radius:10px; color:#fff;
-font-size:13.5px; font-weight:600; cursor:pointer;
-transition:all .2s; position:relative; overflow:hidden;
--webkit-tap-highlight-color:transparent;
-}
-.breadcrumb-btn:active { transform:scale(.98); background:#1565c0; }
-.breadcrumb-sub {
-margin-top:8px; font-size:11px; color:#777;
-text-align:center;
-}
-
-/* ================================================
-TOAST
-================================================ */
-#toast {
-position:fixed; bottom:-100px; left:50%; transform:translateX(-50%);
-background:#1a1a2e; color:#fff; padding:14px 24px;
-border-radius:10px; font-size:13.5px; font-weight:500;
-box-shadow:0 6px 20px rgba(0,0,0,.25);
-z-index:10000; transition:bottom .3s ease;
-max-width:calc(100% - 40px);
-text-align:center;
-}
-#toast.show { bottom:24px; }
-
-/* ================================================
-MOBILE RESPONSIVE BREAKPOINTS
-================================================ */
-@media (max-width: 768px) {
-.page-header {
-flex-wrap:wrap;
-padding:16px;
-}
 .page-header-meta {
-width:100%;
-text-align:left;
-margin-top:8px;
-padding-top:8px;
-border-top:1px solid #f0f0f0;
-}
+display: flex;
+flex-direction: column;
+align-items: flex-end;
 }
 
-@media (max-width: 480px) {
-.dashboard-main { padding:16px 12px 32px; }
-.card { padding:16px; }
+.family-label {
+font-size: 13px;
+font-weight: 600;
+color: #1a1a2e;
+}
+
+.family-sub {
+font-size: 11px;
+color: #999;
+margin-top: 2px;
+}
+
+/* Cards */
+.card {
+background: white;
+border-radius: 16px;
+padding: 25px;
+margin-bottom: 20px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.card-header {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-bottom: 12px;
+}
+
+.card-icon {
+width: 36px;
+height: 36px;
+border-radius: 10px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 18px;
+}
+
+.card-icon.blue {
+background: #e3f2fd;
+color: #1976d2;
+}
+
+.card-icon.green {
+background: #e8f5e9;
+color: #388e3c;
+}
+
+.card-icon.purple {
+background: #f3e5f5;
+color: #7b1fa2;
+}
+
+.card-icon.orange {
+background: #fff3e0;
+color: #ef6c00;
+}
+
+.card-header h2 {
+font-size: 16px;
+font-weight: 600;
+color: #1a1a2e;
+margin: 0;
+}
+
+/* Status Buttons */
+.status-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 15px;
+}
 
 .status-btn {
-min-height:130px;
-padding:20px 10px 18px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 10px;
+padding: 30px 15px 25px;
+border: 2px solid transparent;
+border-radius: 12px;
+cursor: pointer;
+transition: all 0.3s;
+background: #f5f7fa;
+text-align: center;
+position: relative;
+overflow: hidden;
+min-height: 150px;
+-webkit-tap-highlight-color: transparent;
 }
 
-.page-header-content h1 { font-size:16px; }
-.page-header-icon { width:44px; height:44px; font-size:20px; }
-
-.family-avatar-wrap { width:40px; height:40px; font-size:14px; }
-.family-info .name { font-size:13px; }
+.status-btn:active {
+transform: scale(0.96);
 }
 
-@media (min-width: 769px) {
-.dashboard-main { padding:22px 20px 40px; }
+.status-btn.safe {
+background: #eef7f0;
+border-color: #c8e6c9;
+}
+
+.status-btn.help {
+background: #fef5f0;
+border-color: #f5cfc5;
+}
+
+.status-btn.chosen.safe {
+border-color: #2e7d32;
+box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.18);
+background: #e1f5e3;
+}
+
+.status-btn.chosen.help {
+border-color: #c62828;
+box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.18);
+background: #fdeadf;
+}
+
+.status-icon-wrap {
+width: 56px;
+height: 56px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 28px;
+}
+
+.status-btn.safe .status-icon-wrap {
+background: #c8e6c9;
+color: #2e7d32;
+}
+
+.status-btn.help .status-icon-wrap {
+background: #f5cfc5;
+color: #c62828;
+}
+
+.status-label {
+font-size: 14px;
+font-weight: 700;
+color: #1a1a2e;
+margin-top: 5px;
+}
+
+.status-desc {
+font-size: 12px;
+color: #777;
+margin-top: 3px;
+line-height: 1.4;
+}
+
+/* Ripple effect */
+.ripple {
+position: absolute;
+border-radius: 50%;
+transform: scale(0);
+opacity: 1;
+animation: rippleAnim 0.6s ease-out;
+pointer-events: none;
+}
+
+@keyframes rippleAnim {
+to {
+transform: scale(2.5);
+opacity: 0;
+}
+}
+
+/* GPS Location */
+.gps-location {
+background: #f0f4ff;
+border: 1.5px solid #cfe0ff;
+border-radius: 12px;
+padding: 18px 20px;
+position: relative;
+}
+
+.gps-location-label {
+font-size: 12px;
+font-weight: 600;
+color: #1a4d7f;
+margin-bottom: 8px;
+letter-spacing: 0.3px;
+}
+
+.gps-location-main {
+display: flex;
+align-items: flex-start;
+gap: 15px;
+}
+
+.gps-location-info {
+flex: 1;
+min-width: 0;
+}
+
+.gps-location-address {
+font-size: 14px;
+font-weight: 600;
+color: #1a1a2e;
+line-height: 1.4;
+margin-bottom: 5px;
+}
+
+.gps-location-meta {
+font-size: 12px;
+color: #777;
+display: flex;
+align-items: center;
+gap: 5px;
+}
+
+.gps-location-meta i {
+font-size: 14px;
+}
+
+.gps-pin-btn {
+width: 48px;
+height: 48px;
+background: #5e72e4;
+border: none;
+border-radius: 10px;
+color: white;
+font-size: 22px;
+cursor: pointer;
+transition: all 0.3s;
+position: relative;
+overflow: hidden;
+flex-shrink: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+-webkit-tap-highlight-color: transparent;
+}
+
+.gps-pin-btn:active {
+transform: scale(0.92);
+background: #4c5fcf;
+}
+
+/* Photo/Video Media */
+.media-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 15px;
+}
+
+.media-btn {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 12px;
+padding: 25px 15px;
+background: #fbf9ff;
+border: 1.5px solid #ece5ff;
+border-radius: 12px;
+cursor: pointer;
+transition: all 0.3s;
+position: relative;
+overflow: hidden;
+min-height: 120px;
+-webkit-tap-highlight-color: transparent;
+}
+
+.media-btn:active {
+transform: scale(0.96);
+}
+
+.media-btn.flash {
+animation: flashAnim 0.4s ease;
+}
+
+@keyframes flashAnim {
+0%, 100% {
+background: #fbf9ff;
+}
+50% {
+background: #f3eaff;
+}
+}
+
+.media-icon {
+width: 52px;
+height: 52px;
+background: #ece5ff;
+border-radius: 50%;
+color: #7b1fa2;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 26px;
+}
+
+.media-label {
+font-size: 14px;
+font-weight: 600;
+color: #1a1a2e;
+}
+
+/* Family Status List */
+.family-list {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+
+.family-item {
+display: flex;
+align-items: center;
+gap: 15px;
+padding: 15px;
+background: #fafbfc;
+border-radius: 12px;
+transition: all 0.3s;
+}
+
+.family-item:active {
+background: #f0f2f5;
+}
+
+.family-avatar-wrap {
+width: 48px;
+height: 48px;
+border-radius: 12px;
+display: flex;
+align-items: center;
+justify-content: center;
+color: white;
+font-weight: 700;
+font-size: 16px;
+flex-shrink: 0;
+}
+
+.family-avatar-wrap.ms {
+background: linear-gradient(135deg, #66bb6a, #43a047);
+}
+
+.family-avatar-wrap.js {
+background: linear-gradient(135deg, #42a5f5, #1e88e5);
+}
+
+.family-avatar-wrap.as {
+background: linear-gradient(135deg, #ef5350, #e53935);
+}
+
+.family-info {
+flex: 1;
+min-width: 0;
+}
+
+.family-info .name {
+font-size: 14px;
+font-weight: 600;
+color: #1a1a2e;
+margin-bottom: 3px;
+}
+
+.family-info .loc {
+font-size: 12px;
+color: #777;
+display: flex;
+align-items: center;
+gap: 5px;
+}
+
+.family-info .loc i {
+font-size: 14px;
+}
+
+.family-status-right {
+text-align: right;
+flex-shrink: 0;
+}
+
+.family-status-badge {
+padding: 5px 10px;
+border-radius: 6px;
+font-size: 10px;
+font-weight: 700;
+letter-spacing: 0.5px;
+margin-bottom: 5px;
+display: inline-block;
+}
+
+.family-status-badge.safe {
+background: #c8e6c9;
+color: #2e7d32;
+}
+
+.family-status-badge.needs-help {
+background: #f5cfc5;
+color: #c62828;
+}
+
+.family-time {
+font-size: 11px;
+color: #999;
+display: flex;
+align-items: center;
+justify-content: flex-end;
+gap: 4px;
+}
+
+.family-time i {
+font-size: 12px;
+}
+
+/* Breadcrumb Button */
+.breadcrumb-btn {
+width: 100%;
+padding: 14px 20px;
+background: #1976d2;
+border: none;
+border-radius: 10px;
+color: white;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+position: relative;
+overflow: hidden;
+-webkit-tap-highlight-color: transparent;
+}
+
+.breadcrumb-btn:active {
+transform: scale(0.98);
+background: #1565c0;
+}
+
+.breadcrumb-sub {
+margin-top: 10px;
+font-size: 12px;
+color: #777;
+text-align: center;
+}
+
+/* Toast */
+#toast {
+position: fixed;
+bottom: -100px;
+left: 50%;
+transform: translateX(-50%);
+background: #1a1a2e;
+color: white;
+padding: 14px 24px;
+border-radius: 10px;
+font-size: 13px;
+font-weight: 500;
+box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+z-index: 10000;
+transition: bottom 0.3s ease;
+max-width: calc(100% - 40px);
+text-align: center;
+}
+
+#toast.show {
+bottom: 24px;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+.page-container {
+padding: 15px;
+}
 
 .page-header {
-padding:20px;
+flex-wrap: wrap;
+padding: 15px;
+}
+
+.page-header-meta {
+width: 100%;
+align-items: flex-start;
+margin-top: 10px;
+padding-top: 10px;
+border-top: 1px solid #f0f0f0;
+}
+}
+
+@media screen and (max-width: 480px) {
+.page-header-content h1 {
+font-size: 18px;
+}
+
+.page-header-icon {
+width: 44px;
+height: 44px;
+font-size: 20px;
 }
 
 .card {
-padding:22px;
+padding: 20px;
 }
 
-.status-btn:hover {
-transform:translateY(-2px);
-box-shadow:0 6px 18px rgba(0,0,0,.1);
+.status-btn {
+min-height: 130px;
+padding: 25px 12px 20px;
+}
+
+.family-avatar-wrap {
+width: 44px;
+height: 44px;
+font-size: 15px;
+}
+
+.family-info .name {
+font-size: 13px;
 }
 }
 
-/* ================================================
-ACCESSIBILITY & TOUCH IMPROVEMENTS
-================================================ */
+/* Accessibility & Touch Improvements */
 @media (hover: none) and (pointer: coarse) {
 .status-btn,
 .media-btn,
 .gps-pin-btn,
 .breadcrumb-btn,
 .family-item {
--webkit-tap-highlight-color:transparent;
-touch-action:manipulation;
+-webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
 }
 }
 
 /* Focus states for accessibility */
 button:focus-visible,
 .status-btn:focus-visible {
-outline:2px solid #1976d2;
-outline-offset:2px;
+outline: 2px solid #1976d2;
+outline-offset: 2px;
 }
