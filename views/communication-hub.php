@@ -1,10 +1,9 @@
 <?php
-// views/dashboard.php
-// User Dashboard - Data is passed from UserController
+// views/communication-hub.php
+// Communication Hub - Data is passed from UserController
 
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
-
 
 <!-- Page-specific styles -->
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/communication-hub.css">
@@ -110,6 +109,15 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 
 <!-- Toast Notification -->
 <div class="toast" id="toast"></div>
+
+<!-- Hidden data containers (alternative to inline script) -->
+<script id="app-data" type="application/json">
+{
+    "categories": <?php echo json_encode($categories); ?>,
+    "messages": <?php echo json_encode($messages); ?>,
+    "fslItems": <?php echo json_encode($fslItems); ?>
+}
+</script>
 
 <!-- Page-specific JavaScript -->
 <script src="<?php echo BASE_URL; ?>assets/js/communication-hub.js"></script>

@@ -1,37 +1,9 @@
 // ─── DATA ─────────────────────────────────────────────────
-const CATEGORIES = [
-    { id: 'all', icon: 'ri-grid-line', label: 'All' },
-    { id: 'medical', icon: 'ri-hospital-line', label: 'Medical' },
-    { id: 'food', icon: 'ri-restaurant-line', label: 'Food' },
-    { id: 'water', icon: 'ri-drop-line', label: 'Water' },
-    { id: 'shelter', icon: 'ri-home-line', label: 'Shelter' },
-    { id: 'emergency', icon: 'ri-alarm-warning-line', label: 'Emergency' },
-];
-
-const MESSAGES = [
-    { id: 'medical_help', cat: 'medical', icon: 'ri-hospital-line', title: 'Medical Help', desc: 'I need medical assistance' },
-    { id: 'medication', cat: 'medical', icon: 'ri-medicine-bottle-line', title: 'Medication', desc: 'I need medication' },
-    { id: 'sick', cat: 'medical', icon: 'ri-emotion-sad-line', title: 'Sick', desc: 'I am feeling sick' },
-    { id: 'food', cat: 'food', icon: 'ri-restaurant-2-line', title: 'Food', desc: 'I need food' },
-    { id: 'drinks', cat: 'food', icon: 'ri-cup-line', title: 'Drinks', desc: 'I need something to drink' },
-    { id: 'hungry', cat: 'food', icon: 'ri-cake-line', title: 'Hungry', desc: 'I am hungry' },
-    { id: 'water', cat: 'water', icon: 'ri-drop-line', title: 'Water', desc: 'I need clean water' },
-    { id: 'drinking_water', cat: 'water', icon: 'ri-goblet-line', title: 'Drinking Water', desc: 'I need drinking water' },
-    { id: 'shelter', cat: 'shelter', icon: 'ri-home-heart-line', title: 'Shelter', desc: 'I need shelter' },
-    { id: 'rest_area', cat: 'shelter', icon: 'ri-hotel-bed-line', title: 'Rest Area', desc: 'Looking for rest area' },
-    { id: 'emergency', cat: 'emergency', icon: 'ri-alarm-warning-line', title: 'Emergency', desc: 'This is an emergency' },
-    { id: 'injured', cat: 'emergency', icon: 'ri-health-book-line', title: 'Injured', desc: 'I am injured' },
-    { id: 'danger', cat: 'emergency', icon: 'ri-error-warning-line', title: 'Danger', desc: 'I am in danger' },
-    { id: 'flood', cat: 'emergency', icon: 'ri-flood-line', title: 'Flood', desc: 'Flooding in area' },
-    { id: 'fire', cat: 'emergency', icon: 'ri-fire-line', title: 'Fire', desc: 'There is a fire' },
-    { id: 'lost', cat: 'emergency', icon: 'ri-map-pin-user-line', title: 'Lost', desc: 'I am lost' },
-];
-
-const FSL_ITEMS = [
-    { title: 'Emergency Preparedness Guide', desc: 'FSL illustrated guide for disaster preparation' },
-    { title: 'Evacuation Instructions', desc: 'Step-by-step FSL evacuation procedures' },
-    { title: 'First Aid in FSL', desc: 'Basic first aid instructions in FSL' },
-];
+// Load data from hidden JSON container in the view
+const appData = JSON.parse(document.getElementById('app-data').textContent);
+const CATEGORIES = appData.categories;
+const MESSAGES = appData.messages;
+const FSL_ITEMS = appData.fslItems;
 
 // ─── STATE ────────────────────────────────────────────────
 let selected = new Set();
