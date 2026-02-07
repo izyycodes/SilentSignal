@@ -1,6 +1,6 @@
 <?php
-// views/family-checkin.php
-// Family Check-in - Data is passed from UserController
+// views/dashboard.php
+// User Dashboard - Data is passed from UserController
 
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
@@ -21,8 +21,8 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <p>Update your status and view family members' safety</p>
         </div>
         <div class="page-header-meta">
-            <div class="family-label"><?php echo $familyInfo['name']; ?></div>
-            <div class="family-sub"><?php echo $familyInfo['memberCount']; ?> members</div>
+            <div class="family-label">Santos Family</div>
+            <div class="family-sub">3 members</div>
         </div>
     </div>
 
@@ -60,10 +60,10 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <div class="gps-location-label">📍 CURRENT GPS LOCATION</div>
             <div class="gps-location-main">
                 <div class="gps-location-info">
-                    <div class="gps-location-address"><?php echo $currentLocation['address']; ?></div>
+                    <div class="gps-location-address">123 Tindahan ng Masayang Alala, Bacolod City, Philippines</div>
                     <div class="gps-location-meta">
                         <i class="ri-time-line"></i>
-                        <span>Last updated <?php echo $currentLocation['lastUpdated']; ?></span>
+                        <span>Last updated 2 min ago</span>
                     </div>
                 </div>
                 <button class="gps-pin-btn" onclick="gpsTap(event, this)">
@@ -102,19 +102,39 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <h2>Family Safety Status</h2>
         </div>
         <div class="family-list">
-            <?php foreach ($familyMembers as $member): ?>
-                <div class="family-item">
-                    <div class="family-avatar-wrap <?php echo $member['avatarClass']; ?>"><?php echo $member['initials']; ?></div>
-                    <div class="family-info">
-                        <div class="name"><?php echo $member['name']; ?></div>
-                        <div class="loc"><i class="ri-map-pin-line"></i> <?php echo $member['location']; ?></div>
-                    </div>
-                    <div class="family-status-right">
-                        <div class="family-status-badge <?php echo $member['status']; ?>"><?php echo $member['statusLabel']; ?></div>
-                        <div class="family-time"><i class="ri-time-line"></i> <?php echo $member['lastUpdated']; ?></div>
-                    </div>
+            <div class="family-item">
+                <div class="family-avatar-wrap ms">MS</div>
+                <div class="family-info">
+                    <div class="name">Maria Santos</div>
+                    <div class="loc"><i class="ri-map-pin-line"></i> Home</div>
                 </div>
-            <?php endforeach; ?>
+                <div class="family-status-right">
+                    <div class="family-status-badge safe">SAFE</div>
+                    <div class="family-time"><i class="ri-time-line"></i> 2 min ago</div>
+                </div>
+            </div>
+            <div class="family-item">
+                <div class="family-avatar-wrap js">JS</div>
+                <div class="family-info">
+                    <div class="name">Jose Santos</div>
+                    <div class="loc"><i class="ri-map-pin-line"></i> Work</div>
+                </div>
+                <div class="family-status-right">
+                    <div class="family-status-badge safe">SAFE</div>
+                    <div class="family-time"><i class="ri-time-line"></i> 15 min ago</div>
+                </div>
+            </div>
+            <div class="family-item">
+                <div class="family-avatar-wrap as">AS</div>
+                <div class="family-info">
+                    <div class="name">Ana Santos</div>
+                    <div class="loc"><i class="ri-map-pin-line"></i> School</div>
+                </div>
+                <div class="family-status-right">
+                    <div class="family-status-badge needs-help">NEEDS HELP</div>
+                    <div class="family-time"><i class="ri-time-line"></i> 5 min ago</div>
+                </div>
+            </div>
         </div>
     </div>
 
