@@ -2,23 +2,88 @@
 // controllers/UserController.php
 // Handles all logged-in user pages
 
+require_once MODEL_PATH . 'MedicalProfile.php';
+
 class UserController
 {
+
+// Shared data for header and footer
+protected $navItems;
+protected $userMenuItems;
+protected $footerLinks;
+protected $footerSupport;
+protected $footerSocial;
+
+/**
+* Constructor - Initialize shared data
+*/
+public function __construct() {
+$this->initSharedData();
+}
+
+/**
+* Initialize shared header/footer data
+*/
+private function initSharedData() {
+// Header navigation items
+$this->navItems = [
+['action' => 'dashboard', 'icon' => 'ri-home-line', 'label' => 'Home'],
+['action' => 'emergency-alert', 'icon' => 'ri-alarm-warning-line', 'label' => 'Emergency Alert'],
+['action' => 'disaster-monitor', 'icon' => 'ri-earth-line', 'label' => 'Disaster Monitor'],
+['action' => 'family-checkin', 'icon' => 'ri-team-line', 'label' => 'Family Check-in'],
+['action' => 'communication-hub', 'icon' => 'ri-message-2-line', 'label' => 'Communication Hub'],
+];
+
+// User dropdown menu items
+$this->userMenuItems = [
+['action' => 'medical-profile', 'icon' => 'ri-heart-pulse-line', 'label' => 'Medical Profile'],
+];
+
+// Footer quick links
+$this->footerLinks = [
+['label' => 'Home', 'action' => 'dashboard'],
+['label' => 'Emergency Alert', 'action' => 'emergency-alert'],
+['label' => 'Disaster Monitor', 'action' => 'disaster-monitor'],
+['label' => 'Family Check-in', 'action' => 'family-checkin'],
+['label' => 'Communication Hub', 'action' => 'communication-hub'],
+];
+
+// Footer support links
+$this->footerSupport = [
+['label' => 'Help Center', 'href' => '#'],
+['label' => 'Safety Guide', 'href' => '#'],
+['label' => 'FSL Resources', 'href' => '#'],
+['label' => 'Contact Us', 'action' => 'home', 'anchor' => '#contact'],
+];
+
+// Footer social links
+$this->footerSocial = [
+['icon' => 'fa-brands fa-facebook-f', 'href' => '#'],
+['icon' => 'fa-brands fa-instagram', 'href' => '#'],
+['icon' => 'fa-brands fa-tiktok', 'href' => '#'],
+['icon' => 'fa-brands fa-x-twitter', 'href' => '#'],
+];
+}
+
+/**
+* Get shared data for views
+*/
+private function getSharedData() {
+return [
+'navItems' => $this->navItems,
+'userMenuItems' => $this->userMenuItems,
+'footerLinks' => $this->footerLinks,
+'footerSupport' => $this->footerSupport,
+'footerSocial' => $this->footerSocial,
+'currentAction' => $_GET['action'] ?? 'dashboard',
+];
+}
 
 /**
 * Check if user is logged in
 */
-public function isLoggedIn()
-{
-return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
-}
-
-/**
-* Require login (redirect to auth if not logged in)
-*/
-public function requireLogin()
-{
-if (!$this->isLoggedIn()) {
+private function requireLogin() {
+if (!isset($_SESSION['user_id'])) {
 $_SESSION['error'] = "Please login to access this page.";
 header("Location: " . BASE_URL . "index.php?action=auth");
 exit();
@@ -32,6 +97,9 @@ public function dashboard()
 {
 $this->requireLogin();
 $pageTitle = "Dashboard - Silent Signal";
+
+// Shared header/footer data
+extract($this->getSharedData());
 
 // User status data
 $userStatus = [
@@ -136,6 +204,9 @@ public function emergencyAlert()
 $this->requireLogin();
 $pageTitle = "Emergency Alert - Silent Signal";
 
+// Shared header/footer data
+extract($this->getSharedData());
+
 // Quick info cards data
 $infoCards = [
 ['icon' => 'ri-map-pin-line', 'label' => 'GPS Location'],
@@ -218,6 +289,9 @@ public function disasterMonitor()
 $this->requireLogin();
 $pageTitle = "Disaster Monitoring - Silent Signal";
 
+// Shared header/footer data
+extract($this->getSharedData());
+
 // Active disaster alerts (would come from API/database)
 $disasterAlerts = [
 [
@@ -296,6 +370,9 @@ public function familyCheckin()
 $this->requireLogin();
 $pageTitle = "Family Check-in - Silent Signal";
 
+// Shared header/footer data
+extract($this->getSharedData());
+
 
 // put data here
 
@@ -303,54 +380,18 @@ require_once VIEW_PATH . 'family-checkin.php';
 }
 
 /**
-* Communication Hub Page
+* Communication Hub Page (placeholder)
 */
 public function communicationHub()
 {
 $this->requireLogin();
 $pageTitle = "Communication Hub - Silent Signal";
 
-// Categories for message filtering
-$categories = [
-['id' => 'all', 'icon' => 'ri-grid-line', 'label' => 'All'],
-['id' => 'medical', 'icon' => 'ri-hospital-line', 'label' => 'Medical'],
-['id' => 'food', 'icon' => 'ri-restaurant-line', 'label' => 'Food'],
-['id' => 'water', 'icon' => 'ri-drop-line', 'label' => 'Water'],
-['id' => 'shelter', 'icon' => 'ri-home-line', 'label' => 'Shelter'],
-['id' => 'emergency', 'icon' => 'ri-alarm-warning-line', 'label' => 'Emergency'],
-];
+// Shared header/footer data
+extract($this->getSharedData());
 
-// Pre-defined icon-based messages
-$messages = [
-// Medical
-['id' => 'medical_help', 'cat' => 'medical', 'icon' => 'ri-hospital-line', 'title' => 'Medical Help', 'desc' => 'I need medical assistance'],
-['id' => 'medication', 'cat' => 'medical', 'icon' => 'ri-medicine-bottle-line', 'title' => 'Medication', 'desc' => 'I need medication'],
-['id' => 'sick', 'cat' => 'medical', 'icon' => 'ri-emotion-sad-line', 'title' => 'Sick', 'desc' => 'I am feeling sick'],
-// Food
-['id' => 'food', 'cat' => 'food', 'icon' => 'ri-restaurant-2-line', 'title' => 'Food', 'desc' => 'I need food'],
-['id' => 'drinks', 'cat' => 'food', 'icon' => 'ri-cup-line', 'title' => 'Drinks', 'desc' => 'I need something to drink'],
-['id' => 'hungry', 'cat' => 'food', 'icon' => 'ri-cake-line', 'title' => 'Hungry', 'desc' => 'I am hungry'],
-// Water
-['id' => 'water', 'cat' => 'water', 'icon' => 'ri-drop-line', 'title' => 'Water', 'desc' => 'I need clean water'],
-['id' => 'drinking_water', 'cat' => 'water', 'icon' => 'ri-goblet-line', 'title' => 'Drinking Water', 'desc' => 'I need drinking water'],
-// Shelter
-['id' => 'shelter', 'cat' => 'shelter', 'icon' => 'ri-home-heart-line', 'title' => 'Shelter', 'desc' => 'I need shelter'],
-['id' => 'rest_area', 'cat' => 'shelter', 'icon' => 'ri-hotel-bed-line', 'title' => 'Rest Area', 'desc' => 'Looking for rest area'],
-// Emergency
-['id' => 'emergency', 'cat' => 'emergency', 'icon' => 'ri-alarm-warning-line', 'title' => 'Emergency', 'desc' => 'This is an emergency'],
-['id' => 'injured', 'cat' => 'emergency', 'icon' => 'ri-health-book-line', 'title' => 'Injured', 'desc' => 'I am injured'],
-['id' => 'danger', 'cat' => 'emergency', 'icon' => 'ri-error-warning-line', 'title' => 'Danger', 'desc' => 'I am in danger'],
-['id' => 'flood', 'cat' => 'emergency', 'icon' => 'ri-flood-line', 'title' => 'Flood', 'desc' => 'Flooding in area'],
-['id' => 'fire', 'cat' => 'emergency', 'icon' => 'ri-fire-line', 'title' => 'Fire', 'desc' => 'There is a fire'],
-['id' => 'lost', 'cat' => 'emergency', 'icon' => 'ri-map-pin-user-line', 'title' => 'Lost', 'desc' => 'I am lost'],
-];
 
-// Filipino Sign Language (FSL) downloadable resources
-$fslItems = [
-['title' => 'Emergency Preparedness Guide', 'desc' => 'FSL illustrated guide for disaster preparation'],
-['title' => 'Evacuation Instructions', 'desc' => 'Step-by-step FSL evacuation procedures'],
-['title' => 'First Aid in FSL', 'desc' => 'Basic first aid instructions in FSL'],
-];
+// put data here
 
 require_once VIEW_PATH . 'communication-hub.php';
 }
@@ -362,18 +403,16 @@ public function medicalProfile() {
 $this->requireLogin();
 $pageTitle = "Medical Profile - Silent Signal";
 
-// Get user ID from session
-$userId = $_SESSION['user_id'];
+// Shared header/footer data
+extract($this->getSharedData());
 
-// Load medical profile model
-require_once MODEL_PATH . 'MedicalProfile.php';
+// Load medical profile from database
 $medicalProfileModel = new MedicalProfile();
+$profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
 
-// Get existing profile from database
-$existingProfile = $medicalProfileModel->getByUserId($userId);
-
-// Debug: Check what's being loaded
-error_log("Existing Profile: " . print_r($existingProfile, true));
+// Load medical profile from database
+$medicalProfileModel = new MedicalProfile();
+$profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
 
 // Tab navigation
 $tabs = [
@@ -382,24 +421,25 @@ $tabs = [
 ['id' => 'medication-reminders', 'icon' => 'ri-alarm-line', 'label' => 'Medication Reminders'],
 ];
 
-// Use existing profile data OR auto-populate from session (registration data)
+// Personal Information from database or empty defaults
+// Personal Information from database or empty defaults
 $personalInfo = [
-'firstName' => ($existingProfile && isset($existingProfile['first_name'])) ? $existingProfile['first_name'] : ($_SESSION['user_fname'] ?? ''),
-'lastName' => ($existingProfile && isset($existingProfile['last_name'])) ? $existingProfile['last_name'] : ($_SESSION['user_lname'] ?? ''),
-'dateOfBirth' => ($existingProfile && isset($existingProfile['date_of_birth'])) ? $existingProfile['date_of_birth'] : '',
-'gender' => ($existingProfile && isset($existingProfile['gender'])) ? $existingProfile['gender'] : '',
-'pwdId' => ($existingProfile && isset($existingProfile['pwd_id'])) ? $existingProfile['pwd_id'] : '',
-'phone' => ($existingProfile && isset($existingProfile['phone'])) ? $existingProfile['phone'] : ($_SESSION['user_phone'] ?? ''),
-'email' => ($existingProfile && isset($existingProfile['email'])) ? $existingProfile['email'] : ($_SESSION['user_email'] ?? ''),
-'streetAddress' => ($existingProfile && isset($existingProfile['street_address'])) ? $existingProfile['street_address'] : '',
-'city' => ($existingProfile && isset($existingProfile['city'])) ? $existingProfile['city'] : '',
-'province' => ($existingProfile && isset($existingProfile['province'])) ? $existingProfile['province'] : '',
-'zipCode' => ($existingProfile && isset($existingProfile['zip_code'])) ? $existingProfile['zip_code'] : '',
+'firstName' => $profile['first_name'] ?? '',
+'lastName' => $profile['last_name'] ?? '',
+'dateOfBirth' => $profile['date_of_birth'] ?? '',
+'gender' => $profile['gender'] ?? '',
+'pwdId' => $profile['pwd_id'] ?? '',
+'phone' => $profile['phone'] ?? $_SESSION['user_phone'] ?? '',
+'email' => $profile['email'] ?? $_SESSION['user_email'] ?? '',
+'streetAddress' => $profile['street_address'] ?? '',
+'city' => $profile['city'] ?? '',
+'province' => $profile['province'] ?? '',
+'zipCode' => $profile['zip_code'] ?? '',
 ];
 
 // Disability Status - auto-set based on user role
 $userRole = $_SESSION['user_role'] ?? '';
-$disabilityType = ($existingProfile && isset($existingProfile['disability_type'])) ? $existingProfile['disability_type'] : '';
+$disabilityType = ($profile && isset($profile['disability_type'])) ? $profile['disability_type'] : '';
 
 // If no disability type set yet and user is PWD, set default
 if (empty($disabilityType) && $userRole === 'pwd') {
@@ -411,68 +451,79 @@ $disabilityStatus = [
 'verified' => !empty($disabilityType),
 ];
 
-// Medical data - properly check if existingProfile exists
-$allergies = ($existingProfile && isset($existingProfile['allergies'])) ? $existingProfile['allergies'] : ['Penicillin', 'Peanuts'];
-$medications = ($existingProfile && isset($existingProfile['medications'])) ? $existingProfile['medications'] : ['Lisinopril 10mg', 'Metformin 500mg'];
-$medicalConditions = ($existingProfile && isset($existingProfile['medical_conditions'])) ? $existingProfile['medical_conditions'] : ['Hypertension', 'Diabetes Type 2'];
-$bloodType = ($existingProfile && isset($existingProfile['blood_type'])) ? $existingProfile['blood_type'] : 'O+';
+// Allergies (from JSON - already decoded by model)
+$allergies = $profile['allergies'] ?? [];
 
-// Emergency Contacts
-$emergencyContacts = ($existingProfile && isset($existingProfile['emergency_contacts'])) ? $existingProfile['emergency_contacts'] :
-[
-[
-'name' => 'Maria Santos',
-'relation' => 'Mother',
-'phone' => '+639123456789',
-'initials' => 'MS',
-'color' => '#4caf50',
-],
-[
-'name' => 'Jose Santos',
-'relation' => 'Father',
-'phone' => '+639234567890',
-'initials' => 'JS',
-'color' => '#ffc107',
-],
-[
-'name' => 'Dr. Cruz',
-'relation' => 'Family Doctor',
-'phone' => '+639345678901',
-'initials' => 'DC',
-'color' => '#2196f3',
-],
-];
+// Current Medications (from JSON - already decoded by model)
+$medications = $profile['medications'] ?? [];
 
-// SMS Configuration
+// Medical Conditions (from JSON - already decoded by model)
+$medicalConditions = $profile['medical_conditions'] ?? [];
+
+// Blood Type
+$bloodType = $profile['blood_type'] ?? '';
+
+// Emergency Contacts (from JSON - already decoded by model)
+$emergencyContacts = $profile['emergency_contacts'] ?? [];
+
+// Add colors to contacts if not present
+$colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+foreach ($emergencyContacts as $i => &$contact) {
+if (!isset($contact['color'])) {
+$contact['color'] = $colors[$i % count($colors)];
+}
+if (!isset($contact['initials'])) {
+$nameParts = explode(' ', $contact['name'] ?? '');
+$contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
+}
+}
+
+// SMS Configuration (build from profile data)
+// Emergency Contacts (from JSON - already decoded by model)
+$emergencyContacts = $profile['emergency_contacts'] ?? [];
+
+// Add colors to contacts if not present
+$colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+foreach ($emergencyContacts as $i => &$contact) {
+if (!isset($contact['color'])) {
+$contact['color'] = $colors[$i % count($colors)];
+}
+if (!isset($contact['initials'])) {
+$nameParts = explode(' ', $contact['name'] ?? '');
+$contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
+}
+}
+
+// SMS Configuration (build from profile data)
 $smsConfig = [
-'name' => trim(($personalInfo['firstName'] ?? '') . ' ' . ($personalInfo['lastName'] ?? '')),
-'pwdId' => $personalInfo['pwdId'] ?? '',
-'phone' => $personalInfo['phone'] ?? '',
-'address' => trim(($personalInfo['streetAddress'] ?? '') . ', ' . ($personalInfo['city'] ?? '')),
+'name' => $personalInfo['firstName'] . ' ' . $personalInfo['lastName'],
+'pwdId' => $personalInfo['pwdId'],
+'phone' => $personalInfo['phone'],
+'address' => $personalInfo['streetAddress'] . ', ' . $personalInfo['city'],
+'name' => $personalInfo['firstName'] . ' ' . $personalInfo['lastName'],
+'pwdId' => $personalInfo['pwdId'],
+'phone' => $personalInfo['phone'],
+'address' => $personalInfo['streetAddress'] . ', ' . $personalInfo['city'],
 'status' => 'Emergency SOS Activated',
 'bloodType' => $bloodType,
-'allergies' => !empty($allergies) ? implode(', ', $allergies) : 'None',
-'medications' => !empty($medications) ? implode(', ', $medications) : 'None',
+'allergies' => is_array($allergies) ? implode(', ', $allergies) : '',
+'medications' => is_array($medications) ? implode(', ', $medications) : '',
+'bloodType' => $bloodType,
+'allergies' => is_array($allergies) ? implode(', ', $allergies) : '',
+'medications' => is_array($medications) ? implode(', ', $medications) : '',
 ];
 
-// Medication Reminders
-$medicationReminders = ($existingProfile && isset($existingProfile['medication_reminders'])) ? $existingProfile['medication_reminders'] :
-[
-[
-'name' => 'Lisinopril 10mg',
-'frequency' => 'Daily reminder',
-'time' => '8:00 AM, 8:00 PM',
-'color' => '#4caf50',
-],
-[
-'name' => 'Metformin 500mg',
-'frequency' => 'Daily reminder',
-'time' => '9:00 AM, 6:00 PM',
-'color' => '#2196f3',
-],
-];
+// Medication Reminders (from JSON - already decoded by model)
+$medicationReminders = ($profile && isset($profile['medication_reminders'])) ? $profile['medication_reminders'] : [];
 
-// Reminder Features
+// Add colors to reminders if not present
+foreach ($medicationReminders as $i => &$reminder) {
+if (!isset($reminder['color'])) {
+$reminder['color'] = $colors[$i % count($colors)];
+}
+}
+
+// Reminder Features (static)
 $reminderFeatures = [
 'Full-screen visual alerts',
 'Strong vibration pattern',
@@ -480,81 +531,63 @@ $reminderFeatures = [
 'Customizable reminder times',
 ];
 
-// Check if this is first time visiting (no profile exists)
-$isFirstVisit = empty($existingProfile);
-
 require_once VIEW_PATH . 'medical-profile.php';
 }
 
 /**
-* Save medical profile via AJAX
+* Save Medical Profile (AJAX endpoint)
 */
-public function saveMedicalProfile()
-{
+public function saveMedicalProfile() {
 $this->requireLogin();
+
+// Set JSON header
 header('Content-Type: application/json');
 
-try {
-// Get JSON data from request
-$input = file_get_contents('php://input');
-$data = json_decode($input, true);
+// Get POST data
+$input = json_decode(file_get_contents('php://input'), true);
 
-if (!$data) {
-throw new Exception('Invalid data received');
+if (!$input) {
+echo json_encode(['success' => false, 'message' => 'Invalid data received.']);
+exit();
 }
 
-// Get user ID
-$userId = $_SESSION['user_id'];
-
-// Load model
-require_once MODEL_PATH . 'MedicalProfile.php';
-$medicalProfileModel = new MedicalProfile();
+try {
+$medicalProfile = new MedicalProfile();
 
 // Prepare data for saving
 $profileData = [
-'first_name' => $data['personalInfo']['firstName'] ?? '',
-'last_name' => $data['personalInfo']['lastName'] ?? '',
-'date_of_birth' => $data['personalInfo']['dateOfBirth'] ?? '',
-'gender' => $data['personalInfo']['gender'] ?? '',
-'pwd_id' => $data['personalInfo']['pwdId'] ?? '',
-'phone' => $data['personalInfo']['phone'] ?? '',
-'email' => $data['personalInfo']['email'] ?? '',
-'street_address' => $data['personalInfo']['streetAddress'] ?? '',
-'city' => $data['personalInfo']['city'] ?? '',
-'province' => $data['personalInfo']['province'] ?? '',
-'zip_code' => $data['personalInfo']['zipCode'] ?? '',
-'disability_type' => $data['disabilityType'] ?? '',
-'blood_type' => $data['bloodType'] ?? '',
-'allergies' => $data['allergies'] ?? [],
-'medications' => $data['medications'] ?? [],
-'medical_conditions' => $data['conditions'] ?? [],
-'emergency_contacts' => $data['contacts'] ?? [],
-'sms_template' => $data['smsTemplate'] ?? '',
-'medication_reminders' => $data['medicationReminders'] ?? [],
+'first_name' => $input['firstName'] ?? '',
+'last_name' => $input['lastName'] ?? '',
+'date_of_birth' => !empty($input['dateOfBirth']) ? $input['dateOfBirth'] : null,
+'gender' => $input['gender'] ?? '',
+'pwd_id' => $input['pwdId'] ?? '',
+'phone' => $input['phone'] ?? '',
+'email' => $input['email'] ?? '',
+'street_address' => $input['streetAddress'] ?? '',
+'city' => $input['city'] ?? '',
+'province' => $input['province'] ?? '',
+'zip_code' => $input['zipCode'] ?? '',
+'disability_type' => $input['disabilityType'] ?? '',
+'blood_type' => $input['bloodType'] ?? '',
+'allergies' => $input['allergies'] ?? [],
+'medications' => $input['medications'] ?? [],
+'medical_conditions' => $input['medicalConditions'] ?? [],
+'emergency_contacts' => $input['emergencyContacts'] ?? [],
+'sms_template' => $input['smsTemplate'] ?? '',
+'medication_reminders' => $input['medicationReminders'] ?? []
 ];
 
-// Save to database
-$success = $medicalProfileModel->saveProfile($userId, $profileData);
-
-if ($success) {
-// Also save to session for quick access
-$_SESSION['medical_profile'] = $profileData;
-
-echo json_encode([
-'success' => true,
-'message' => 'Medical profile saved successfully'
-]);
+if ($medicalProfile->saveProfile($_SESSION['user_id'], $profileData)) {
+echo json_encode(['success' => true, 'message' => 'Profile saved successfully!']);
 } else {
-throw new Exception('Failed to save profile');
+echo json_encode(['success' => false, 'message' => 'Failed to save profile.']);
 }
 } catch (Exception $e) {
-http_response_code(500);
-echo json_encode([
-'success' => false,
-'message' => $e->getMessage()
-]);
+error_log("Save Medical Profile Error: " . $e->getMessage());
+echo json_encode(['success' => false, 'message' => 'An error occurred. Please try again.']);
 }
-exit;
+
+exit();
 }
 
 /**
@@ -572,6 +605,10 @@ exit();
 }
 
 $pageTitle = "Family Dashboard - Silent Signal";
+
+// Shared header/footer data
+extract($this->getSharedData());
+
 $familyMemberId = $_SESSION['user_id'];
 
 // Get PWD members this family member is responsible for
