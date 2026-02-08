@@ -1,29 +1,7 @@
 <?php
 // views/includes/dashboard-footer.php
 // Shared footer for all dashboard/logged-in pages
-
-// Footer links array
-$footerLinks = [
-    ['label' => 'Home', 'action' => 'dashboard'],
-    ['label' => 'Emergency Alert', 'action' => 'emergency-alert'],
-    ['label' => 'Disaster Monitor', 'action' => 'disaster-monitor'],
-    ['label' => 'Family Check-in', 'action' => 'family-checkin'],
-    ['label' => 'Communication Hub', 'action' => 'communication-hub'],
-];
-
-$footerSupport = [
-    ['label' => 'Help Center', 'href' => '#'],
-    ['label' => 'Safety Guide', 'href' => '#'],
-    ['label' => 'FSL Resources', 'href' => '#'],
-    ['label' => 'Contact Us', 'action' => 'home', 'anchor' => '#contact'],
-];
-
-$footerSocial = [
-    ['icon' => 'fa-brands fa-facebook-f', 'href' => '#'],
-    ['icon' => 'fa-brands fa-instagram', 'href' => '#'],
-    ['icon' => 'fa-brands fa-tiktok', 'href' => '#'],
-    ['icon' => 'fa-brands fa-x-twitter', 'href' => '#'],
-];
+// Data ($footerLinks, $footerSupport, $footerSocial) is passed from UserController
 ?>
 
 </main>
@@ -89,7 +67,7 @@ $footerSocial = [
         </div>
         
         <div class="footer-bottom">
-            <p>&copy; Silent Signal. Copyright 2026. All Rights Reserved.</p>
+            <p>&copy; <?php echo date('Y'); ?> Silent Signal. All Rights Reserved.</p>
         </div>
     </div>
 </footer>
