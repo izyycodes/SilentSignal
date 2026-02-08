@@ -2,6 +2,8 @@
 // controllers/UserController.php
 // Handles all logged-in user pages
 
+require_once MODEL_PATH . 'MedicalProfile.php';
+
 class UserController {
     
     // Shared data for header and footer
@@ -392,6 +394,10 @@ class UserController {
         // Shared header/footer data
         extract($this->getSharedData());
         
+        // Load medical profile from database
+        $medicalProfileModel = new MedicalProfile();
+        $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
+        
         // Tab navigation
         $tabs = [
             ['id' => 'medical-profile', 'icon' => 'ri-heart-pulse-line', 'label' => 'Medical Profile'],
@@ -399,93 +405,77 @@ class UserController {
             ['id' => 'medication-reminders', 'icon' => 'ri-alarm-line', 'label' => 'Medication Reminders'],
         ];
         
-        // Personal Information (would come from database)
+        // Personal Information from database or empty defaults
         $personalInfo = [
-            'firstName' => 'Jerome',
-            'lastName' => 'Buenavista',
-            'dateOfBirth' => '2003-10-05',
-            'gender' => 'Male',
-            'pwdId' => 'PWD-2024-123456',
-            'phone' => '+639123456789',
-            'email' => 'jerome.buenavista@gmail.com',
-            'streetAddress' => '123 Main Street, Barangay San Juan',
-            'city' => 'Bacolod City',
-            'province' => 'Negros Occidental',
-            'zipCode' => '6100',
+            'firstName' => $profile['first_name'] ?? '',
+            'lastName' => $profile['last_name'] ?? '',
+            'dateOfBirth' => $profile['date_of_birth'] ?? '',
+            'gender' => $profile['gender'] ?? '',
+            'pwdId' => $profile['pwd_id'] ?? '',
+            'phone' => $profile['phone'] ?? '',
+            'email' => $profile['email'] ?? $_SESSION['user_email'] ?? '',
+            'streetAddress' => $profile['street_address'] ?? '',
+            'city' => $profile['city'] ?? '',
+            'province' => $profile['province'] ?? '',
+            'zipCode' => $profile['zip_code'] ?? '',
         ];
         
         // Disability Status
         $disabilityStatus = [
-            'primary' => 'Deaf/Mute',
-            'verified' => true,
+            'primary' => $profile['disability_type'] ?? 'Not specified',
+            'verified' => !empty($profile['pwd_id']),
         ];
         
-        // Allergies
-        $allergies = ['Penicillin', 'Peanuts'];
+        // Allergies (from JSON - already decoded by model)
+        $allergies = $profile['allergies'] ?? [];
         
-        // Current Medications
-        $medications = ['Lisinopril 10mg', 'Metformin 500mg'];
+        // Current Medications (from JSON - already decoded by model)
+        $medications = $profile['medications'] ?? [];
         
-        // Medical Conditions
-        $medicalConditions = ['Hypertension', 'Diabetes Type 2'];
+        // Medical Conditions (from JSON - already decoded by model)
+        $medicalConditions = $profile['medical_conditions'] ?? [];
         
         // Blood Type
-        $bloodType = 'O+';
+        $bloodType = $profile['blood_type'] ?? 'Not set';
         
-        // Emergency Contacts (Tab 2)
-        $emergencyContacts = [
-            [
-                'name' => 'Maria Santos',
-                'relation' => 'Mother',
-                'phone' => '+639123456789',
-                'initials' => 'MS',
-                'color' => '#4caf50',
-            ],
-            [
-                'name' => 'Jose Santos',
-                'relation' => 'Father',
-                'phone' => '+639234567890',
-                'initials' => 'JS',
-                'color' => '#ffc107',
-            ],
-            [
-                'name' => 'Dr. Cruz',
-                'relation' => 'Family Doctor',
-                'phone' => '+639345678901',
-                'initials' => 'DC',
-                'color' => '#2196f3',
-            ],
-        ];
+        // Emergency Contacts (from JSON - already decoded by model)
+        $emergencyContacts = $profile['emergency_contacts'] ?? [];
         
-        // SMS Configuration
+        // Add colors to contacts if not present
+        $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+        foreach ($emergencyContacts as $i => &$contact) {
+            if (!isset($contact['color'])) {
+                $contact['color'] = $colors[$i % count($colors)];
+            }
+            if (!isset($contact['initials'])) {
+                $nameParts = explode(' ', $contact['name'] ?? '');
+                $contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
+            }
+        }
+        
+        // SMS Configuration (build from profile data)
         $smsConfig = [
-            'name' => 'Juan Santos',
-            'pwdId' => 'PWD-2024-123456',
-            'phone' => '+63 912 345 6789',
-            'address' => '123 Real Street, Barangay San Juan, Bacolod City',
+            'name' => $personalInfo['firstName'] . ' ' . $personalInfo['lastName'],
+            'pwdId' => $personalInfo['pwdId'],
+            'phone' => $personalInfo['phone'],
+            'address' => $personalInfo['streetAddress'] . ', ' . $personalInfo['city'],
             'status' => 'Emergency SOS Activated',
-            'bloodType' => 'O+',
-            'allergies' => 'Penicillin, Peanuts',
-            'medications' => 'Lisinopril 10mg, Metformin 500mg',
+            'bloodType' => $bloodType,
+            'allergies' => is_array($allergies) ? implode(', ', $allergies) : '',
+            'medications' => is_array($medications) ? implode(', ', $medications) : '',
         ];
         
-        // Medication Reminders (Tab 3)
-        $medicationReminders = [
-            [
-                'name' => 'Lisinopril 10mg',
-                'frequency' => 'Daily reminder',
-                'time' => '8:00 AM, 8:00 PM',
-                'color' => '#4caf50',
-            ],
-            [
-                'name' => 'Metformin 500mg',
-                'frequency' => 'Daily reminder',
-                'time' => '9:00 AM, 6:00 PM',
-                'color' => '#2196f3',
-            ],
-        ];
+        // Medication Reminders (from JSON - already decoded by model)
+        $medicationReminders = $profile['medication_reminders'] ?? [];
         
-        // Reminder Features
+        // Add colors to reminders if not present
+        foreach ($medicationReminders as $i => &$reminder) {
+            if (!isset($reminder['color'])) {
+                $reminder['color'] = $colors[$i % count($colors)];
+            }
+        }
+        
+        // Reminder Features (static)
         $reminderFeatures = [
             'Full-screen visual alerts',
             'Strong vibration pattern',
@@ -494,5 +484,61 @@ class UserController {
         ];
         
         require_once VIEW_PATH . 'medical-profile.php';
+    }
+    
+    /**
+     * Save Medical Profile (AJAX endpoint)
+     */
+    public function saveMedicalProfile() {
+        $this->requireLogin();
+        
+        // Set JSON header
+        header('Content-Type: application/json');
+        
+        // Get POST data
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!$input) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data received.']);
+            exit();
+        }
+        
+        try {
+            $medicalProfile = new MedicalProfile();
+            
+            // Prepare data for saving
+            $profileData = [
+                'first_name' => $input['firstName'] ?? '',
+                'last_name' => $input['lastName'] ?? '',
+                'date_of_birth' => !empty($input['dateOfBirth']) ? $input['dateOfBirth'] : null,
+                'gender' => $input['gender'] ?? '',
+                'pwd_id' => $input['pwdId'] ?? '',
+                'phone' => $input['phone'] ?? '',
+                'email' => $input['email'] ?? '',
+                'street_address' => $input['streetAddress'] ?? '',
+                'city' => $input['city'] ?? '',
+                'province' => $input['province'] ?? '',
+                'zip_code' => $input['zipCode'] ?? '',
+                'disability_type' => $input['disabilityType'] ?? '',
+                'blood_type' => $input['bloodType'] ?? '',
+                'allergies' => $input['allergies'] ?? [],
+                'medications' => $input['medications'] ?? [],
+                'medical_conditions' => $input['medicalConditions'] ?? [],
+                'emergency_contacts' => $input['emergencyContacts'] ?? [],
+                'sms_template' => $input['smsTemplate'] ?? '',
+                'medication_reminders' => $input['medicationReminders'] ?? []
+            ];
+            
+            if ($medicalProfile->saveProfile($_SESSION['user_id'], $profileData)) {
+                echo json_encode(['success' => true, 'message' => 'Profile saved successfully!']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to save profile.']);
+            }
+        } catch (Exception $e) {
+            error_log("Save Medical Profile Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'An error occurred. Please try again.']);
+        }
+        
+        exit();
     }
 }
