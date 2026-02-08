@@ -86,5 +86,12 @@ switch ($action) {
         $controller = new HomeController();
         $controller->index();
         break;
+
+case 'family-dashboard':
+require_once CONTROLLER_PATH . 'UserController.php';
+$controller = new UserController();
+$controller->familyDashboard();
+break;
+        
 }
 ?>
