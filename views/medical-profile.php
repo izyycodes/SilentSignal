@@ -261,6 +261,10 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </div>
 
         <!-- Tab 3: Medication Reminders -->
+        <!-- ENHANCED MEDICATION REMINDERS SECTION -->
+<!-- Replace lines 263-307 in views/medical-profile.php with this code -->
+
+        <!-- Tab 3: Medication Reminders -->
         <div class="tab-pane" id="medication-reminders">
             
             <!-- Visual Medication Reminders -->
@@ -268,6 +272,9 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <div class="card-header">
                     <div class="card-icon blue"><i class="ri-eye-line"></i></div>
                     <h2>Visual Medication Reminders</h2>
+                    <button class="btn btn-add-reminder" id="addReminderBtn" style="display: none;">
+                        <i class="ri-add-line"></i> Add Reminder
+                    </button>
                 </div>
                 
                 <div class="reminders-list">
@@ -277,11 +284,33 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                                 <i class="ri-capsule-fill"></i>
                             </div>
                             <div class="reminder-info">
-                                <h4><?php echo $reminder['name']; ?></h4>
-                                <span class="reminder-frequency"><?php echo $reminder['frequency']; ?></span>
+                                <!-- Medication Name -->
+                                <h4 class="reminder-name-display"><?php echo $reminder['name']; ?></h4>
+                                <input type="text" class="reminder-name-edit form-control" 
+                                       value="<?php echo $reminder['name']; ?>" 
+                                       style="display: none; margin-bottom: 8px; font-size: 1.1rem; font-weight: 600;"
+                                       placeholder="Enter medication name">
+                                
+                                <!-- Frequency -->
+                                <span class="reminder-frequency-display reminder-frequency"><?php echo $reminder['frequency']; ?></span>
+                                <select class="reminder-frequency-edit form-control" style="display: none; margin-bottom: 8px; width: auto;">
+                                    <option value="Once daily" <?php echo $reminder['frequency'] === 'Once daily' ? 'selected' : ''; ?>>Once daily</option>
+                                    <option value="Twice daily" <?php echo $reminder['frequency'] === 'Twice daily' ? 'selected' : ''; ?>>Twice daily</option>
+                                    <option value="Three times daily" <?php echo $reminder['frequency'] === 'Three times daily' ? 'selected' : ''; ?>>Three times daily</option>
+                                    <option value="Every 4 hours" <?php echo $reminder['frequency'] === 'Every 4 hours' ? 'selected' : ''; ?>>Every 4 hours</option>
+                                    <option value="Every 6 hours" <?php echo $reminder['frequency'] === 'Every 6 hours' ? 'selected' : ''; ?>>Every 6 hours</option>
+                                    <option value="Every 8 hours" <?php echo $reminder['frequency'] === 'Every 8 hours' ? 'selected' : ''; ?>>Every 8 hours</option>
+                                    <option value="As needed" <?php echo $reminder['frequency'] === 'As needed' ? 'selected' : ''; ?>>As needed</option>
+                                </select>
+                                
                                 <span class="reminder-time"><i class="ri-time-line"></i> <?php echo $reminder['time']; ?></span>
                             </div>
-                            <button class="btn btn-set-time">Set Time</button>
+                            <div class="reminder-actions">
+                                <button class="btn btn-set-time">Set Time</button>
+                                <button class="btn btn-delete-reminder" style="display: none; background: #f44336; margin-left: 5px; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">
+                                    <i class="ri-delete-bin-line"></i>
+                                </button>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>

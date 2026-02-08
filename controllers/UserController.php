@@ -2,9 +2,12 @@
 // controllers/UserController.php
 // Handles all logged-in user pages
 
-class UserController {
-    
-    // Shared data for header and footer
+require_once MODEL_PATH . 'MedicalProfile.php';
+
+class UserController
+{
+
+   // Shared data for header and footer
     protected $navItems;
     protected $userMenuItems;
     protected $footerLinks;
@@ -86,24 +89,25 @@ class UserController {
             exit();
         }
     }
-    
+
     /**
      * User Dashboard
      */
-    public function dashboard() {
+    public function dashboard()
+    {
         $this->requireLogin();
         $pageTitle = "Dashboard - Silent Signal";
-        
+
         // Shared header/footer data
         extract($this->getSharedData());
-        
+
         // User status data
         $userStatus = [
             'status' => 'safe',
             'label' => "I'M SAFE",
             'lastUpdated' => '2 minutes ago',
         ];
-        
+
         // Module cards data
         $moduleCards = [
             [
@@ -164,7 +168,7 @@ class UserController {
                 ],
             ],
         ];
-        
+
         // Recent activity data
         $recentActivity = [
             [
@@ -188,27 +192,28 @@ class UserController {
                 'badgeClass' => 'medium',
             ],
         ];
-        
+
         require_once VIEW_PATH . 'dashboard.php';
     }
-    
+
     /**
      * Emergency Alert System Page
      */
-    public function emergencyAlert() {
+    public function emergencyAlert()
+    {
         $this->requireLogin();
         $pageTitle = "Emergency Alert - Silent Signal";
-        
+
         // Shared header/footer data
         extract($this->getSharedData());
-        
+
         // Quick info cards data
         $infoCards = [
             ['icon' => 'ri-map-pin-line', 'label' => 'GPS Location'],
             ['icon' => 'ri-heart-pulse-line', 'label' => 'Medical Data'],
             ['icon' => 'ri-message-2-line', 'label' => 'SMS Alert'],
         ];
-        
+
         // Feature cards data
         $featureCards = [
             [
@@ -247,20 +252,20 @@ class UserController {
                 'description' => 'Alert confirmation through vibration pattern and full-screen color flash.',
             ],
         ];
-        
+
         // Emergency contacts (would come from database)
         $emergencyContacts = [
             ['name' => 'Maria Santos (Mother)', 'phone' => '+639123456789', 'isEmergency' => false],
             ['name' => 'Jose Santos (Father)', 'phone' => '+639234567890', 'isEmergency' => false],
             ['name' => 'Emergency Services', 'phone' => '911', 'isEmergency' => true],
         ];
-        
+
         // Confirmation options
         $confirmationOptions = [
             ['icon' => 'ri-vibrate-line', 'title' => 'Vibration Pattern', 'desc' => 'Strong pulse feedback'],
             ['icon' => 'ri-flashlight-line', 'title' => 'Color Flash', 'desc' => 'Full screen visual alert'],
         ];
-        
+
         // SMS Preview data
         $smsPreview = [
             'badge' => '⚠️ EMERGENCY ALERT ⚠️',
@@ -272,20 +277,21 @@ class UserController {
             ],
             'link' => 'https://maps.google.com/?q=10.6776,122.9509',
         ];
-        
+
         require_once VIEW_PATH . 'emergency-alert.php';
     }
-    
+
     /**
      * Disaster Monitoring Page
      */
-    public function disasterMonitor() {
+    public function disasterMonitor()
+    {
         $this->requireLogin();
         $pageTitle = "Disaster Monitoring - Silent Signal";
-        
+
         // Shared header/footer data
         extract($this->getSharedData());
-        
+
         // Active disaster alerts (would come from API/database)
         $disasterAlerts = [
             [
@@ -314,7 +320,7 @@ class UserController {
                 'time' => '1 hour ago',
             ],
         ];
-        
+
         // Weather conditions data
         $weatherConditions = [
             ['icon' => 'ri-temp-hot-line', 'label' => 'Temperature', 'value' => '28°C'],
@@ -323,7 +329,7 @@ class UserController {
             ['icon' => 'ri-rainy-line', 'label' => 'Rainfall', 'value' => 'Heavy'],
             ['icon' => 'ri-dashboard-3-line', 'label' => 'Pressure', 'value' => '1005 hPa', 'fullWidth' => true],
         ];
-        
+
         // Auto-SOS checklist items
         $autoSosSteps = [
             'Alert triggered by disaster detection',
@@ -331,66 +337,78 @@ class UserController {
             '30 second countdown begins',
             'If no response: Auto SOS sent with GPS location',
         ];
-        
+
         // Alert history (would come from database)
         $alertHistory = [
             ['type' => 'typhoon', 'name' => 'Typhoon Alert', 'time' => '2 hours ago', 'status' => 'dismissed'],
             ['type' => 'earthquake', 'name' => 'Earthquake Alert', 'time' => '5 hours ago', 'status' => 'responded'],
             ['type' => 'flood', 'name' => 'Flood Warning', 'time' => '1 day ago', 'status' => 'auto-sos'],
         ];
-        
+
         // Alert type icons mapping
         $alertIcons = [
             'typhoon' => 'ri-typhoon-line',
             'earthquake' => 'ri-earthquake-line',
             'flood' => 'ri-flood-line',
         ];
-        
+
         // Severity badge classes
         $severityClasses = [
             'HIGH' => 'high',
             'MEDIUM' => 'medium',
             'LOW' => 'low',
         ];
-        
+
         require_once VIEW_PATH . 'disaster-monitoring.php';
     }
-    
+
     /**
      * Family Check-in Page (placeholder)
      */
-    public function familyCheckin() {
+    public function familyCheckin()
+    {
         $this->requireLogin();
         $pageTitle = "Family Check-in - Silent Signal";
-        
+
         // Shared header/footer data
         extract($this->getSharedData());
-        
+
+
+        // put data here
+
         require_once VIEW_PATH . 'family-checkin.php';
     }
-    
+
     /**
      * Communication Hub Page (placeholder)
      */
-    public function communicationHub() {
+    public function communicationHub()
+    {
         $this->requireLogin();
         $pageTitle = "Communication Hub - Silent Signal";
-        
+
         // Shared header/footer data
         extract($this->getSharedData());
-        
+
+
+        // put data here
+
         require_once VIEW_PATH . 'communication-hub.php';
     }
-    
+
     /**
      * Medical Profile & Pre-Registration Page
      */
-    public function medicalProfile() {
+     public function medicalProfile() {
         $this->requireLogin();
         $pageTitle = "Medical Profile - Silent Signal";
         
         // Shared header/footer data
         extract($this->getSharedData());
+        
+        // Load medical profile from database
+        $medicalProfileModel = new MedicalProfile();
+        $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
         
         // Tab navigation
         $tabs = [
@@ -399,93 +417,85 @@ class UserController {
             ['id' => 'medication-reminders', 'icon' => 'ri-alarm-line', 'label' => 'Medication Reminders'],
         ];
         
-        // Personal Information (would come from database)
+        // Personal Information from database or empty defaults
         $personalInfo = [
-            'firstName' => 'Jerome',
-            'lastName' => 'Buenavista',
-            'dateOfBirth' => '2003-10-05',
-            'gender' => 'Male',
-            'pwdId' => 'PWD-2024-123456',
-            'phone' => '+639123456789',
-            'email' => 'jerome.buenavista@gmail.com',
-            'streetAddress' => '123 Main Street, Barangay San Juan',
-            'city' => 'Bacolod City',
-            'province' => 'Negros Occidental',
-            'zipCode' => '6100',
+            'firstName' => $profile['first_name'] ?? '',
+            'lastName' => $profile['last_name'] ?? '',
+            'dateOfBirth' => $profile['date_of_birth'] ?? '',
+            'gender' => $profile['gender'] ?? '',
+            'pwdId' => $profile['pwd_id'] ?? '',
+            'phone' => $profile['phone'] ?? $_SESSION['user_phone'] ?? '',
+            'email' => $profile['email'] ?? $_SESSION['user_email'] ?? '',
+            'streetAddress' => $profile['street_address'] ?? '',
+            'city' => $profile['city'] ?? '',
+            'province' => $profile['province'] ?? '',
+            'zipCode' => $profile['zip_code'] ?? '',
         ];
         
-        // Disability Status
+       // Disability Status - auto-set based on user role
+        $userRole = $_SESSION['user_role'] ?? '';
+        $disabilityType = ($profile && isset($profile['disability_type'])) ? $profile['disability_type'] : '';
+        
+        // If no disability type set yet and user is PWD, set default
+        if (empty($disabilityType) && $userRole === 'pwd') {
+            $disabilityType = 'Deaf/Mute'; // Default, user can change later
+        }
+        
         $disabilityStatus = [
-            'primary' => 'Deaf/Mute',
-            'verified' => true,
+            'primary' => $disabilityType,
+            'verified' => !empty($disabilityType),
         ];
         
-        // Allergies
-        $allergies = ['Penicillin', 'Peanuts'];
+        // Allergies (from JSON - already decoded by model)
+        $allergies = $profile['allergies'] ?? ['Penicillin', 'Peanuts'];
         
-        // Current Medications
-        $medications = ['Lisinopril 10mg', 'Metformin 500mg'];
+        // Current Medications (from JSON - already decoded by model)
+        $medications = $profile['medications'] ?? ['Lisinopril 10mg', 'Metformin 500mg'];
         
-        // Medical Conditions
-        $medicalConditions = ['Hypertension', 'Diabetes Type 2'];
+        // Medical Conditions (from JSON - already decoded by model)
+        $medicalConditions = $profile['medical_conditions'] ?? ['Hypertension', 'Diabetes Type 2'];
         
         // Blood Type
-        $bloodType = 'O+';
+        $bloodType = $profile['blood_type'] ?? 'O+';
         
-        // Emergency Contacts (Tab 2)
-        $emergencyContacts = [
-            [
-                'name' => 'Maria Santos',
-                'relation' => 'Mother',
-                'phone' => '+639123456789',
-                'initials' => 'MS',
-                'color' => '#4caf50',
-            ],
-            [
-                'name' => 'Jose Santos',
-                'relation' => 'Father',
-                'phone' => '+639234567890',
-                'initials' => 'JS',
-                'color' => '#ffc107',
-            ],
-            [
-                'name' => 'Dr. Cruz',
-                'relation' => 'Family Doctor',
-                'phone' => '+639345678901',
-                'initials' => 'DC',
-                'color' => '#2196f3',
-            ],
-        ];
+        // Emergency Contacts (from JSON - already decoded by model)
+        $emergencyContacts = $profile['emergency_contacts'] ?? [];
         
-        // SMS Configuration
+        // Add colors to contacts if not present
+        $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+        foreach ($emergencyContacts as $i => &$contact) {
+            if (!isset($contact['color'])) {
+                $contact['color'] = $colors[$i % count($colors)];
+            }
+            if (!isset($contact['initials'])) {
+                $nameParts = explode(' ', $contact['name'] ?? '');
+                $contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
+            }
+        }
+        
+        // SMS Configuration (build from profile data)
         $smsConfig = [
-            'name' => 'Juan Santos',
-            'pwdId' => 'PWD-2024-123456',
-            'phone' => '+63 912 345 6789',
-            'address' => '123 Real Street, Barangay San Juan, Bacolod City',
+            'name' => $personalInfo['firstName'] . ' ' . $personalInfo['lastName'],
+            'pwdId' => $personalInfo['pwdId'],
+            'phone' => $personalInfo['phone'],
+            'address' => $personalInfo['streetAddress'] . ', ' . $personalInfo['city'],
             'status' => 'Emergency SOS Activated',
-            'bloodType' => 'O+',
-            'allergies' => 'Penicillin, Peanuts',
-            'medications' => 'Lisinopril 10mg, Metformin 500mg',
+            'bloodType' => $bloodType,
+            'allergies' => is_array($allergies) ? implode(', ', $allergies) : '',
+            'medications' => is_array($medications) ? implode(', ', $medications) : '',
         ];
         
-        // Medication Reminders (Tab 3)
-        $medicationReminders = [
-            [
-                'name' => 'Lisinopril 10mg',
-                'frequency' => 'Daily reminder',
-                'time' => '8:00 AM, 8:00 PM',
-                'color' => '#4caf50',
-            ],
-            [
-                'name' => 'Metformin 500mg',
-                'frequency' => 'Daily reminder',
-                'time' => '9:00 AM, 6:00 PM',
-                'color' => '#2196f3',
-            ],
-        ];
+        // Medication Reminders (from JSON - already decoded by model)
+         $medicationReminders = ($profile && isset($profile['medication_reminders'])) ? $profile['medication_reminders'] : [];
         
-        // Reminder Features
+        // Add colors to reminders if not present
+        foreach ($medicationReminders as $i => &$reminder) {
+            if (!isset($reminder['color'])) {
+                $reminder['color'] = $colors[$i % count($colors)];
+            }
+        }
+        
+        // Reminder Features (static)
         $reminderFeatures = [
             'Full-screen visual alerts',
             'Strong vibration pattern',
@@ -494,5 +504,61 @@ class UserController {
         ];
         
         require_once VIEW_PATH . 'medical-profile.php';
+    }
+    
+    /**
+     * Save Medical Profile (AJAX endpoint)
+     */
+    public function saveMedicalProfile() {
+        $this->requireLogin();
+        
+        // Set JSON header
+        header('Content-Type: application/json');
+        
+        // Get POST data
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!$input) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data received.']);
+            exit();
+        }
+        
+        try {
+            $medicalProfile = new MedicalProfile();
+            
+            // Prepare data for saving
+            $profileData = [
+                'first_name' => $input['firstName'] ?? '',
+                'last_name' => $input['lastName'] ?? '',
+                'date_of_birth' => !empty($input['dateOfBirth']) ? $input['dateOfBirth'] : null,
+                'gender' => $input['gender'] ?? '',
+                'pwd_id' => $input['pwdId'] ?? '',
+                'phone' => $input['phone'] ?? '',
+                'email' => $input['email'] ?? '',
+                'street_address' => $input['streetAddress'] ?? '',
+                'city' => $input['city'] ?? '',
+                'province' => $input['province'] ?? '',
+                'zip_code' => $input['zipCode'] ?? '',
+                'disability_type' => $input['disabilityType'] ?? '',
+                'blood_type' => $input['bloodType'] ?? '',
+                'allergies' => $input['allergies'] ?? [],
+                'medications' => $input['medications'] ?? [],
+                'medical_conditions' => $input['medicalConditions'] ?? [],
+                'emergency_contacts' => $input['emergencyContacts'] ?? [],
+                'sms_template' => $input['smsTemplate'] ?? '',
+                'medication_reminders' => $input['medicationReminders'] ?? []
+            ];
+            
+            if ($medicalProfile->saveProfile($_SESSION['user_id'], $profileData)) {
+                echo json_encode(['success' => true, 'message' => 'Profile saved successfully!']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to save profile.']);
+            }
+        } catch (Exception $e) {
+            error_log("Save Medical Profile Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'An error occurred. Please try again.']);
+        }
+        
+        exit();
     }
 }

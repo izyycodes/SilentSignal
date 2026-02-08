@@ -51,6 +51,7 @@ define('CONTACT_WEBSITE', 'www.silentsignal.com');
 define('VIEW_PATH', __DIR__ . '/../views/');
 define('CONTROLLER_PATH', __DIR__ . '/../controllers/');
 define('MODEL_PATH', __DIR__ . '/../models/');
+define('CONFIG_PATH', __DIR__ . '/../config/');
 define('ASSETS_PATH', BASE_URL . 'assets/');
 
 // Error Reporting

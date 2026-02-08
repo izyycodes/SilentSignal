@@ -83,4 +83,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // ================================
+    // FLASH MESSAGES
+    // ================================
+    const flashMessages = document.querySelectorAll('.flash-message');
+    flashMessages.forEach(message => {
+        const autoDismiss = setTimeout(() => dismissMessage(message), 5000);
+        const closeBtn = message.querySelector('.flash-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                clearTimeout(autoDismiss);
+                dismissMessage(message);
+            });
+        }
+    });
+    function dismissMessage(message) {
+        message.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => message.remove(), 300);
+    }
 });
