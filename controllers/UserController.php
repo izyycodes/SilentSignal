@@ -452,16 +452,16 @@ class UserController
         ];
         
         // Allergies (from JSON - already decoded by model)
-        $allergies = $profile['allergies'] ?? ['Penicillin', 'Peanuts'];
+        $allergies = $profile['allergies'] ?? [];
         
         // Current Medications (from JSON - already decoded by model)
-        $medications = $profile['medications'] ?? ['Lisinopril 10mg', 'Metformin 500mg'];
+        $medications = $profile['medications'] ?? [];
         
         // Medical Conditions (from JSON - already decoded by model)
-        $medicalConditions = $profile['medical_conditions'] ?? ['Hypertension', 'Diabetes Type 2'];
+        $medicalConditions = $profile['medical_conditions'] ?? [];
         
         // Blood Type
-        $bloodType = $profile['blood_type'] ?? 'O+';
+        $bloodType = $profile['blood_type'] ?? '';
         
         // Emergency Contacts (from JSON - already decoded by model)
         $emergencyContacts = $profile['emergency_contacts'] ?? [];
@@ -514,7 +514,7 @@ class UserController
         ];
         
         // Medication Reminders (from JSON - already decoded by model)
-         $medicationReminders = ($profile && isset($profile['medication_reminders'])) ? $profile['medication_reminders'] : [];
+        $medicationReminders = ($profile && isset($profile['medication_reminders'])) ? $profile['medication_reminders'] : [];
         
         // Add colors to reminders if not present
         foreach ($medicationReminders as $i => &$reminder) {

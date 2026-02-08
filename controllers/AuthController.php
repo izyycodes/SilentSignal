@@ -107,12 +107,6 @@ class AuthController {
         
         if (!empty($phone)) {
             $this->user->phone_number = $phone;
-                $errors[] = "Email already registered.";
-            }
-        }
-        
-        if (!empty($phone)) {
-            $this->user->phone_number = $phone;
             if ($this->user->phoneExists()) {
                 $errors[] = "Phone number already registered.";
             }
@@ -192,19 +186,6 @@ class AuthController {
      * Process logout
      */
     public function logout() {
-        // Make sure session is started
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
-        // Unset all session variables
-        $_SESSION = [];
-        
-        // Delete the session cookie
-        if (isset($_COOKIE[session_name()])) {
-            setcookie(session_name(), '', time() - 3600, '/');
-        }
-        
         // Destroy the session
         session_destroy();
         

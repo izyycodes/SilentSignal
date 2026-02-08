@@ -110,6 +110,7 @@
 
 .card-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 12px;
     margin-bottom: 20px;
@@ -377,7 +378,7 @@
 /* ================================
    EMERGENCY CONTACTS
    ================================ */
-.btn-add-contact {
+.btn-add-contact, .btn-add-reminder {
     background: linear-gradient(135deg, #26a69a 0%, #00897b 100%);
     color: white;
     padding: 10px 20px;
@@ -392,7 +393,7 @@
     transition: all 0.3s;
 }
 
-.btn-add-contact:hover {
+.btn-add-contact:hover, .btn-add-reminder:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(38, 166, 154, 0.3);
 }
@@ -589,6 +590,12 @@
     margin-top: 4px;
 }
 
+.reminder-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .btn-set-time {
     padding: 8px 16px;
     background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
@@ -611,6 +618,17 @@
 
 .btn-set-time i {
     font-size: 16px;
+}
+
+.btn-delete-reminder {
+   display: none; 
+   background: #f44336; 
+   margin-left: 5px; 
+   color: white; 
+   border: none; 
+   padding: 8px 12px; 
+   border-radius: 5px; 
+   cursor: pointer;
 }
 
 /* ================================

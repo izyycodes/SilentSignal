@@ -172,11 +172,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Toggle Add Reminder button
-        const addReminderBtn = document.getElementById('addReminderBtn');
-        if (addReminderBtn) {
-            addReminderBtn.style.display = readonly ? 'none' : 'inline-flex';
-        }
     }
 
 
@@ -337,16 +332,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function resetForm() {
-        if (!originalFormData) return;
+    if (!originalFormData) return;
 
-        // Reset personal info
-        Object.keys(originalFormData.personalInfo).forEach(key => {
-            const input = document.querySelector(`[name="${key}"]`);
-            if (input) input.value = originalFormData.personalInfo[key];
-        });
+    // Reset all form inputs by name - data is now flat, not nested
+    document.querySelectorAll('.form-control[name]').forEach(input => {
+        const name = input.getAttribute('name');
+        if (originalFormData[name] !== undefined) {
+            input.value = originalFormData[name];
+        }
+    });
 
-        hasUnsavedChanges = false;
-    }
+    hasUnsavedChanges = false;
+}
 
     // ================================
     // TRACK CHANGES
@@ -366,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const bloodTypeSelect = document.createElement('select');
         bloodTypeSelect.id = 'bloodTypeSelect';
         bloodTypeSelect.className = 'form-control';
-        bloodTypeSelect.style.cssText = 'font-size: 2rem; font-weight: bold; text-align: center; display: none;';
+        bloodTypeSelect.style.cssText = 'font-size: 1.5rem; font-weight: bold; text-align: center; display: none;';
         bloodTypeSelect.disabled = true;
 
         const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -790,107 +787,90 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function collectFormData() {
-        const data = {
-            personalInfo: {},
-            disabilityType: 'Deaf/Mute',
-            allergies: [],
-            medications: [],
-            conditions: [],
-            contacts: [],
-            bloodType: '',
-            smsTemplate: '',
-            medicationReminders: []
-        };
+    const data = {};
 
-        // Get all form inputs with name attribute
-        document.querySelectorAll('.form-control[name]').forEach(input => {
-            const name = input.getAttribute('name');
-            data.personalInfo[name] = input.value;
-        });
+    // Get all form inputs with name attribute - FLATTEN to root level
+    document.querySelectorAll('.form-control[name]').forEach(input => {
+        const name = input.getAttribute('name');
+        data[name] = input.value;
+    });
 
-        // Get blood type
-        const bloodTypeSelect = document.getElementById('bloodTypeSelect');
-        if (bloodTypeSelect) {
-            data.bloodType = bloodTypeSelect.value;
-        } else {
-            const bloodTypeDisplay = document.querySelector('.blood-type-value');
-            if (bloodTypeDisplay) {
-                data.bloodType = bloodTypeDisplay.textContent.trim();
-            }
+    // Get blood type
+    const bloodTypeSelect = document.getElementById('bloodTypeSelect');
+    if (bloodTypeSelect) {
+        data.bloodType = bloodTypeSelect.value;
+    } else {
+        const bloodTypeDisplay = document.querySelector('.blood-type-value');
+        if (bloodTypeDisplay) {
+            data.bloodType = bloodTypeDisplay.textContent.trim();
         }
-
-        // Get SMS template
-        const smsTemplate = document.getElementById('smsTemplate');
-        if (smsTemplate) {
-            data.smsTemplate = smsTemplate.value;
-        }
-
-        // Get allergies
-        document.querySelectorAll('#allergiesContainer .tag span').forEach(tag => {
-            data.allergies.push(tag.textContent);
-        });
-
-        // Get medications
-        document.querySelectorAll('#medicationsContainer .medication-item span').forEach(item => {
-            data.medications.push(item.textContent);
-        });
-
-        // Get conditions
-        document.querySelectorAll('#conditionsContainer .tag span').forEach(tag => {
-            data.conditions.push(tag.textContent);
-        });
-
-        // Get emergency contacts
-        document.querySelectorAll('.contact-card').forEach(card => {
-            const name = card.querySelector('h4').textContent;
-            const relation = card.querySelector('.contact-relation').textContent;
-            const phone = card.querySelector('.contact-phone').textContent;
-            const initials = card.querySelector('.contact-avatar').textContent.trim();
-            const color = card.querySelector('.contact-avatar').style.background;
-
-            data.contacts.push({
-                name: name,
-                relation: relation,
-                phone: phone,
-                initials: initials,
-                color: color
-            });
-        });
-
-        // Get medication reminders
-        document.querySelectorAll('.reminder-card').forEach(card => {
-            // Try to get from edit inputs first (if in edit mode)
-            const nameEdit = card.querySelector('.reminder-name-edit');
-            const freqEdit = card.querySelector('.reminder-frequency-edit');
-            const nameDisplay = card.querySelector('.reminder-name-display');
-            const freqDisplay = card.querySelector('.reminder-frequency-display');
-
-            // Get name from edit field if visible, otherwise from display
-            const name = nameEdit && nameEdit.style.display !== 'none'
-                ? nameEdit.value
-                : (nameDisplay ? nameDisplay.textContent : '');
-
-            // Get frequency from select if visible, otherwise from display
-            const frequency = freqEdit && freqEdit.style.display !== 'none'
-                ? freqEdit.value
-                : (freqDisplay ? freqDisplay.textContent : '');
-
-            const timeElement = card.querySelector('.reminder-time');
-            const time = timeElement ? timeElement.textContent.replace(/.*?(\d+:\d+\s*[AP]M.*)/i, '$1') : '';
-            const iconElement = card.querySelector('.reminder-icon');
-            const color = iconElement ? iconElement.style.background : '';
-
-            data.medicationReminders.push({
-                name: name,
-                frequency: frequency,
-                time: time,
-                color: color
-            });
-        });
-
-        return data;
     }
 
+    // Get disability type
+    data.disabilityType = 'Deaf/Mute'; // or get from form if editable
+
+    // Get SMS template
+    const smsTemplate = document.getElementById('smsTemplate');
+    if (smsTemplate) {
+        data.smsTemplate = smsTemplate.value;
+    }
+
+    // Get allergies
+    data.allergies = [];
+    document.querySelectorAll('#allergiesContainer .tag span').forEach(tag => {
+        data.allergies.push(tag.textContent);
+    });
+
+    // Get medications
+    data.medications = [];
+    document.querySelectorAll('#medicationsContainer .medication-item span').forEach(item => {
+        data.medications.push(item.textContent);
+    });
+
+    // Get medical conditions - CORRECT KEY NAME
+    data.medicalConditions = [];
+    document.querySelectorAll('#conditionsContainer .tag span').forEach(tag => {
+        data.medicalConditions.push(tag.textContent);
+    });
+
+    // Get emergency contacts - CORRECT KEY NAME
+    data.emergencyContacts = [];
+    document.querySelectorAll('.contact-card').forEach(card => {
+        const name = card.querySelector('h4').textContent;
+        const relation = card.querySelector('.contact-relation').textContent;
+        const phone = card.querySelector('.contact-phone').textContent;
+        const initials = card.querySelector('.contact-avatar').textContent.trim();
+        const color = card.querySelector('.contact-avatar').style.background;
+        
+        data.emergencyContacts.push({
+            name: name,
+            relation: relation,
+            phone: phone,
+            initials: initials,
+            color: color
+        });
+    });
+
+    // Get medication reminders
+    data.medicationReminders = [];
+    document.querySelectorAll('.reminder-card').forEach(card => {
+        const name = card.querySelector('h4').textContent;
+        const frequency = card.querySelector('.reminder-frequency').textContent;
+        const timeElement = card.querySelector('.reminder-time');
+        const time = timeElement ? timeElement.textContent.replace(/.*?(\d+:\d+\s*[AP]M.*)/i, '$1') : '';
+        const iconElement = card.querySelector('.reminder-icon');
+        const color = iconElement ? iconElement.style.background : '';
+        
+        data.medicationReminders.push({
+            name: name,
+            frequency: frequency,
+            time: time,
+            color: color
+        });
+    });
+
+    return data;
+}
     function showNotification(message, type) {
         const notification = document.createElement('div');
         notification.className = 'notification';

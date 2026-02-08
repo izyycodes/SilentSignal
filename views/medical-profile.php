@@ -272,7 +272,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <div class="card-header">
                     <div class="card-icon blue"><i class="ri-eye-line"></i></div>
                     <h2>Visual Medication Reminders</h2>
-                    <button class="btn btn-add-reminder" id="addReminderBtn" style="display: none;">
+                    <button class="btn btn-add-reminder" id="addReminderBtn">
                         <i class="ri-add-line"></i> Add Reminder
                     </button>
                 </div>
@@ -288,7 +288,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                                 <h4 class="reminder-name-display"><?php echo $reminder['name']; ?></h4>
                                 <input type="text" class="reminder-name-edit form-control" 
                                        value="<?php echo $reminder['name']; ?>" 
-                                       style="display: none; margin-bottom: 8px; font-size: 1.1rem; font-weight: 600;"
+                                       
                                        placeholder="Enter medication name">
                                 
                                 <!-- Frequency -->
@@ -307,7 +307,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                             </div>
                             <div class="reminder-actions">
                                 <button class="btn btn-set-time">Set Time</button>
-                                <button class="btn btn-delete-reminder" style="display: none; background: #f44336; margin-left: 5px; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">
+                                <button class="btn btn-delete-reminder">
                                     <i class="ri-delete-bin-line"></i>
                                 </button>
                             </div>
