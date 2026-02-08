@@ -8,6 +8,10 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: " . BASE_URL . "index.php?action=auth");
     exit();
 }
+
+// Get user role
+$userRole = $_SESSION['user_role'] ?? 'user';
+$isPWD = ($userRole === 'pwd');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -74,6 +78,12 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                     <div class="dropdown-divider"></div>
                     <?php foreach ($userMenuItems as $item): ?>
+                        <?php 
+                        // Skip Medical Profile menu item if user is not PWD
+                        if ($item['action'] === 'medical-profile' && !$isPWD) {
+                            continue;
+                        }
+                        ?>
                         <a href="<?php echo BASE_URL; ?>index.php?action=<?php echo $item['action']; ?>" class="dropdown-item">
                             <i class="<?php echo $item['icon']; ?>"></i>
                             <span><?php echo $item['label']; ?></span>
@@ -127,6 +137,12 @@ if (!isset($_SESSION['user_id'])) {
         <div class="mobile-nav-divider"></div>
         
         <?php foreach ($userMenuItems as $item): ?>
+            <?php 
+            // Skip Medical Profile menu item if user is not PWD
+            if ($item['action'] === 'medical-profile' && !$isPWD) {
+                continue;
+            }
+            ?>
             <a href="<?php echo BASE_URL; ?>index.php?action=<?php echo $item['action']; ?>" 
                class="mobile-nav-item <?php echo ($currentAction === $item['action']) ? 'active' : ''; ?>">
                 <i class="<?php echo $item['icon']; ?>"></i>

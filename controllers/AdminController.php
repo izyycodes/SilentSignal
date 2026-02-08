@@ -1,19 +1,82 @@
 <?php
 // controllers/AdminController.php
 
-require_once __DIR__ . '/../config/config.php';
-
 class AdminController {
+
+    // Shared data for header and footer
+    protected $navItems;
+    protected $userMenuItems;
+    protected $footerLinks;
+    protected $footerSupport;
+    protected $footerSocial;
+    
     
     /**
-     * Check if user is admin
+     * Constructor - Initialize shared data
      */
-    private function requireAdmin() {
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
-            $_SESSION['error'] = "Access denied. Admin privileges required.";
-            header("Location: " . BASE_URL . "index.php?action=auth");
-            exit();
-        }
+    public function __construct()
+    {
+        $this->initSharedData();
+    }
+
+    /**
+     * Initialize shared header/footer data
+     */
+    private function initSharedData()
+    {
+        // Header navigation items
+        $this->navItems = [
+            ['action' => 'admin-dashboard', 'icon' => 'ri-dashboard-line', 'label' => 'Home'],
+            ['action' => 'admin-users', 'icon' => 'ri-user-settings-line', 'label' => 'Users'],
+            ['action' => 'admin-emergency-alerts', 'icon' => 'ri-alarm-warning-line', 'label' => 'Emergency Alerts'],
+            ['action' => 'admin-disaster-alerts', 'icon' => 'ri-earth-line', 'label' => 'Disaster Alerts'],
+            ['action' => 'admin-messages', 'icon' => 'ri-message-3-line', 'label' => 'Messages'],
+        ];
+
+        // User dropdown menu items
+        $this->userMenuItems = [
+            ['action' => 'medical-profile', 'icon' => 'ri-heart-pulse-line', 'label' => 'Medical Profile'],
+        ];
+
+        // Footer quick links
+        $this->footerLinks = [
+            ['label' => 'Home', 'action' => 'admin-dashboard'],
+            ['label' => 'Users', 'action' => 'admin-users'],
+            ['label' => 'Emergency Alerts', 'action' => 'admin-emergency-alerts'],
+            ['label' => 'Disaster Alerts', 'action' => 'admin-disaster-alerts'],
+            ['label' => 'Messages', 'action' => 'admin-messages'],
+        ];
+
+        // Footer support links
+        $this->footerSupport = [
+            ['label' => 'Help Center', 'href' => '#'],
+            ['label' => 'Safety Guide', 'href' => '#'],
+            ['label' => 'FSL Resources', 'href' => '#'],
+            ['label' => 'Contact Us', 'action' => 'home', 'anchor' => '#contact'],
+        ];
+
+        // Footer social links
+        $this->footerSocial = [
+            ['icon' => 'fa-brands fa-facebook-f', 'href' => '#'],
+            ['icon' => 'fa-brands fa-instagram', 'href' => '#'],
+            ['icon' => 'fa-brands fa-tiktok', 'href' => '#'],
+            ['icon' => 'fa-brands fa-x-twitter', 'href' => '#'],
+        ];
+    }
+
+    /**
+     * Get shared data for views
+     */
+    private function getSharedData()
+    {
+        return [
+            'navItems' => $this->navItems,
+            'userMenuItems' => $this->userMenuItems,
+            'footerLinks' => $this->footerLinks,
+            'footerSupport' => $this->footerSupport,
+            'footerSocial' => $this->footerSocial,
+            'currentAction' => $_GET['action'] ?? 'dashboard',
+        ];
     }
 
     /**
@@ -30,29 +93,26 @@ class AdminController {
     }
 
     /**
-     * Get admin navigation items
-     */
-    private function getAdminNavItems() {
-        return [
-            ['action' => 'admin-dashboard', 'icon' => 'ri-dashboard-line', 'label' => 'Dashboard'],
-            ['action' => 'admin-users', 'icon' => 'ri-user-settings-line', 'label' => 'Users'],
-            ['action' => 'admin-emergency-alerts', 'icon' => 'ri-alarm-warning-line', 'label' => 'Emergency Alerts'],
-            ['action' => 'admin-disaster-alerts', 'icon' => 'ri-earth-line', 'label' => 'Disaster Alerts'],
-            ['action' => 'admin-messages', 'icon' => 'ri-message-3-line', 'label' => 'Messages'],
-        ];
-    }
-
-    /**
      * Get common admin view data
      */
     private function getCommonViewData() {
         return [
             'currentUser' => $this->getCurrentUser(),
-            'adminNavItems' => $this->getAdminNavItems(),
             'currentAction' => $_GET['action'] ?? 'admin-dashboard'
         ];
     }
 
+    /**
+     * Check if user is admin
+     */
+    private function requireAdmin() {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+            $_SESSION['error'] = "Access denied. Admin privileges required.";
+            header("Location: " . BASE_URL . "index.php?action=auth");
+            exit();
+        }
+    }
+    
     // ==================== DASHBOARD ====================
     
     /**
@@ -63,6 +123,9 @@ class AdminController {
         $pageTitle = "Admin Dashboard - Silent Signal";
         
         extract($this->getCommonViewData());
+
+        // Shared header/footer data
+        extract($this->getSharedData());
         
         // Mock statistics
         $stats = [
@@ -108,7 +171,7 @@ class AdminController {
             ]
         ];
         
-        require_once VIEW_PATH . 'admin/dashboard.php';
+        require_once VIEW_PATH . 'admin-dashboard.php';
     }
 
     // ==================== USERS MANAGEMENT ====================
@@ -121,6 +184,9 @@ class AdminController {
         $pageTitle = "User Management - Admin - Silent Signal";
         
         extract($this->getCommonViewData());
+
+        // Shared header/footer data
+        extract($this->getSharedData());
         
         // Mock users data
         $users = [
@@ -203,6 +269,9 @@ class AdminController {
         $pageTitle = "Emergency Alerts - Admin - Silent Signal";
         
         extract($this->getCommonViewData());
+
+        // Shared header/footer data
+        extract($this->getSharedData());
         
         // Mock emergency alerts
         $alerts = [
@@ -291,6 +360,9 @@ class AdminController {
         $pageTitle = "Disaster Alerts - Admin - Silent Signal";
         
         extract($this->getCommonViewData());
+
+        // Shared header/footer data
+        extract($this->getSharedData());
         
         // Mock disaster alerts
         $alerts = [
@@ -375,6 +447,9 @@ class AdminController {
         $pageTitle = "Message Inquiries - Admin - Silent Signal";
         
         extract($this->getCommonViewData());
+
+        // Shared header/footer data
+        extract($this->getSharedData());
         
         // Mock messages
         $messages = [
