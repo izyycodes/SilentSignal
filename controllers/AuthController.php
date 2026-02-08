@@ -6,15 +6,19 @@ require_once MODEL_PATH . 'MedicalProfile.php';
 
 
 class AuthController {
+    
     private $db;
     private $user;
-
+    
     public function __construct() {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->user = new User($this->db);
     }
-
+    
+    /**
+     * Show auth page (login/signup)
+     */
     public function showAuth() {
      // If already logged in, redirect to dashboard
         if (isset($_SESSION['user_id'])) {
@@ -60,7 +64,10 @@ class AuthController {
             exit();
         }
     }
-
+    
+    /**
+     * Process signup
+     */
     public function processSignup() {
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
             header("Location: " . BASE_URL . "index.php?action=auth&mode=signup");
@@ -94,6 +101,12 @@ class AuthController {
             // Check if email exists
             $this->user->email = $email;
             if ($this->user->emailExists()) {
+                $errors[] = "Email already registered.";
+            }
+        }
+        
+        if (!empty($phone)) {
+            $this->user->phone_number = $phone;
                 $errors[] = "Email already registered.";
             }
         }
@@ -174,9 +187,28 @@ class AuthController {
             exit();
         }
     }
-
+    
+    /**
+     * Process logout
+     */
     public function logout() {
+        // Make sure session is started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // Unset all session variables
+        $_SESSION = [];
+        
+        // Delete the session cookie
+        if (isset($_COOKIE[session_name()])) {
+            setcookie(session_name(), '', time() - 3600, '/');
+        }
+        
+        // Destroy the session
         session_destroy();
+        
+        // Redirect to home page
         header("Location: " . BASE_URL . "index.php?action=home");
         exit();
     }

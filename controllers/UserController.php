@@ -410,6 +410,10 @@ class UserController
         $medicalProfileModel = new MedicalProfile();
         $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
         
+        // Load medical profile from database
+        $medicalProfileModel = new MedicalProfile();
+        $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
+        
         // Tab navigation
         $tabs = [
             ['id' => 'medical-profile', 'icon' => 'ri-heart-pulse-line', 'label' => 'Medical Profile'],
@@ -417,6 +421,7 @@ class UserController
             ['id' => 'medication-reminders', 'icon' => 'ri-alarm-line', 'label' => 'Medication Reminders'],
         ];
         
+        // Personal Information from database or empty defaults
         // Personal Information from database or empty defaults
         $personalInfo = [
             'firstName' => $profile['first_name'] ?? '',
@@ -474,12 +479,35 @@ class UserController
         }
         
         // SMS Configuration (build from profile data)
+        // Emergency Contacts (from JSON - already decoded by model)
+        $emergencyContacts = $profile['emergency_contacts'] ?? [];
+        
+        // Add colors to contacts if not present
+        $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+        foreach ($emergencyContacts as $i => &$contact) {
+            if (!isset($contact['color'])) {
+                $contact['color'] = $colors[$i % count($colors)];
+            }
+            if (!isset($contact['initials'])) {
+                $nameParts = explode(' ', $contact['name'] ?? '');
+                $contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
+            }
+        }
+        
+        // SMS Configuration (build from profile data)
         $smsConfig = [
             'name' => $personalInfo['firstName'] . ' ' . $personalInfo['lastName'],
             'pwdId' => $personalInfo['pwdId'],
             'phone' => $personalInfo['phone'],
             'address' => $personalInfo['streetAddress'] . ', ' . $personalInfo['city'],
+            'name' => $personalInfo['firstName'] . ' ' . $personalInfo['lastName'],
+            'pwdId' => $personalInfo['pwdId'],
+            'phone' => $personalInfo['phone'],
+            'address' => $personalInfo['streetAddress'] . ', ' . $personalInfo['city'],
             'status' => 'Emergency SOS Activated',
+            'bloodType' => $bloodType,
+            'allergies' => is_array($allergies) ? implode(', ', $allergies) : '',
+            'medications' => is_array($medications) ? implode(', ', $medications) : '',
             'bloodType' => $bloodType,
             'allergies' => is_array($allergies) ? implode(', ', $allergies) : '',
             'medications' => is_array($medications) ? implode(', ', $medications) : '',
