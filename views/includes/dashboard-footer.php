@@ -89,7 +89,7 @@ $footerSocial = [
         </div>
         
         <div class="footer-bottom">
-            <p>&copy; <?php echo date('Y'); ?> Silent Signal. All Rights Reserved.</p>
+            <p>&copy; Silent Signal. Copyright 2026. All Rights Reserved.</p>
         </div>
     </div>
 </footer>
