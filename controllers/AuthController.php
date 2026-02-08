@@ -2,9 +2,9 @@
 // controllers/AuthController.php
 // Handles authentication: login, signup, logout
 
-require_once CONFIG_PATH . 'Database.php';
-require_once MODEL_PATH . 'User.php';
-require_once MODEL_PATH . 'MedicalProfile.php';
+require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/MedicalProfile.php';
 
 class AuthController {
     
@@ -199,23 +199,24 @@ class AuthController {
      * Process logout
      */
     public function logout() {
-        // Clear all session variables
+        // Make sure session is started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // Unset all session variables
         $_SESSION = [];
         
-        // Destroy the session cookie
-        if (ini_get("session.use_cookies")) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
-            );
+        // Delete the session cookie
+        if (isset($_COOKIE[session_name()])) {
+            setcookie(session_name(), '', time() - 3600, '/');
         }
         
         // Destroy the session
         session_destroy();
         
-        // Redirect to home
-        header("Location: " . BASE_URL . "index.php");
+        // Redirect to home page
+        header("Location: " . BASE_URL . "index.php?action=home");
         exit();
     }
     

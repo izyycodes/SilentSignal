@@ -2,7 +2,7 @@
 // controllers/UserController.php
 // Handles all logged-in user pages
 
-require_once MODEL_PATH . 'MedicalProfile.php';
+require_once __DIR__ . '/../models/MedicalProfile.php';
 
 class UserController {
     
