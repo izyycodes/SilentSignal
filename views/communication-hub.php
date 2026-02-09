@@ -111,6 +111,19 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 <!-- Toast Notification -->
 <div class="toast" id="toast"></div>
 
+<!-- Pass PHP data to JavaScript -->
+<script>
+// Data from PHP Controller - CRITICAL: These variables must be defined before loading the JS file
+const categoriesData = <?php echo json_encode($categories ?? []); ?>;
+const messagesData = <?php echo json_encode($messages ?? []); ?>;
+const fslItemsData = <?php echo json_encode($fslItems ?? []); ?>;
+
+// Debug: Log data to console (remove in production)
+console.log('Categories:', categoriesData);
+console.log('Messages:', messagesData);
+console.log('FSL Items:', fslItemsData);
+</script>
+
 <!-- Page-specific JavaScript -->
 <script src="<?php echo BASE_URL; ?>assets/js/communication-hub.js"></script>
 

@@ -8,6 +8,10 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: " . BASE_URL . "index.php?action=auth");
     exit();
 }
+
+// Get user role
+$userRole = $_SESSION['user_role'] ?? 'user';
+$isPWD = ($userRole === 'pwd');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -74,6 +78,12 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                     <div class="dropdown-divider"></div>
                     <?php foreach ($userMenuItems as $item): ?>
+                        <?php 
+                        // Skip Medical Profile menu item if user is not PWD
+                        if ($item['action'] === 'medical-profile' && !$isPWD) {
+                            continue;
+                        }
+                        ?>
                         <a href="<?php echo BASE_URL; ?>index.php?action=<?php echo $item['action']; ?>" class="dropdown-item">
                             <i class="<?php echo $item['icon']; ?>"></i>
                             <span><?php echo $item['label']; ?></span>
@@ -127,6 +137,12 @@ if (!isset($_SESSION['user_id'])) {
         <div class="mobile-nav-divider"></div>
         
         <?php foreach ($userMenuItems as $item): ?>
+            <?php 
+            // Skip Medical Profile menu item if user is not PWD
+            if ($item['action'] === 'medical-profile' && !$isPWD) {
+                continue;
+            }
+            ?>
             <a href="<?php echo BASE_URL; ?>index.php?action=<?php echo $item['action']; ?>" 
                class="mobile-nav-item <?php echo ($currentAction === $item['action']) ? 'active' : ''; ?>">
                 <i class="<?php echo $item['icon']; ?>"></i>
@@ -145,3 +161,35 @@ if (!isset($_SESSION['user_id'])) {
 
 <!-- Main Content Wrapper -->
 <main class="dashboard-main">
+
+<!-- Flash Messages Component -->
+<?php if (isset($_SESSION['success']) || isset($_SESSION['error']) || isset($_SESSION['info'])): ?>
+<div class="flash-messages-container">
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="flash-message flash-success">
+            <i class="ri-checkbox-circle-fill"></i>
+            <span><?php echo htmlspecialchars($_SESSION['success']); ?></span>
+            <button class="flash-close"><i class="ri-close-line"></i></button>
+        </div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+    
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="flash-message flash-error">
+            <i class="ri-error-warning-fill"></i>
+            <span><?php echo htmlspecialchars($_SESSION['error']); ?></span>
+            <button class="flash-close"><i class="ri-close-line"></i></button>
+        </div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+    
+    <?php if (isset($_SESSION['info'])): ?>
+        <div class="flash-message flash-info">
+            <i class="ri-information-fill"></i>
+            <span><?php echo htmlspecialchars($_SESSION['info']); ?></span>
+            <button class="flash-close"><i class="ri-close-line"></i></button>
+        </div>
+        <?php unset($_SESSION['info']); ?>
+    <?php endif; ?>
+</div>
+<?php endif; ?>

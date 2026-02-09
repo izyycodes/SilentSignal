@@ -145,16 +145,151 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.btn-set-time').forEach(btn => {
             btn.style.display = readonly ? 'none' : 'inline-flex';
         });
+
+        // Toggle medication reminder editing
+        document.querySelectorAll('.reminder-card').forEach(card => {
+            const nameDisplay = card.querySelector('.reminder-name-display');
+            const nameEdit = card.querySelector('.reminder-name-edit');
+            const freqDisplay = card.querySelector('.reminder-frequency-display');
+            const freqEdit = card.querySelector('.reminder-frequency-edit');
+            const deleteBtn = card.querySelector('.btn-delete-reminder');
+
+            if (nameDisplay && nameEdit) {
+                nameDisplay.style.display = readonly ? 'block' : 'none';
+                nameEdit.style.display = readonly ? 'none' : 'block';
+                if (!readonly) {
+                    nameEdit.readOnly = false;
+                    nameEdit.style.cursor = 'text';
+                }
+            }
+            if (freqDisplay && freqEdit) {
+                freqDisplay.style.display = readonly ? 'inline-block' : 'none';
+                freqEdit.style.display = readonly ? 'none' : 'inline-block';
+                freqEdit.disabled = readonly;
+            }
+            if (deleteBtn) {
+                deleteBtn.style.display = readonly ? 'none' : 'inline-flex';
+            }
+        });
+
+    }
+
+
+    // ================================
+    // ADD REMINDER FUNCTIONALITY  
+    // ================================
+
+    // ADD THIS EVENT LISTENER for adding new reminders:
+
+    const addReminderBtn = document.getElementById('addReminderBtn');
+    if (addReminderBtn) {
+        addReminderBtn.addEventListener('click', function () {
+            // Create modal/prompt for new reminder
+            const name = prompt('Enter medication name:');
+            if (!name || name.trim() === '') return;
+
+            const frequencies = [
+                'Once daily',
+                'Twice daily',
+                'Three times daily',
+                'Every 4 hours',
+                'Every 6 hours',
+                'Every 8 hours',
+                'As needed'
+            ];
+
+            let freqChoice = prompt(
+                'Select frequency (enter number):\n' +
+                frequencies.map((f, i) => `${i + 1}. ${f}`).join('\n')
+            );
+
+            if (!freqChoice || freqChoice < 1 || freqChoice > frequencies.length) {
+                freqChoice = 1; // default to once daily
+            }
+
+            const frequency = frequencies[parseInt(freqChoice) - 1];
+            const time = '8:00 AM'; // default time
+
+            addMedicationReminder(name.trim(), frequency, time);
+            hasUnsavedChanges = true;
+        });
+    }
+
+    // ================================
+    // DELETE REMINDER FUNCTIONALITY
+    // ================================
+
+    // ADD THIS EVENT DELEGATION for delete buttons:
+
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('.btn-delete-reminder')) {
+            if (confirm('Delete this medication reminder?')) {
+                e.target.closest('.reminder-card').remove();
+                hasUnsavedChanges = true;
+                showNotification('Reminder deleted', 'info');
+            }
+        }
+    });
+
+    // ================================
+    // HELPER FUNCTION TO ADD REMINDER
+    // ================================
+
+    function addMedicationReminder(name, frequency, time) {
+        const container = document.querySelector('.reminders-list');
+        if (!container) return;
+
+        const colors = ['#4caf50', '#2196f3', '#ff9800', '#e53935', '#9c27b0'];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+        const card = document.createElement('div');
+        card.className = 'reminder-card';
+        card.style.animation = 'fadeIn 0.3s ease';
+
+        card.innerHTML = `
+        <div class="reminder-icon" style="background: ${randomColor};">
+            <i class="ri-capsule-fill"></i>
+        </div>
+        <div class="reminder-info">
+            <h4 class="reminder-name-display" style="display: none;">${name}</h4>
+            <input type="text" class="reminder-name-edit form-control" 
+                   value="${name}" 
+                   style="margin-bottom: 8px; font-size: 1.1rem; font-weight: 600;"
+                   placeholder="Enter medication name">
+            
+            <span class="reminder-frequency-display reminder-frequency" style="display: none;">${frequency}</span>
+            <select class="reminder-frequency-edit form-control" style="margin-bottom: 8px; width: auto;">
+                <option value="Once daily" ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option>
+                <option value="Twice daily" ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option>
+                <option value="Three times daily" ${frequency === 'Three times daily' ? 'selected' : ''}>Three times daily</option>
+                <option value="Every 4 hours" ${frequency === 'Every 4 hours' ? 'selected' : ''}>Every 4 hours</option>
+                <option value="Every 6 hours" ${frequency === 'Every 6 hours' ? 'selected' : ''}>Every 6 hours</option>
+                <option value="Every 8 hours" ${frequency === 'Every 8 hours' ? 'selected' : ''}>Every 8 hours</option>
+                <option value="As needed" ${frequency === 'As needed' ? 'selected' : ''}>As needed</option>
+            </select>
+            
+            <span class="reminder-time"><i class="ri-time-line"></i> ${time}</span>
+        </div>
+        <div class="reminder-actions">
+            <button class="btn btn-set-time">Set Time</button>
+            <button class="btn btn-delete-reminder" style="background: #f44336; margin-left: 5px; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">
+                <i class="ri-delete-bin-line"></i>
+            </button>
+        </div>
+    `;
+
+        container.appendChild(card);
+        showNotification('Reminder added! Remember to save.', 'success');
     }
 
     function saveChanges() {
         // Collect form data
         const formData = collectFormData();
-        
+
         // Show saving state
         saveBtn.innerHTML = '<i class="ri-loader-4-line"></i> Saving...';
         saveBtn.disabled = true;
-        
+
         // Send to server
         fetch(BASE_URL + 'index.php?action=save-medical-profile', {
             method: 'POST',
@@ -163,56 +298,58 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify(formData)
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Update original data
-                originalFormData = formData;
-                hasUnsavedChanges = false;
-                
-                saveBtn.innerHTML = '<i class="ri-check-line"></i> Saved!';
-                showNotification('Changes saved successfully!', 'success');
-                
-                // Reset button and exit edit mode after delay
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update original data
+                    originalFormData = formData;
+                    hasUnsavedChanges = false;
+
+                    saveBtn.innerHTML = '<i class="ri-check-line"></i> Saved!';
+                    showNotification('Changes saved successfully!', 'success');
+
+                    // Reset button and exit edit mode after delay
+                    setTimeout(() => {
+                        saveBtn.disabled = false;
+                        disableEditMode();
+                    }, 1500);
+                } else {
+                    throw new Error(data.message || 'Failed to save');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                saveBtn.innerHTML = '<i class="ri-error-warning-line"></i> Save Failed';
+                saveBtn.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+                showNotification('Failed to save changes: ' + error.message, 'error');
+
                 setTimeout(() => {
+                    saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
+                    saveBtn.style.background = '';
                     saveBtn.disabled = false;
-                    disableEditMode();
-                }, 1500);
-            } else {
-                throw new Error(data.message || 'Failed to save');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            saveBtn.innerHTML = '<i class="ri-error-warning-line"></i> Save Failed';
-            saveBtn.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
-            showNotification('Failed to save changes: ' + error.message, 'error');
-            
-            setTimeout(() => {
-                saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
-                saveBtn.style.background = '';
-                saveBtn.disabled = false;
-            }, 3000);
-        });
+                }, 3000);
+            });
     }
 
     function resetForm() {
-        if (!originalFormData) return;
+    if (!originalFormData) return;
 
-        // Reset personal info
-        Object.keys(originalFormData.personalInfo).forEach(key => {
-            const input = document.querySelector(`[name="${key}"]`);
-            if (input) input.value = originalFormData.personalInfo[key];
-        });
+    // Reset all form inputs by name - data is now flat, not nested
+    document.querySelectorAll('.form-control[name]').forEach(input => {
+        const name = input.getAttribute('name');
+        if (originalFormData[name] !== undefined) {
+            input.value = originalFormData[name];
+        }
+    });
 
-        hasUnsavedChanges = false;
-    }
+    hasUnsavedChanges = false;
+}
 
     // ================================
     // TRACK CHANGES
     // ================================
     document.addEventListener('input', function (e) {
-        if (isEditing && e.target.matches('.form-control, #bloodTypeSelect, #smsTemplate')) {
+        if (isEditing && e.target.matches('.form-control, #bloodTypeSelect, #smsTemplate, .reminder-name-edit, .reminder-frequency-edit')) {
             hasUnsavedChanges = true;
         }
     });
@@ -226,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const bloodTypeSelect = document.createElement('select');
         bloodTypeSelect.id = 'bloodTypeSelect';
         bloodTypeSelect.className = 'form-control';
-        bloodTypeSelect.style.cssText = 'font-size: 2rem; font-weight: bold; text-align: center; display: none;';
+        bloodTypeSelect.style.cssText = 'font-size: 1.5rem; font-weight: bold; text-align: center; display: none;';
         bloodTypeSelect.disabled = true;
 
         const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -650,22 +787,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function collectFormData() {
-    const data = {
-        personalInfo: {},
-        disabilityType: 'Deaf/Mute',
-        allergies: [],
-        medications: [],
-        conditions: [],
-        contacts: [],
-        bloodType: '',
-        smsTemplate: '',
-        medicationReminders: []
-    };
+    const data = {};
 
-    // Get all form inputs with name attribute
+    // Get all form inputs with name attribute - FLATTEN to root level
     document.querySelectorAll('.form-control[name]').forEach(input => {
         const name = input.getAttribute('name');
-        data.personalInfo[name] = input.value;
+        data[name] = input.value;
     });
 
     // Get blood type
@@ -679,6 +806,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Get disability type
+    data.disabilityType = 'Deaf/Mute'; // or get from form if editable
+
     // Get SMS template
     const smsTemplate = document.getElementById('smsTemplate');
     if (smsTemplate) {
@@ -686,21 +816,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Get allergies
+    data.allergies = [];
     document.querySelectorAll('#allergiesContainer .tag span').forEach(tag => {
         data.allergies.push(tag.textContent);
     });
 
     // Get medications
+    data.medications = [];
     document.querySelectorAll('#medicationsContainer .medication-item span').forEach(item => {
         data.medications.push(item.textContent);
     });
 
-    // Get conditions
+    // Get medical conditions - CORRECT KEY NAME
+    data.medicalConditions = [];
     document.querySelectorAll('#conditionsContainer .tag span').forEach(tag => {
-        data.conditions.push(tag.textContent);
+        data.medicalConditions.push(tag.textContent);
     });
 
-    // Get emergency contacts
+    // Get emergency contacts - CORRECT KEY NAME
+    data.emergencyContacts = [];
     document.querySelectorAll('.contact-card').forEach(card => {
         const name = card.querySelector('h4').textContent;
         const relation = card.querySelector('.contact-relation').textContent;
@@ -708,7 +842,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const initials = card.querySelector('.contact-avatar').textContent.trim();
         const color = card.querySelector('.contact-avatar').style.background;
         
-        data.contacts.push({
+        data.emergencyContacts.push({
             name: name,
             relation: relation,
             phone: phone,
@@ -718,6 +852,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Get medication reminders
+    data.medicationReminders = [];
     document.querySelectorAll('.reminder-card').forEach(card => {
         const name = card.querySelector('h4').textContent;
         const frequency = card.querySelector('.reminder-frequency').textContent;
@@ -736,7 +871,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     return data;
 }
-
     function showNotification(message, type) {
         const notification = document.createElement('div');
         notification.className = 'notification';

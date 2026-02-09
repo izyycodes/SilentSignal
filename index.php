@@ -8,6 +8,7 @@ $action = $_GET['action'] ?? 'home';
 $isHome = ($action === 'home');
 
 switch ($action) {	
+    // Landing Page
     case 'home':
         require_once CONTROLLER_PATH . 'HomeController.php';
         $controller = new HomeController();
@@ -38,7 +39,8 @@ switch ($action) {
         $controller = new AuthController();
         $controller->logout();
         break;
-        
+
+    // User Modules    
     case 'dashboard':
         require_once CONTROLLER_PATH . 'UserController.php';
         $controller = new UserController();
@@ -79,6 +81,45 @@ switch ($action) {
         require_once CONTROLLER_PATH . 'UserController.php';
         $controller = new UserController();
         $controller->saveMedicalProfile();
+        break;
+
+
+    // Family Module    
+    case 'family-dashboard':
+        require_once CONTROLLER_PATH . 'FamilyController.php';
+        $controller = new FamilyController();
+        $controller->familyDashboard();
+        break;
+
+    // Admin Module    
+    case 'admin-dashboard':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->dashboard();
+        break;
+
+    case 'admin-users':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->users();
+        break;
+
+    case 'admin-emergency-alerts':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->emergencyAlerts();
+        break;
+
+    case 'admin-disaster-alerts':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->disasterAlerts();
+        break;
+
+    case 'admin-messages':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->messages();
         break;
 
     default:
