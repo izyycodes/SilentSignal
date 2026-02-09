@@ -2,16 +2,16 @@
 // controllers/AuthController.php
 // Handles authentication: login, signup, logout
 
-require_once __DIR__ . '/../config/Database.php';
-require_once __DIR__ . '/../models/User.php';
-require_once __DIR__ . '/../models/MedicalProfile.php';
-
 class AuthController {
     
     private $db;
     private $user;
     
     public function __construct() {
+        // Load dependencies
+        require_once __DIR__ . '/../config/Database.php';
+        require_once __DIR__ . '/../models/User.php';
+        
         $database = new Database();
         $this->db = $database->getConnection();
         $this->user = new User($this->db);
@@ -73,7 +73,7 @@ class AuthController {
      */
     public function processSignup() {
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-            header("Location: " . BASE_URL . "index.php?action=signup");
+            header("Location: " . BASE_URL . "index.php?action=auth");
             exit();
         }
         
@@ -135,7 +135,7 @@ class AuthController {
         // If errors, redirect back
         if (!empty($errors)) {
             $_SESSION['error'] = implode(' ', $errors);
-            header("Location: " . BASE_URL . "index.php?action=signup");
+            header("Location: " . BASE_URL . "index.php?action=auth");
             exit();
         }
         
@@ -157,6 +157,7 @@ class AuthController {
             
             // Create empty medical profile for PWD users
             if ($role === 'pwd') {
+                require_once __DIR__ . '/../models/MedicalProfile.php';
                 $medicalProfile = new MedicalProfile();
                 $profileData = [
                     'first_name' => $fname,
@@ -190,7 +191,7 @@ class AuthController {
             }
         } else {
             $_SESSION['error'] = "Registration failed. Please try again.";
-            header("Location: " . BASE_URL . "index.php?action=signup");
+            header("Location: " . BASE_URL . "index.php?action=auth");
             exit();
         }
     }
@@ -199,23 +200,18 @@ class AuthController {
      * Process logout
      */
     public function logout() {
-        // Make sure session is started
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
         // Unset all session variables
         $_SESSION = [];
         
-        // Delete the session cookie
+        // Delete session cookie
         if (isset($_COOKIE[session_name()])) {
             setcookie(session_name(), '', time() - 3600, '/');
         }
         
-        // Destroy the session
+        // Destroy session
         session_destroy();
         
-        // Redirect to home page
+        // Redirect to home
         header("Location: " . BASE_URL . "index.php?action=home");
         exit();
     }
@@ -244,13 +240,6 @@ class AuthController {
      */
     public static function isLoggedIn() {
         return isset($_SESSION['user_id']);
-    }
-    
-    /**
-     * Check if user has specific role
-     */
-    public static function hasRole($role) {
-        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === $role;
     }
     
     /**
