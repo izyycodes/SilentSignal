@@ -9,7 +9,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     <!-- Admin Dashboard Welcome Header -->
     <div class="admin-dashboard-header">
         <div class="admin-dashboard-header-content">
-            <h1>Welcome, Admin</h1>
+            <h1>Welcome, <?php echo $_SESSION['user_name']; ?></h1>
             <p>Administrator Dashboard</p>
         </div>
         <div class="header-actions">
