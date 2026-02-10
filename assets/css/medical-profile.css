@@ -12,6 +12,10 @@
     background: linear-gradient(135deg, #26a69a 0%, #00897b 100%);
 }
 
+button {
+    font-family: 'Poppins', sans-serif;
+}
+
 .btn-save {
     background: linear-gradient(135deg, #26a69a 0%, #00897b 100%);
     color: white;

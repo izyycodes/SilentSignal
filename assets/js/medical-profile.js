@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cancelBtn.className = 'btn btn-cancel';
         cancelBtn.id = 'cancelChangesBtn';
         cancelBtn.innerHTML = '<i class="ri-close-line"></i> Cancel';
-        cancelBtn.style.cssText = 'margin-left: 10px; background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);';
+        cancelBtn.style.cssText = 'margin-left: 10px; background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); color: #fff;';
         saveBtn.parentNode.insertBefore(cancelBtn, saveBtn.nextSibling);
 
         cancelBtn.addEventListener('click', function () {
@@ -140,6 +140,18 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.tag-remove, .item-remove, .action-btn.delete, .btn-add').forEach(btn => {
             btn.style.display = readonly ? 'none' : 'flex';
         });
+
+        // Hide/show Add Contact button
+        const addContactBtn = document.getElementById('addContactBtn');
+        if (addContactBtn) {
+            addContactBtn.style.display = readonly ? 'none' : 'inline-flex';
+        }
+
+        // Hide/show Add Reminder button
+        const addReminderBtn = document.getElementById('addReminderBtn');
+        if (addReminderBtn) {
+            addReminderBtn.style.display = readonly ? 'none' : 'inline-flex';
+        }
 
         // Time picker buttons
         document.querySelectorAll('.btn-set-time').forEach(btn => {
@@ -279,6 +291,32 @@ document.addEventListener('DOMContentLoaded', function () {
     `;
 
         container.appendChild(card);
+        
+        // Apply readonly state to newly added reminder if not editing
+        if (!isEditing) {
+            const nameDisplay = card.querySelector('.reminder-name-display');
+            const nameEdit = card.querySelector('.reminder-name-edit');
+            const freqDisplay = card.querySelector('.reminder-frequency-display');
+            const freqEdit = card.querySelector('.reminder-frequency-edit');
+            const deleteBtn = card.querySelector('.btn-delete-reminder');
+            const setTimeBtn = card.querySelector('.btn-set-time');
+
+            if (nameDisplay && nameEdit) {
+                nameDisplay.style.display = 'block';
+                nameEdit.style.display = 'none';
+            }
+            if (freqDisplay && freqEdit) {
+                freqDisplay.style.display = 'inline-block';
+                freqEdit.style.display = 'none';
+            }
+            if (deleteBtn) {
+                deleteBtn.style.display = 'none';
+            }
+            if (setTimeBtn) {
+                setTimeBtn.style.display = 'none';
+            }
+        }
+        
         showNotification('Reminder added! Remember to save.', 'success');
     }
 
