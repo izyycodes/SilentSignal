@@ -1,7 +1,6 @@
 <?php
-require_once CONFIG_PATH . 'Database.php';
-require_once MODEL_PATH . 'User.php';
-require_once MODEL_PATH . 'MedicalProfile.php';
+// controllers/AuthController.php
+// Handles authentication: login, signup, logout
 
 class AuthController {
     
@@ -9,6 +8,10 @@ class AuthController {
     private $user;
     
     public function __construct() {
+        // Load dependencies
+        require_once __DIR__ . '/../config/Database.php';
+        require_once __DIR__ . '/../models/User.php';
+        
         $database = new Database();
         $this->db = $database->getConnection();
         $this->user = new User($this->db);
@@ -18,16 +21,19 @@ class AuthController {
      * Show auth page (login/signup)
      */
     public function showAuth() {
-     // If already logged in, redirect to dashboard
+        // If already logged in, redirect to dashboard
         if (isset($_SESSION['user_id'])) {
             $this->redirectToDashboard();
         }
-    
-        $pageTitle = "Login / Sign Up - Silent Signal";
+        
+        $pageTitle = "Login - Silent Signal";
         require_once VIEW_PATH . 'auth.php';
     }
-
-     public function processLogin() {
+    
+    /**
+     * Process login
+     */
+    public function processLogin() {
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
             header("Location: " . BASE_URL . "index.php?action=auth");
             exit();
@@ -50,7 +56,6 @@ class AuthController {
             $_SESSION['user_name'] = $this->user->fname . ' ' . $this->user->lname;
             $_SESSION['user_email'] = $this->user->email;
             $_SESSION['user_role'] = $this->user->role;
-            $_SESSION['user_phone'] = $this->user->phone_number; 
             
             $_SESSION['success'] = "Login successful! Welcome back, " . $this->user->fname . "!";
             
@@ -68,7 +73,7 @@ class AuthController {
      */
     public function processSignup() {
         if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-            header("Location: " . BASE_URL . "index.php?action=auth&mode=signup");
+            header("Location: " . BASE_URL . "index.php?action=auth");
             exit();
         }
         
@@ -76,8 +81,9 @@ class AuthController {
         $fname = trim($_POST['fname'] ?? '');
         $lname = trim($_POST['lname'] ?? '');
         $email = trim($_POST['email'] ?? '');
-        $phone = trim($_POST['phone_number'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
         $password = $_POST['password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
         $role = $_POST['role'] ?? 'pwd';
         
         // Validate inputs
@@ -116,10 +122,20 @@ class AuthController {
             $errors[] = "Password must be at least 6 characters.";
         }
         
+        if ($password !== $confirm_password) {
+            $errors[] = "Passwords do not match.";
+        }
+        
+        // Validate role
+        $allowedRoles = ['pwd', 'family'];
+        if (!in_array($role, $allowedRoles)) {
+            $role = 'pwd';
+        }
+        
         // If errors, redirect back
         if (!empty($errors)) {
             $_SESSION['error'] = implode(' ', $errors);
-            header("Location: " . BASE_URL . "index.php?action=auth&mode=signup");
+            header("Location: " . BASE_URL . "index.php?action=auth");
             exit();
         }
         
@@ -137,11 +153,11 @@ class AuthController {
             $_SESSION['user_id'] = $this->user->id;
             $_SESSION['user_name'] = $fname . ' ' . $lname;
             $_SESSION['user_email'] = $email;
-            $_SESSION['user_phone'] = $phone;
             $_SESSION['user_role'] = $role;
             
             // Create empty medical profile for PWD users
             if ($role === 'pwd') {
+                require_once __DIR__ . '/../models/MedicalProfile.php';
                 $medicalProfile = new MedicalProfile();
                 $profileData = [
                     'first_name' => $fname,
@@ -175,7 +191,7 @@ class AuthController {
             }
         } else {
             $_SESSION['error'] = "Registration failed. Please try again.";
-            header("Location: " . BASE_URL . "index.php?action=auth&mode=signup");
+            header("Location: " . BASE_URL . "index.php?action=auth");
             exit();
         }
     }
@@ -184,15 +200,23 @@ class AuthController {
      * Process logout
      */
     public function logout() {
-        // Destroy the session
+        // Unset all session variables
+        $_SESSION = [];
+        
+        // Delete session cookie
+        if (isset($_COOKIE[session_name()])) {
+            setcookie(session_name(), '', time() - 3600, '/');
+        }
+        
+        // Destroy session
         session_destroy();
         
-        // Redirect to home page
+        // Redirect to home
         header("Location: " . BASE_URL . "index.php?action=home");
         exit();
     }
-
-     /**
+    
+    /**
      * Redirect to appropriate dashboard based on role
      */
     private function redirectToDashboard() {
@@ -216,13 +240,6 @@ class AuthController {
      */
     public static function isLoggedIn() {
         return isset($_SESSION['user_id']);
-    }
-    
-    /**
-     * Check if user has specific role
-     */
-    public static function hasRole($role) {
-        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === $role;
     }
     
     /**
