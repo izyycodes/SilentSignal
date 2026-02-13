@@ -29,7 +29,7 @@ if ($isLocal) {
     // HELIOHOST PRODUCTION SETTINGS
     // ========================================
     
-    define('BASE_URL', 'https://rgdioma.helioho.st/'); 
+    define('BASE_URL', 'https://silentsignal.helioho.st/'); 
     
     // HelioHost Database Settings
     // Format: servername.heliohost.org (tommy, johnny, morty, or ricky)
