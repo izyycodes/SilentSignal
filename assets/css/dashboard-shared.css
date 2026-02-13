@@ -20,6 +20,10 @@ body {
     flex-direction: column;
 }
 
+button {
+    font-family: 'Poppins', sans-serif;
+}
+
 /* ================================
    DASHBOARD HEADER
    ================================ */

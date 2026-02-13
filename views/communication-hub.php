@@ -118,7 +118,7 @@ const categoriesData = <?php echo json_encode($categories ?? []); ?>;
 const messagesData = <?php echo json_encode($messages ?? []); ?>;
 const fslItemsData = <?php echo json_encode($fslItems ?? []); ?>;
 
-// Debug: Log data to console (remove in production)
+// 1Debug: Log data to console (remove in production)
 console.log('Categories:', categoriesData);
 console.log('Messages:', messagesData);
 console.log('FSL Items:', fslItemsData);

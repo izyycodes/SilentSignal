@@ -83,7 +83,6 @@ class AuthController {
         $email = trim($_POST['email'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
         $password = $_POST['password'] ?? '';
-        $confirm_password = $_POST['confirm_password'] ?? '';
         $role = $_POST['role'] ?? 'pwd';
         
         // Validate inputs
@@ -120,10 +119,6 @@ class AuthController {
             $errors[] = "Password is required.";
         } elseif (strlen($password) < 6) {
             $errors[] = "Password must be at least 6 characters.";
-        }
-        
-        if ($password !== $confirm_password) {
-            $errors[] = "Passwords do not match.";
         }
         
         // Validate role

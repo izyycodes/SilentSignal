@@ -6,7 +6,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin-dashboard.css">
 
 <div class="dashboard-container">
-    <!-- Admin Dashboard Welcome Header -->
+    <!-- 1Admin Dashboard Welcome Header -->
     <div class="admin-dashboard-header">
         <div class="admin-dashboard-header-content">
             <h1>Welcome, <?php echo $_SESSION['user_name']; ?></h1>
