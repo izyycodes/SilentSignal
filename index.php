@@ -15,6 +15,12 @@ switch ($action) {
         $controller->index();
         break;
 
+    case 'submit-contact':
+        require_once CONTROLLER_PATH . 'HomeController.php';
+        $controller = new HomeController();
+        $controller->submitContact();
+        break;
+
     // Combined Auth Page (Login & Signup)
     case 'auth':
         require_once CONTROLLER_PATH . 'AuthController.php';

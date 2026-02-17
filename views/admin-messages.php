@@ -25,7 +25,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <div class="stat-value"><?php echo number_format($stats['total']); ?></div>
             </div>
         </div>
-        
+
         <div class="stat-card">
             <div class="stat-icon orange">
                 <i class="ri-time-line"></i>
@@ -35,7 +35,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <div class="stat-value"><?php echo number_format($stats['pending']); ?></div>
             </div>
         </div>
-        
+
         <div class="stat-card">
             <div class="stat-icon green">
                 <i class="ri-checkbox-circle-line"></i>
@@ -45,7 +45,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <div class="stat-value"><?php echo number_format($stats['replied_today']); ?></div>
             </div>
         </div>
-        
+
         <div class="stat-card">
             <div class="stat-icon red">
                 <i class="ri-alert-line"></i>
@@ -73,14 +73,22 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <option value="support">Support</option>
                 <option value="general">General</option>
             </select>
+            <select class="filter-select" id="priorityFilter">
+                <option value="">All Priorities</option>
+                <option value="urgent">Urgent</option>
+                <option value="high">High</option>
+                <option value="normal">Normal</option>
+                <option value="low">Low</option>
+            </select>
             <select class="filter-select" id="statusFilter">
                 <option value="">All Status</option>
                 <option value="pending">Pending</option>
+                <option value="in_review">In Review</option>
                 <option value="replied">Replied</option>
                 <option value="resolved">Resolved</option>
             </select>
             <button class="btn-primary">
-                <i class="ri-download-line"></i> Export Messages
+                <i class="ri-download-line"></i> Export
             </button>
         </div>
     </div>
@@ -96,49 +104,69 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <th>SUBJECT</th>
                     <th>MESSAGE PREVIEW</th>
                     <th>PRIORITY</th>
+                    <th>STATUS</th>
                     <th>DATE RECEIVED</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($messages as $message): ?>
-                    <tr class="message-row" onclick="viewMessage(<?php echo $message['id']; ?>)">
+                    <tr class="message-row"
+                        data-id="<?php echo $message['id']; ?>"
+                        data-message-id="<?php echo htmlspecialchars($message['message_id']); ?>"
+                        data-name="<?php echo htmlspecialchars($message['user_name']); ?>"
+                        data-email="<?php echo htmlspecialchars($message['user_email']); ?>"
+                        data-category="<?php echo htmlspecialchars($message['category']); ?>"
+                        data-subject="<?php echo htmlspecialchars($message['subject']); ?>"
+                        data-message="<?php echo htmlspecialchars($message['message']); ?>"
+                        data-priority="<?php echo htmlspecialchars($message['priority']); ?>"
+                        data-status="<?php echo htmlspecialchars($message['status']); ?>"
+                        data-date="<?php echo htmlspecialchars($message['date_received']); ?>"
+                        data-reply="<?php echo htmlspecialchars($message['reply_message'] ?? ''); ?>"
+                        data-date-replied="<?php echo htmlspecialchars($message['date_replied'] ?? ''); ?>"
+                        onclick="viewMessage(this)">
+
                         <td class="message-id"><?php echo $message['message_id']; ?></td>
                         <td>
                             <div class="user-cell">
-                                <div class="users-avatar <?php echo strtolower(substr($message['user_name'], 0, 1)); ?>">
+                                <div class="users-avatar">
                                     <?php echo strtoupper(substr($message['user_name'], 0, 2)); ?>
                                 </div>
                                 <div class="user-info">
-                                    <div class="user-name"><?php echo $message['user_name']; ?></div>
-                                    <div class="user-email"><?php echo $message['user_email']; ?></div>
+                                    <div class="user-name"><?php echo htmlspecialchars($message['user_name']); ?></div>
+                                    <div class="user-email"><?php echo htmlspecialchars($message['user_email']); ?></div>
                                 </div>
                             </div>
                         </td>
                         <td>
+                            <?php
+                                $icon = match($message['category']) {
+                                    'Emergency' => 'ri-alarm-warning-line',
+                                    'Technical' => 'ri-tools-line',
+                                    'Feedback'  => 'ri-chat-smile-2-line',
+                                    'Support'   => 'ri-customer-service-2-line',
+                                    'General'   => 'ri-question-line',
+                                    default     => 'ri-message-3-line'
+                                };
+                            ?>
                             <span class="category-badge <?php echo $message['category']; ?>">
-                                <?php 
-                                    $icon = match($message['category']) {
-                                        'Emergency' => 'ri-alarm-warning-line',
-                                        'Technical' => 'ri-tools-line',
-                                        'Feedback' => 'ri-chat-smile-2-line',
-                                        'Support' => 'ri-customer-service-2-line',
-                                        'General' => 'ri-question-line',
-                                        default => 'ri-message-3-line'
-                                    };
-                                ?>
                                 <i class="<?php echo $icon; ?>"></i>
                                 <?php echo $message['category']; ?>
                             </span>
                         </td>
                         <td>
-                            <div class="subject"><?php echo $message['subject']; ?></div>
+                            <div class="subject"><?php echo htmlspecialchars($message['subject']); ?></div>
                         </td>
                         <td>
-                            <div class="message-preview"><?php echo $message['preview']; ?></div>
+                            <div class="message-preview"><?php echo htmlspecialchars($message['preview']); ?>...</div>
                         </td>
                         <td>
                             <span class="priority-badge <?php echo $message['priority']; ?>">
                                 <?php echo strtoupper($message['priority']); ?>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge <?php echo $message['status']; ?>">
+                                <?php echo ucfirst(str_replace('_', ' ', $message['status'])); ?>
                             </span>
                         </td>
                         <td>
@@ -156,31 +184,129 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     <!-- Pagination -->
     <div class="pagination">
         <div class="pagination-info">
-            Showing 1-10 of 156 messages
+            Showing <strong><?php echo $rangeStart; ?>-<?php echo $rangeEnd; ?></strong> of <strong><?php echo number_format($stats['total']); ?></strong> messages
         </div>
         <div class="pagination-controls">
-            <button class="page-btn" disabled>Previous</button>
-            <button class="page-number active">1</button>
-            <button class="page-number">2</button>
-            <button class="page-number">3</button>
-            <span>...</span>
-            <button class="page-number">16</button>
-            <button class="page-btn">Next</button>
+
+            <?php if ($currentPage > 1): ?>
+                <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=<?php echo $currentPage - 1; ?>" class="page-btn">Previous</a>
+            <?php else: ?>
+                <button class="page-btn" disabled>Previous</button>
+            <?php endif; ?>
+
+            <?php
+                // Show up to 5 page number links centered around current page
+                $startPage = max(1, $currentPage - 2);
+                $endPage   = min($totalPages, $startPage + 4);
+                $startPage = max(1, $endPage - 4); // re-anchor if near the end
+
+                if ($startPage > 1): ?>
+                    <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=1" class="page-number">1</a>
+                    <?php if ($startPage > 2): ?><span class="page-ellipsis">...</span><?php endif; ?>
+                <?php endif;
+
+                for ($i = $startPage; $i <= $endPage; $i++): ?>
+                    <?php if ($i === $currentPage): ?>
+                        <span class="page-number active"><?php echo $i; ?></span>
+                    <?php else: ?>
+                        <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=<?php echo $i; ?>" class="page-number"><?php echo $i; ?></a>
+                    <?php endif; ?>
+                <?php endfor;
+
+                if ($endPage < $totalPages): ?>
+                    <?php if ($endPage < $totalPages - 1): ?><span class="page-ellipsis">...</span><?php endif; ?>
+                    <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=<?php echo $totalPages; ?>" class="page-number"><?php echo $totalPages; ?></a>
+                <?php endif; ?>
+
+            <?php if ($currentPage < $totalPages): ?>
+                <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=<?php echo $currentPage + 1; ?>" class="page-btn">Next</a>
+            <?php else: ?>
+                <button class="page-btn" disabled>Next</button>
+            <?php endif; ?>
+
         </div>
     </div>
+
 </div>
 
 <!-- Message Detail Modal -->
 <div id="messageModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Message Details</h3>
+            <div class="modal-header-left">
+                <h3 id="modalMessageId"></h3>
+                <div class="modal-badges">
+                    <span class="category-badge" id="modalCategory"></span>
+                    <span class="priority-badge" id="modalPriority"></span>
+                    <span class="status-badge" id="modalStatus"></span>
+                </div>
+            </div>
             <button class="close-btn" onclick="closeMessageModal()">
                 <i class="ri-close-line"></i>
             </button>
         </div>
         <div class="modal-body" id="messageModalBody">
-            <!-- Message details will be loaded here -->
+
+            <!-- Sender Info -->
+            <div class="modal-section">
+                <div class="modal-section-title">
+                    <i class="ri-user-line"></i> Sender Information
+                </div>
+                <div class="modal-info-grid">
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Name</span>
+                        <span class="modal-info-value" id="modalName"></span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Email</span>
+                        <span class="modal-info-value" id="modalEmail"></span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Date Received</span>
+                        <span class="modal-info-value" id="modalDate"></span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="modal-info-label">Subject</span>
+                        <span class="modal-info-value" id="modalSubject"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Content -->
+            <div class="modal-section">
+                <div class="modal-section-title">
+                    <i class="ri-message-2-line"></i> Message
+                </div>
+                <div class="modal-message-body" id="modalMessage"></div>
+            </div>
+
+            <!-- Previous Reply (shown only if already replied) -->
+            <div class="modal-section" id="previousReplySection" style="display:none;">
+                <div class="modal-section-title">
+                    <i class="ri-reply-line"></i> Previous Reply
+                    <span class="replied-at" id="modalDateReplied"></span>
+                </div>
+                <div class="modal-message-body replied" id="modalReply"></div>
+            </div>
+
+            <!-- Reply Textarea -->
+            <div class="modal-section" id="replySection">
+                <div class="modal-section-title">
+                    <i class="ri-send-plane-line"></i> Reply
+                </div>
+                <textarea class="reply-textarea" id="replyTextarea" placeholder="Type your reply here..." rows="4"></textarea>
+            </div>
+
+        </div>
+
+        <!-- Action Buttons — outside modal-body so they're always visible -->
+        <div class="modal-actions">
+            <button class="btn-modal-primary" onclick="sendReply()">
+                <i class="ri-send-plane-line"></i> Send Reply
+            </button>
+            <button class="btn-modal-secondary" onclick="markAsResolved()">
+                <i class="ri-check-double-line"></i> Mark as Resolved
+            </button>
         </div>
     </div>
 </div>

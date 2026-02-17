@@ -1,227 +1,197 @@
 // Admin Messages Management JavaScript
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeSearch();
     initializeFilters();
-    initializePagination();
+    updatePaginationInfo();
 });
-
-// Search functionality
+// ─────────────────────────────────────────────
+// SEARCH
+// ─────────────────────────────────────────────
 function initializeSearch() {
     const searchInput = document.getElementById('searchInput');
-    
     if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            applyFilters();
-        });
+        searchInput.addEventListener('input', applyFilters);
     }
 }
 
-// Filter functionality
+// ─────────────────────────────────────────────
+// FILTERS
+// ─────────────────────────────────────────────
 function initializeFilters() {
-    const categoryFilter = document.getElementById('categoryFilter');
-    const statusFilter = document.getElementById('statusFilter');
-    
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', applyFilters);
-    }
-    
-    if (statusFilter) {
-        statusFilter.addEventListener('change', applyFilters);
-    }
+    ['categoryFilter', 'priorityFilter', 'statusFilter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', applyFilters);
+    });
 }
 
-// Apply filters to table
 function applyFilters() {
-    const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
-    const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    
+    const category = document.getElementById('categoryFilter').value.toLowerCase();
+    const priority = document.getElementById('priorityFilter').value.toLowerCase();
+    const status   = document.getElementById('statusFilter').value.toLowerCase();
+    const search   = document.getElementById('searchInput').value.toLowerCase();
+
     const rows = document.querySelectorAll('.data-table tbody tr');
-    
+
     rows.forEach(row => {
-        const category = row.querySelector('.category-badge').textContent.toLowerCase();
-        const userName = row.querySelector('.user-name').textContent.toLowerCase();
-        const subject = row.querySelector('.subject').textContent.toLowerCase();
-        
-        const matchesCategory = !categoryFilter || category.includes(categoryFilter);
-        const matchesSearch = !searchTerm || 
-            userName.includes(searchTerm) || 
-            subject.includes(searchTerm);
-        
-        if (matchesCategory && matchesSearch) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+        // Read values directly from data attributes — reliable and consistent
+        const rowCategory = (row.dataset.category || '').toLowerCase();
+        const rowPriority = (row.dataset.priority || '').toLowerCase();
+        const rowStatus   = (row.dataset.status   || '').toLowerCase();
+        const rowName     = (row.querySelector('.user-name')?.textContent || '').toLowerCase();
+        const rowSubject  = (row.querySelector('.subject')?.textContent   || '').toLowerCase();
+
+        const matchesCategory = !category || rowCategory.includes(category);
+        const matchesPriority = !priority || rowPriority === priority;
+        const matchesStatus   = !status   || rowStatus   === status;
+        const matchesSearch   = !search   || rowName.includes(search) || rowSubject.includes(search);
+
+        row.style.display = (matchesCategory && matchesPriority && matchesStatus && matchesSearch)
+            ? ''
+            : 'none';
     });
-    
+
     updatePaginationInfo();
 }
 
-// Initialize pagination
-function initializePagination() {
-    const pageNumbers = document.querySelectorAll('.page-number');
-    const prevBtn = document.querySelector('.page-btn:first-child');
-    const nextBtn = document.querySelector('.page-btn:last-child');
-    
-    pageNumbers.forEach(btn => {
-        btn.addEventListener('click', function() {
-            pageNumbers.forEach(p => p.classList.remove('active'));
-            this.classList.add('active');
-            updatePaginationButtons();
-        });
-    });
-    
-    if (prevBtn) {
-        prevBtn.addEventListener('click', goToPreviousPage);
-    }
-    
-    if (nextBtn) {
-        nextBtn.addEventListener('click', goToNextPage);
-    }
-}
-
-// Update pagination buttons state
-function updatePaginationButtons() {
-    const activePageNum = parseInt(document.querySelector('.page-number.active').textContent);
-    const prevBtn = document.querySelector('.page-btn:first-child');
-    const nextBtn = document.querySelector('.page-btn:last-child');
-    
-    if (activePageNum === 1) {
-        prevBtn.disabled = true;
-    } else {
-        prevBtn.disabled = false;
-    }
-    
-    // Assuming max page is 16
-    if (activePageNum === 16) {
-        nextBtn.disabled = true;
-    } else {
-        nextBtn.disabled = false;
-    }
-}
-
-// Go to previous page
-function goToPreviousPage() {
-    const activeBtn = document.querySelector('.page-number.active');
-    const prevBtn = activeBtn.previousElementSibling;
-    
-    if (prevBtn && prevBtn.classList.contains('page-number')) {
-        activeBtn.classList.remove('active');
-        prevBtn.classList.add('active');
-        updatePaginationButtons();
-    }
-}
-
-// Go to next page
-function goToNextPage() {
-    const activeBtn = document.querySelector('.page-number.active');
-    const nextBtn = activeBtn.nextElementSibling;
-    
-    if (nextBtn && nextBtn.classList.contains('page-number')) {
-        activeBtn.classList.remove('active');
-        nextBtn.classList.add('active');
-        updatePaginationButtons();
-    }
-}
-
-// Update pagination info
+// ─────────────────────────────────────────────
+// PAGINATION INFO
+// ─────────────────────────────────────────────
 function updatePaginationInfo() {
-    const visibleRows = document.querySelectorAll('.data-table tbody tr:not([style*="display: none"])').length;
-    const paginationInfo = document.querySelector('.pagination-info');
-    
-    if (paginationInfo) {
-        paginationInfo.textContent = `Showing 1-${Math.min(10, visibleRows)} of ${visibleRows} messages`;
+    const visible = document.querySelectorAll('.data-table tbody tr:not([style*="display: none"])').length;
+    const total   = document.querySelectorAll('.data-table tbody tr').length;
+    const info    = document.querySelector('.pagination-info');
+    if (info) {
+        const end = visible > 0 ? visible : 0;
+        info.innerHTML = `Showing <strong>1-${end}</strong> of <strong>${total}</strong> messages`;
     }
 }
 
-// View message details
-function viewMessage(messageId) {
-    console.log('Viewing message:', messageId);
-    
-    // Show modal
-    const modal = document.getElementById('messageModal');
-    const modalBody = document.getElementById('messageModalBody');
-    
-    // TODO: Fetch message details from API
-    // For now, show placeholder
-    modalBody.innerHTML = `
-        <div class="message-detail">
-            <div class="detail-section">
-                <h4>Message Information</h4>
-                <p><strong>Message ID:</strong> ${messageId}</p>
-                <p><strong>Subject:</strong> Sample Subject</p>
-                <p><strong>Category:</strong> Technical Support</p>
-                <p><strong>Priority:</strong> High</p>
-                <p><strong>Date:</strong> Jan 15, 2024</p>
-            </div>
-            <div class="detail-section">
-                <h4>Message Content</h4>
-                <p>Full message content will be displayed here...</p>
-            </div>
-            <div class="detail-section">
-                <h4>Reply</h4>
-                <textarea class="reply-textarea" placeholder="Type your reply here..." rows="5"></textarea>
-                <div class="modal-actions">
-                    <button class="btn-primary" onclick="sendReply(${messageId})">
-                        <i class="ri-send-plane-line"></i> Send Reply
-                    </button>
-                    <button class="btn-secondary" onclick="markAsResolved(${messageId})">
-                        <i class="ri-check-line"></i> Mark as Resolved
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    modal.classList.add('active');
+// ─────────────────────────────────────────────
+// MODAL — current message id held here
+// ─────────────────────────────────────────────
+let currentMessageId = null;
+
+function viewMessage(row) {
+    currentMessageId = row.dataset.id;
+
+    const category = row.dataset.category || '';
+    const priority = row.dataset.priority || '';
+    const status   = row.dataset.status   || '';
+
+    // ── Header ──
+    document.getElementById('modalMessageId').textContent = row.dataset.messageId || '';
+
+    // Category badge
+    const catBadge  = document.getElementById('modalCategory');
+    const catIcon   = getCategoryIcon(category);
+    catBadge.className = `category-badge ${category}`;
+    catBadge.innerHTML = `<i class="${catIcon}"></i> ${category}`;
+
+    // Priority badge
+    const priBadge  = document.getElementById('modalPriority');
+    priBadge.className = `priority-badge ${priority}`;
+    priBadge.textContent = priority.toUpperCase();
+
+    // Status badge
+    const staBadge  = document.getElementById('modalStatus');
+    staBadge.className = `status-badge ${status}`;
+    staBadge.textContent = formatStatus(status);
+
+    // ── Sender info ──
+    document.getElementById('modalName').textContent    = row.dataset.name    || '—';
+    document.getElementById('modalEmail').textContent   = row.dataset.email   || '—';
+    document.getElementById('modalDate').textContent    = row.dataset.date    || '—';
+    document.getElementById('modalSubject').textContent = row.dataset.subject || '—';
+
+    // ── Message body ──
+    document.getElementById('modalMessage').textContent = row.dataset.message || '';
+
+    // ── Previous reply (show only if it exists) ──
+    const replySection  = document.getElementById('previousReplySection');
+    const replyContent  = row.dataset.reply || '';
+    const replyDate     = row.dataset.dateReplied || '';
+
+    if (replyContent) {
+        document.getElementById('modalReply').textContent      = replyContent;
+        document.getElementById('modalDateReplied').textContent = replyDate ? `Sent on ${replyDate}` : '';
+        replySection.style.display = '';
+    } else {
+        replySection.style.display = 'none';
+    }
+
+    // ── Clear reply textarea ──
+    document.getElementById('replyTextarea').value = '';
+
+    // ── Open ──
+    document.getElementById('messageModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
-// Close message modal
 function closeMessageModal() {
-    const modal = document.getElementById('messageModal');
-    modal.classList.remove('active');
+    document.getElementById('messageModal').classList.remove('active');
+    document.body.style.overflow = '';
+    currentMessageId = null;
 }
 
-// Send reply
-function sendReply(messageId) {
-    const replyText = document.querySelector('.reply-textarea').value;
-    
-    if (!replyText.trim()) {
+// ─────────────────────────────────────────────
+// SEND REPLY  (TODO: wire to real endpoint)
+// ─────────────────────────────────────────────
+function sendReply() {
+    const reply = document.getElementById('replyTextarea').value.trim();
+
+    if (!reply) {
         alert('Please enter a reply message.');
         return;
     }
-    
-    console.log('Sending reply to message:', messageId);
-    console.log('Reply:', replyText);
-    
-    // TODO: Implement API call to send reply
-    alert('Reply sent successfully!');
+
+    // TODO: POST to index.php?action=admin-reply with currentMessageId + reply
+    console.log('Sending reply to message ID:', currentMessageId);
+    console.log('Reply text:', reply);
+
+    alert('Reply sent! (Connect to backend to persist this.)');
     closeMessageModal();
 }
 
-// Mark as resolved
-function markAsResolved(messageId) {
-    if (confirm('Mark this message as resolved?')) {
-        console.log('Marking message as resolved:', messageId);
-        // TODO: Implement API call
-        alert('Message marked as resolved!');
-        closeMessageModal();
-    }
+// ─────────────────────────────────────────────
+// MARK AS RESOLVED  (TODO: wire to real endpoint)
+// ─────────────────────────────────────────────
+function markAsResolved() {
+    if (!confirm('Mark this message as resolved?')) return;
+
+    // TODO: POST to index.php?action=admin-resolve with currentMessageId
+    console.log('Resolving message ID:', currentMessageId);
+
+    alert('Message marked as resolved! (Connect to backend to persist this.)');
+    closeMessageModal();
 }
 
-// Close modal when clicking outside
-window.onclick = function(event) {
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function getCategoryIcon(category) {
+    const icons = {
+        'Emergency': 'ri-alarm-warning-line',
+        'Technical': 'ri-tools-line',
+        'Feedback':  'ri-chat-smile-2-line',
+        'Support':   'ri-customer-service-2-line',
+        'General':   'ri-question-line',
+    };
+    return icons[category] || 'ri-message-3-line';
+}
+
+function formatStatus(status) {
+    return status.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// ─────────────────────────────────────────────
+// CLOSE MODAL — click outside or Escape
+// ─────────────────────────────────────────────
+document.addEventListener('click', function (e) {
     const modal = document.getElementById('messageModal');
-    if (event.target === modal) {
-        closeMessageModal();
-    }
-}
+    if (e.target === modal) closeMessageModal();
+});
 
-// Escape key to close modal
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeMessageModal();
-    }
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeMessageModal();
 });

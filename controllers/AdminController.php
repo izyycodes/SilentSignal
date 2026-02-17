@@ -456,77 +456,25 @@ class AdminController {
     public function messages() {
         $this->requireAdmin();
         $pageTitle = "Message Inquiries - Admin - Silent Signal";
-        
+
         extract($this->getCommonViewData());
         extract($this->getSharedData());
-        
-        // Mock messages
-        $messages = [
-            [
-                'id' => 1,
-                'message_id' => '#MSG-4521',
-                'user_name' => 'Maria Santos',
-                'user_email' => 'maria.santos@gmail.com',
-                'category' => 'Emergency',
-                'subject' => 'Unable to Send SOS Alert',
-                'preview' => 'I need to send an emergency alert but the app...',
-                'priority' => 'urgent',
-                'date_received' => '5 min ago'
-            ],
-            [
-                'id' => 2,
-                'message_id' => '#MSG-4520',
-                'user_name' => 'Jerome Buntaliada',
-                'user_email' => 'jerome.buntaliada@gmail.com',
-                'category' => 'Technical',
-                'subject' => 'App Keeps Crashing on Shake',
-                'preview' => 'The app keeps crashing whenever I enable the...',
-                'priority' => 'high',
-                'date_received' => '1 hour ago'
-            ],
-            [
-                'id' => 3,
-                'message_id' => '#MSG-4519',
-                'user_name' => 'Jose Santos',
-                'user_email' => 'jose.santos@gmail.com',
-                'category' => 'Feedback',
-                'subject' => 'Amazing App, Saved My Life!',
-                'preview' => 'I want to thank you for creating this app. It hal...',
-                'priority' => 'normal',
-                'date_received' => '3 hours ago'
-            ],
-            [
-                'id' => 4,
-                'message_id' => '#MSG-4518',
-                'user_name' => 'Ana Santos',
-                'user_email' => 'ana.santos@gmail.com',
-                'category' => 'Support',
-                'subject' => 'How to Add My Family Members?',
-                'preview' => "I'm trying to add my family members to the fa...",
-                'priority' => 'normal',
-                'date_received' => '5 hours ago'
-            ],
-            [
-                'id' => 5,
-                'message_id' => '#MSG-4517',
-                'user_name' => 'Luis Cruz',
-                'user_email' => 'luis.cruz@gmail.com',
-                'category' => 'General',
-                'subject' => 'Request for FSL Video Tutorials',
-                'preview' => 'Could you add more Filipino Sign Language tu...',
-                'priority' => 'normal',
-                'date_received' => '8 hours ago'
-            ]
-        ];
-        
-        $stats = [
-            'total' => 1267,
-            'pending' => 67,
-            'replied_today' => 1200,
-            'urgent' => 67
-        ];
-        
+
+        require_once MODEL_PATH . 'ContactInquiry.php';
+        $contactInquiry = new ContactInquiry();
+
+        $perPage     = 5;
+        $currentPage = max(1, (int)($_GET['page'] ?? 1));
+        $offset      = ($currentPage - 1) * $perPage;
+
+        $stats       = $contactInquiry->getStats();
+        $messages    = $contactInquiry->getAll($perPage, $offset);
+        $totalPages  = (int)ceil($stats['total'] / $perPage);
+        $rangeStart  = $offset + 1;
+        $rangeEnd    = min($offset + $perPage, $stats['total']);
+
         require_once VIEW_PATH . 'admin-messages.php';
     }
+
 }
 ?>
