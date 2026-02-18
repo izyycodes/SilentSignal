@@ -5,167 +5,228 @@
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
+<meta name="base-url" content="<?php echo BASE_URL; ?>">
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/emergency-alert.css">
+
+<!-- Hidden User Data for JavaScript -->
+<div id="userData" 
+    data-name="<?php echo htmlspecialchars($userData['name'] ?? ''); ?>"
+    data-phone="<?php echo htmlspecialchars($userData['phone'] ?? ''); ?>"
+    data-pwd-id="<?php echo htmlspecialchars($userData['pwdId'] ?? ''); ?>"
+    data-address="<?php echo htmlspecialchars($userData['address'] ?? ''); ?>"
+    data-blood-type="<?php echo htmlspecialchars($userData['bloodType'] ?? ''); ?>"
+    data-allergies="<?php echo htmlspecialchars($userData['allergies'] ?? ''); ?>"
+    data-medications="<?php echo htmlspecialchars($userData['medications'] ?? ''); ?>"
+    data-conditions="<?php echo htmlspecialchars($userData['conditions'] ?? ''); ?>"
+    style="display: none;">
+</div>
+
+<!-- Hidden Emergency Contacts Data -->
+<div id="emergencyContactsData" 
+    data-contacts='<?php echo json_encode($emergencyContacts ?? []); ?>'
+    style="display: none;">
+</div>
 
 <div class="page-container">
     <!-- Page Header -->
     <div class="page-header">
-        <div class="page-header-icon" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);">
+        <div class="page-header-icon" style="background: linear-gradient(135deg, #ef6c00 0%, #e65100 100%);">
             <i class="ri-alarm-warning-fill"></i>
         </div>
         <div class="page-header-content">
             <h1>Emergency Alert System</h1>
-            <p>One-tap emergency response</p>
-        </div>
-        <div class="page-header-status">
-            <span class="status-badge status-active">SOS ACTIVE</span>
+            <p>One-tap SOS with GPS location and medical data</p>
         </div>
     </div>
 
-    <!-- SOS Alert Sent Banner (Hidden by default) -->
-    <div class="alert-banner alert-success" id="sosSuccessBanner" style="display: none;">
-        <div class="alert-banner-icon"><i class="ri-checkbox-circle-fill"></i></div>
-        <div class="alert-banner-content">
-            <h3>SOS ALERT SENT!</h3>
-            <p>Emergency contacts notified. Help is on the way.</p>
-        </div>
-        <span class="alert-banner-meta">GPS Location Shared ✓</span>
-    </div>
-
-    <!-- Single-Tap SOS Card -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-icon <?php echo $featureCards[0]['color']; ?>">
-                <i class="<?php echo $featureCards[0]['icon']; ?>"></i>
+    <!-- Quick Info Cards -->
+    <div class="info-cards">
+        <?php foreach ($infoCards as $card): ?>
+            <div class="info-card">
+                <i class="<?php echo $card['icon']; ?>"></i>
+                <span><?php echo $card['label']; ?></span>
             </div>
-            <h2><?php echo $featureCards[0]['title']; ?></h2>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- GPS Location Status -->
+    <div class="card location-card">
+        <div class="card-header">
+            <div class="card-icon blue"><i class="ri-map-pin-line"></i></div>
+            <h2>Your Location</h2>
+            <span id="locationStatus" class="status-pending">Acquiring...</span>
         </div>
-        <p class="card-description"><?php echo $featureCards[0]['description']; ?></p>
-        
-        <div class="sos-container">
-            <button class="sos-button" id="sosButton">
+        <div class="location-info">
+            <div class="location-coords">
+                <i class="ri-crosshair-2-line"></i>
+                <span id="locationCoords">Waiting for GPS...</span>
+            </div>
+            <div class="location-address">
+                <i class="ri-map-2-line"></i>
+                <span id="locationAddress">Getting address...</span>
+            </div>
+            <a href="#" id="locationLink" class="btn btn-small" style="display: none;" target="_blank">
+                <i class="ri-external-link-line"></i> View on Map
+            </a>
+        </div>
+    </div>
+
+    <!-- Main SOS Button -->
+    <div class="sos-section">
+        <button class="sos-button" id="sosButton">
+            <div class="sos-button-inner">
                 <i class="ri-alarm-warning-fill"></i>
-                <span class="sos-text">EMERGENCY SOS</span>
-                <span class="sos-subtext">Single-tap only</span>
-            </button>
-        </div>
+                <span>SOS</span>
+            </div>
+            <div class="sos-pulse"></div>
+            <div class="sos-pulse delay"></div>
+        </button>
+        <p class="sos-hint">Tap to send emergency alert</p>
+        <p class="sos-hint-small">Long press (3 sec) or tap 5 times rapidly</p>
+    </div>
 
-        <div class="info-cards">
-            <?php foreach ($infoCards as $card): ?>
-                <div class="info-card">
-                    <div class="info-card-icon"><i class="<?php echo $card['icon']; ?>"></i></div>
-                    <span><?php echo $card['label']; ?></span>
+    <!-- Feature Cards -->
+    <div class="feature-cards">
+        <?php foreach ($featureCards as $feature): ?>
+            <div class="card feature-card" id="<?php echo $feature['id']; ?>">
+                <div class="card-header">
+                    <div class="card-icon <?php echo $feature['color']; ?>">
+                        <i class="<?php echo $feature['icon']; ?>"></i>
+                    </div>
+                    <h2><?php echo $feature['title']; ?></h2>
+                    <?php if ($feature['id'] === 'shake-alert'): ?>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="shakeToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    <?php endif; ?>
                 </div>
-            <?php endforeach; ?>
-        </div>
+                <p class="card-description"><?php echo $feature['description']; ?></p>
+            </div>
+        <?php endforeach; ?>
     </div>
 
-    <!-- Shake-to-Alert Card -->
+    <!-- Emergency Contacts -->
     <div class="card">
         <div class="card-header">
-            <div class="card-icon <?php echo $featureCards[1]['color']; ?>">
-                <i class="<?php echo $featureCards[1]['icon']; ?>"></i>
-            </div>
-            <h2><?php echo $featureCards[1]['title']; ?></h2>
+            <div class="card-icon green"><i class="ri-contacts-line"></i></div>
+            <h2>Emergency Contacts</h2>
+            <a href="<?php echo BASE_URL; ?>index.php?action=medical-profile" class="btn btn-small">
+                <i class="ri-edit-line"></i> Edit
+            </a>
         </div>
-        <p class="card-description"><?php echo $featureCards[1]['description']; ?></p>
         
-        <div class="toggle-row">
-            <span class="toggle-label">Shake Detection Active</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="shakeToggle" checked>
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-        <button class="btn btn-warning btn-block" id="testShakeBtn">Test Shake Detection</button>
-    </div>
-
-    <!-- Panic-Click Card -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-icon <?php echo $featureCards[2]['color']; ?>">
-                <i class="<?php echo $featureCards[2]['icon']; ?>"></i>
+        <?php if (empty($emergencyContacts)): ?>
+            <div class="empty-state">
+                <i class="ri-user-add-line"></i>
+                <p>No emergency contacts added yet.</p>
+                <a href="<?php echo BASE_URL; ?>index.php?action=medical-profile" class="btn btn-primary">
+                    Add Contacts
+                </a>
             </div>
-            <h2><?php echo $featureCards[2]['title']; ?></h2>
-        </div>
-        <p class="card-description"><?php echo $featureCards[2]['description']; ?></p>
-        
-        <div class="panic-stats">
-            <div class="panic-stat-card">
-                <div class="panic-stat-value" id="tapCount">0</div>
-                <div class="panic-stat-label">Rapid Taps</div>
-                <div class="panic-stat-meta">in 3 seconds</div>
-            </div>
-            <div class="panic-stat-card">
-                <div class="panic-stat-icon"><i class="ri-arrow-right-up-line"></i></div>
-                <div class="panic-stat-label">Auto Escalation</div>
-                <div class="panic-stat-meta">to SOS mode</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Auto-send Message Card -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-icon <?php echo $featureCards[3]['color']; ?>">
-                <i class="<?php echo $featureCards[3]['icon']; ?>"></i>
-            </div>
-            <h2><?php echo $featureCards[3]['title']; ?></h2>
-        </div>
-        <p class="card-description"><?php echo $featureCards[3]['description']; ?></p>
-        
-        <div class="sms-preview">
-            <div class="sms-preview-header">
-                <i class="ri-smartphone-line"></i>
-                <span>SMS Preview</span>
-            </div>
-            <div class="sms-preview-content">
-                <div class="sms-badge"><?php echo $smsPreview['badge']; ?></div>
-                <?php foreach ($smsPreview['lines'] as $line): ?>
-                    <p class="sms-text"><?php echo $line; ?></p>
-                <?php endforeach; ?>
-                <a href="#" class="sms-link">📍 <?php echo $smsPreview['link']; ?></a>
-            </div>
-        </div>
-
-        <div class="contacts-section">
-            <h4>Emergency Contacts</h4>
+        <?php else: ?>
             <div class="contacts-list">
                 <?php foreach ($emergencyContacts as $contact): ?>
-                    <div class="contact-item">
-                        <span class="contact-name"><?php echo $contact['name']; ?></span>
-                        <span class="contact-phone <?php echo $contact['isEmergency'] ? 'emergency' : ''; ?>">
-                            <?php echo $contact['phone']; ?>
-                        </span>
+                    <div class="contact-item" data-phone="<?php echo htmlspecialchars($contact['phone']); ?>">
+                        <div class="contact-avatar" style="background: <?php echo $contact['color'] ?? '#4caf50'; ?>;">
+                            <?php echo $contact['initials'] ?? strtoupper(substr($contact['name'], 0, 1)); ?>
+                        </div>
+                        <div class="contact-details">
+                            <span class="contact-name"><?php echo htmlspecialchars($contact['name']); ?></span>
+                            <span class="contact-phone"><?php echo htmlspecialchars($contact['phone']); ?></span>
+                        </div>
+                        <div class="contact-badge <?php echo isset($contact['isEmergency']) && $contact['isEmergency'] ? 'emergency' : ''; ?>">
+                            <?php echo $contact['relation'] ?? 'Contact'; ?>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- SMS Preview -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon orange"><i class="ri-message-3-line"></i></div>
+            <h2>SMS Preview</h2>
+        </div>
+        <div class="sms-preview">
+            <div class="sms-bubble">
+                <p class="sms-header">🚨 <strong>EMERGENCY ALERT</strong> 🚨</p>
+                <p class="sms-warning">⚠️ DEAF/MUTE - TEXT ONLY - NO CALLS ⚠️</p>
+                <br>
+                <p>Name: <?php echo htmlspecialchars($userData['name'] ?? 'Not set'); ?></p>
+                <?php if (!empty($userData['pwdId'])): ?>
+                    <p>PWD ID: <?php echo htmlspecialchars($userData['pwdId']); ?></p>
+                <?php endif; ?>
+                <p>Phone: <?php echo htmlspecialchars($userData['phone'] ?? 'Not set'); ?></p>
+                <p>Status: NEEDS IMMEDIATE HELP</p>
+                <p>Time: [Current timestamp]</p>
+                <br>
+                <p>📍 Location: [GPS coordinates + Map link]</p>
+                <br>
+                <?php if (!empty($userData['bloodType']) || !empty($userData['allergies'])): ?>
+                    <p><strong>🏥 Medical Info:</strong></p>
+                    <?php if (!empty($userData['bloodType'])): ?>
+                        <p>• Blood Type: <?php echo htmlspecialchars($userData['bloodType']); ?></p>
+                    <?php endif; ?>
+                    <?php if (!empty($userData['allergies'])): ?>
+                        <p>• Allergies: <?php echo htmlspecialchars($userData['allergies']); ?></p>
+                    <?php endif; ?>
+                    <?php if (!empty($userData['medications'])): ?>
+                        <p>• Medications: <?php echo htmlspecialchars($userData['medications']); ?></p>
+                    <?php endif; ?>
+                <?php endif; ?>
+                <br>
+                <p class="sms-footer">⚠️ Please respond via TEXT MESSAGE only.</p>
+            </div>
         </div>
     </div>
 
-    <!-- Multi-sensory Card -->
+    <!-- Multi-sensory Confirmation -->
     <div class="card">
         <div class="card-header">
-            <div class="card-icon <?php echo $featureCards[4]['color']; ?>">
-                <i class="<?php echo $featureCards[4]['icon']; ?>"></i>
-            </div>
-            <h2><?php echo $featureCards[4]['title']; ?></h2>
+            <div class="card-icon purple"><i class="ri-notification-3-line"></i></div>
+            <h2>Alert Confirmation</h2>
         </div>
-        <p class="card-description"><?php echo $featureCards[4]['description']; ?></p>
-        
         <div class="confirmation-options">
             <?php foreach ($confirmationOptions as $option): ?>
-                <div class="confirmation-card">
-                    <div class="confirmation-icon"><i class="<?php echo $option['icon']; ?>"></i></div>
-                    <h4><?php echo $option['title']; ?></h4>
-                    <p><?php echo $option['desc']; ?></p>
+                <div class="confirmation-item">
+                    <i class="<?php echo $option['icon']; ?>"></i>
+                    <div>
+                        <h4><?php echo $option['title']; ?></h4>
+                        <p><?php echo $option['desc']; ?></p>
+                    </div>
                 </div>
             <?php endforeach; ?>
         </div>
+        <button class="btn btn-test" id="testAlertBtn">
+            <i class="ri-play-line"></i> Test Alert Feedback
+        </button>
     </div>
 </div>
 
-<div class="flash-overlay" id="flashOverlay"></div>
+<!-- SOS Confirmation Modal -->
+<div class="modal" id="sosConfirmModal">
+    <div class="modal-content">
+        <div class="modal-icon">
+            <i class="ri-alarm-warning-fill"></i>
+        </div>
+        <h2>Send Emergency Alert?</h2>
+        <p>This will send an SOS message to all your emergency contacts with your location.</p>
+        <div class="countdown">
+            Auto-sending in <span id="sosCountdown">10</span> seconds...
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-danger" id="confirmSOSBtn">
+                <i class="ri-send-plane-fill"></i> Send Now
+            </button>
+            <button class="btn btn-secondary" id="cancelSOSBtn">
+                <i class="ri-close-line"></i> Cancel
+            </button>
+        </div>
+    </div>
+</div>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
 <script src="<?php echo BASE_URL; ?>assets/js/emergency-alert.js"></script>
