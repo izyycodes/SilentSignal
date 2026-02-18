@@ -3,7 +3,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     initializeSearch();
     initializeFilters();
-    updatePaginationInfo();
 });
 // ─────────────────────────────────────────────
 // SEARCH
@@ -52,19 +51,6 @@ function applyFilters() {
     });
 
     updatePaginationInfo();
-}
-
-// ─────────────────────────────────────────────
-// PAGINATION INFO
-// ─────────────────────────────────────────────
-function updatePaginationInfo() {
-    const visible = document.querySelectorAll('.data-table tbody tr:not([style*="display: none"])').length;
-    const total   = document.querySelectorAll('.data-table tbody tr').length;
-    const info    = document.querySelector('.pagination-info');
-    if (info) {
-        const end = visible > 0 ? visible : 0;
-        info.innerHTML = `Showing <strong>1-${end}</strong> of <strong>${total}</strong> messages`;
-    }
 }
 
 // ─────────────────────────────────────────────

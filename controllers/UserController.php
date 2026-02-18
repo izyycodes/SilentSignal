@@ -87,6 +87,16 @@ class UserController {
             header("Location: " . BASE_URL . "index.php?action=auth");
             exit();
         }
+        // Re-check account status on every page load
+        require_once __DIR__ . '/../models/User.php';
+        $userModel = new User();
+        if (!$userModel->isUserActive($_SESSION['user_id'])) {
+            session_destroy();
+            session_start();
+            $_SESSION['error'] = "Your account has been deactivated. Please contact the administrator.";
+            header("Location: " . BASE_URL . "index.php?action=auth");
+            exit();
+        }
     }
     
     /**
@@ -452,7 +462,7 @@ class UserController {
             'dateOfBirth' => $profile['date_of_birth'] ?? '',
             'gender' => $profile['gender'] ?? '',
             'pwdId' => $profile['pwd_id'] ?? '',
-            'phone' => $profile['phone'] ?? '',
+            'phone' => !empty($profile['phone']) ? $profile['phone'] : ($_SESSION['user_phone'] ?? ''),
             'email' => $profile['email'] ?? $_SESSION['user_email'] ?? '',
             'streetAddress' => $profile['street_address'] ?? '',
             'city' => $profile['city'] ?? '',
@@ -460,10 +470,13 @@ class UserController {
             'zipCode' => $profile['zip_code'] ?? '',
         ];
         
-        // Disability Status
+        // Disability Status - get is_verified from users table
+        require_once __DIR__ . '/../models/User.php';
+        $userModel = new User();
+        $userVerified = $userModel->getUserVerifiedStatus($_SESSION['user_id']);
         $disabilityStatus = [
-            'primary' => $profile['disability_type'] ?? 'Not specified',
-            'verified' => !empty($profile['pwd_id']),
+            'primary' => !empty($profile['disability_type']) ? $profile['disability_type'] : 'Not specified',
+            'is_verified' => $userVerified,
         ];
         
         // Allergies (from JSON - already decoded by model)

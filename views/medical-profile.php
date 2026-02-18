@@ -100,17 +100,49 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <!-- Disability Status -->
             <div class="card">
                 <div class="card-header">
-                    <div class="card-icon purple"><i class="ri-accessibility-line"></i></div>
+                    <div class="card-icon purple"><i class="ri-wheelchair-line"></i></div>
                     <h2>Disability Status</h2>
                 </div>
                 
                 <div class="disability-status">
-                    <div class="disability-info">
+                    <div class="disability-info" style="flex:1;">
                         <span class="disability-label">Primary Disability</span>
-                        <span class="disability-value"><?php echo $disabilityStatus['primary']; ?></span>
+                        <!-- Display mode -->
+                        <span class="disability-value" id="disabilityDisplay">
+                            <?php echo htmlspecialchars($disabilityStatus['primary']); ?>
+                        </span>
+                        <!-- Edit mode (hidden by default) -->
+                        <div id="disabilityEditMode" style="display:none; margin-top:6px;">
+                            <select id="disabilitySelect" class="form-control" style="margin-bottom:6px;">
+                                <option value="" disabled selected>-- Select Disability --</option>
+                                <option value="Deaf/Mute" <?php echo $disabilityStatus['primary'] === 'Deaf/Mute' ? 'selected' : ''; ?>>Deaf/Mute</option>
+                                <option value="Blind" <?php echo $disabilityStatus['primary'] === 'Blind' ? 'selected' : ''; ?>>Blind</option>
+                                <option value="Mobility Impaired" <?php echo $disabilityStatus['primary'] === 'Mobility Impaired' ? 'selected' : ''; ?>>Mobility Impaired</option>
+                                <option value="Intellectually Disabled" <?php echo $disabilityStatus['primary'] === 'Intellectually Disabled' ? 'selected' : ''; ?>>Intellectually Disabled</option>
+                                <option value="Psychosocial Disability" <?php echo $disabilityStatus['primary'] === 'Psychosocial Disability' ? 'selected' : ''; ?>>Psychosocial Disability</option>
+                                <option value="Chronic Illness" <?php echo $disabilityStatus['primary'] === 'Chronic Illness' ? 'selected' : ''; ?>>Chronic Illness</option>
+                                <option value="Other" <?php echo (!empty($disabilityStatus['primary']) && !in_array($disabilityStatus['primary'], ['Deaf/Mute','Blind','Mobility Impaired','Intellectually Disabled','Psychosocial Disability','Chronic Illness','Not specified'])) ? 'selected' : ''; ?>>Other (specify below)</option>
+                            </select>
+                            <input type="text" id="disabilityCustomInput" name="disabilityType" class="form-control" 
+                                   placeholder="Enter your disability type..."
+                                   value="<?php echo htmlspecialchars($disabilityStatus['primary'] !== 'Not specified' ? $disabilityStatus['primary'] : ''); ?>"
+                                   style="display:none;">
+                        </div>
+                        <!-- Hidden input to carry value when not in edit mode -->
+                        <input type="hidden" id="disabilityTypeHidden" name="disabilityType" 
+                               value="<?php echo htmlspecialchars($disabilityStatus['primary']); ?>">
                     </div>
-                    <span class="verified-badge">
-                        <i class="ri-checkbox-circle-fill"></i> VERIFIED
+                    <?php
+                        // Badge logic: show "Pending" if not verified, "Verified" if is_verified is true in users table
+                        // We'll use the users is_verified flag (passed via disabilityStatus)
+                        $isVerified = $disabilityStatus['is_verified'] ?? false;
+                    ?>
+                    <span class="<?php echo $isVerified ? 'verified-badge' : 'pending-badge'; ?>">
+                        <?php if ($isVerified): ?>
+                            <i class="ri-checkbox-circle-fill"></i> VERIFIED
+                        <?php else: ?>
+                            <i class="ri-time-line"></i> PENDING
+                        <?php endif; ?>
                     </span>
                 </div>
             </div>

@@ -119,6 +119,29 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+        // Disability edit mode
+        const disabilityDisplay = document.getElementById('disabilityDisplay');
+        const disabilityEditMode = document.getElementById('disabilityEditMode');
+        if (disabilityDisplay && disabilityEditMode) {
+            disabilityDisplay.style.display = readonly ? '' : 'none';
+            disabilityEditMode.style.display = readonly ? 'none' : 'block';
+            if (!readonly) {
+                // Sync select to current value
+                const currentVal = document.getElementById('disabilityTypeHidden').value;
+                const disabilitySelect = document.getElementById('disabilitySelect');
+                const knownOptions = ['Deaf/Mute', 'Blind', 'Mobility Impaired', 'Intellectually Disabled', 'Psychosocial Disability', 'Chronic Illness'];
+                if (knownOptions.includes(currentVal)) {
+                    disabilitySelect.value = currentVal;
+                    document.getElementById('disabilityCustomInput').style.display = 'none';
+                } else if (currentVal && currentVal !== 'Not specified') {
+                    disabilitySelect.value = 'Other';
+                    const customInput = document.getElementById('disabilityCustomInput');
+                    customInput.style.display = 'block';
+                    customInput.value = currentVal;
+                }
+            }
+        }
+
         // Blood type select
         const bloodTypeSelect = document.getElementById('bloodTypeSelect');
         if (bloodTypeSelect) {
@@ -186,6 +209,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
+
+    // ================================
+    // DISABILITY SELECT HANDLER
+    // ================================
+    const disabilitySelect = document.getElementById('disabilitySelect');
+    if (disabilitySelect) {
+        disabilitySelect.addEventListener('change', function () {
+            const customInput = document.getElementById('disabilityCustomInput');
+            const hidden = document.getElementById('disabilityTypeHidden');
+            if (this.value === 'Other') {
+                customInput.style.display = 'block';
+                customInput.value = '';
+                hidden.value = '';
+            } else {
+                customInput.style.display = 'none';
+                hidden.value = this.value;
+            }
+        });
+    }
+    const disabilityCustomInput = document.getElementById('disabilityCustomInput');
+    if (disabilityCustomInput) {
+        disabilityCustomInput.addEventListener('input', function () {
+            document.getElementById('disabilityTypeHidden').value = this.value;
+        });
+    }
 
     // ================================
     // ADD REMINDER FUNCTIONALITY  
@@ -342,6 +390,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Update original data
                     originalFormData = formData;
                     hasUnsavedChanges = false;
+
+                    // Update disability display value
+                    const disabilityDisplay = document.getElementById('disabilityDisplay');
+                    const disabilityHidden = document.getElementById('disabilityTypeHidden');
+                    if (disabilityDisplay && formData.disabilityType) {
+                        disabilityDisplay.textContent = formData.disabilityType;
+                        if (disabilityHidden) disabilityHidden.value = formData.disabilityType;
+                    }
 
                     saveBtn.innerHTML = '<i class="ri-check-line"></i> Saved!';
                     showNotification('Changes saved successfully!', 'success');
@@ -844,8 +900,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Get disability type
-    data.disabilityType = 'Deaf/Mute'; // or get from form if editable
+    // Get disability type - from select/custom input
+    const disabilitySelect = document.getElementById('disabilitySelect');
+    const disabilityCustomInput = document.getElementById('disabilityCustomInput');
+    const disabilityHidden = document.getElementById('disabilityTypeHidden');
+    if (disabilitySelect && disabilitySelect.style.display !== 'none') {
+        if (disabilitySelect.value === 'Other' && disabilityCustomInput) {
+            data.disabilityType = disabilityCustomInput.value.trim();
+        } else {
+            data.disabilityType = disabilitySelect.value;
+        }
+    } else if (disabilityHidden) {
+        data.disabilityType = disabilityHidden.value;
+    } else {
+        data.disabilityType = '';
+    }
 
     // Get SMS template
     const smsTemplate = document.getElementById('smsTemplate');

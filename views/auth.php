@@ -66,8 +66,8 @@ require_once VIEW_PATH . 'includes/home-header.php';
                 </div>
 
                 <div class="form-group">
-                    <label for="phone_number">Phone Number</label>
-                    <input type="tel" name="phone_number" pattern="09\d{9}" required>
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" name="phone" pattern="09\d{9}" required>
                 </div>
 
                 <div class="form-group">

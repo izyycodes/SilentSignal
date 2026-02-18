@@ -4,17 +4,13 @@
 
 class AuthController {
     
-    private $db;
     private $user;
     
     public function __construct() {
         // Load dependencies
-        require_once __DIR__ . '/../config/Database.php';
         require_once __DIR__ . '/../models/User.php';
         
-        $database = new Database();
-        $this->db = $database->getConnection();
-        $this->user = new User($this->db);
+        $this->user = new User();
     }
     
     /**
@@ -56,13 +52,18 @@ class AuthController {
             $_SESSION['user_name'] = $this->user->fname . ' ' . $this->user->lname;
             $_SESSION['user_email'] = $this->user->email;
             $_SESSION['user_role'] = $this->user->role;
+            $_SESSION['user_phone'] = $this->user->phone_number;
             
             $_SESSION['success'] = "Login successful! Welcome back, " . $this->user->fname . "!";
             
             // Redirect based on role
             $this->redirectToDashboard();
         } else {
-            $_SESSION['error'] = "Invalid email/phone or password.";
+            if ($this->user->loginError === 'deactivated') {
+                $_SESSION['error'] = "Your account has been deactivated. Please contact the administrator.";
+            } else {
+                $_SESSION['error'] = "Invalid email/phone or password.";
+            }
             header("Location: " . BASE_URL . "index.php?action=auth");
             exit();
         }
@@ -149,6 +150,7 @@ class AuthController {
             $_SESSION['user_name'] = $fname . ' ' . $lname;
             $_SESSION['user_email'] = $email;
             $_SESSION['user_role'] = $role;
+            $_SESSION['user_phone'] = $phone;
             
             // Create empty medical profile for PWD users
             if ($role === 'pwd') {

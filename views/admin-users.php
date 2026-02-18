@@ -6,6 +6,21 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 
 <div class="dashboard-container">
 
+    <!-- Success/Error Messages -->
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success">
+            <i class="ri-checkbox-circle-line"></i>
+            <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-error">
+            <i class="ri-error-warning-line"></i>
+            <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
+        </div>
+    <?php endif; ?>
+
     <!-- Page Header -->
     <div class="page-header">
         <div class="header-content">
@@ -75,14 +90,13 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <option value="">All Roles</option>
                 <option value="pwd">PWD</option>
                 <option value="family">Family</option>
-                <option value="responder">Responder</option>
                 <option value="admin">Admin</option>
             </select>
             <select class="filter-select" id="disabilityFilter">
                 <option value="">All Disabilities</option>
-                <option value="deaf">Deaf/Mute</option>
-                <option value="blind">Blind</option>
-                <option value="mobility">Mobility Impaired</option>
+                <?php foreach ($disabilityTypes as $dtype): ?>
+                    <option value="<?php echo htmlspecialchars(strtolower($dtype)); ?>"><?php echo htmlspecialchars($dtype); ?></option>
+                <?php endforeach; ?>
             </select>
             <button class="btn-primary">
                 <i class="ri-download-line"></i> Export Data
@@ -108,48 +122,74 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             </thead>
             <tbody>
                 <?php foreach ($users as $user): ?>
+                    <?php
+                        // Determine status based on is_verified and is_active
+                        if (!$user['is_active']) {
+                            $status = 'inactive';
+                            $statusLabel = 'INACTIVE';
+                        } elseif ($user['is_verified']) {
+                            $status = 'verified';
+                            $statusLabel = 'VERIFIED';
+                        } else {
+                            $status = 'pending';
+                            $statusLabel = 'PENDING';
+                        }
+
+                        // Handle missing medical profile data
+                        $pwd_id = $user['pwd_id'] ?? 'N/A';
+                        $disability = $user['disability_type'] ?? 'N/A';
+                        $location = $user['location'] ?? 'N/A';
+                    ?>
                     <tr>
                         <td>
                             <div class="user-cell">
-                                <div class="users-avatar <?php echo strtolower(substr($user['name'], 0, 1)); ?>">
+                                <div class="users-avatar">
                                     <?php echo strtoupper(substr($user['name'], 0, 2)); ?>
                                 </div>
                                 <div class="user-info">
-                                    <div class="user-name"><?php echo $user['name']; ?></div>
-                                    <div class="user-email"><?php echo $user['email']; ?></div>
+                                    <div class="user-name"><?php echo htmlspecialchars($user['name']); ?></div>
+                                    <div class="user-email"><?php echo htmlspecialchars($user['email']); ?></div>
                                 </div>
                             </div>
                         </td>
-                        <td><?php echo $user['phone']; ?></td>
+                        <td><?php echo htmlspecialchars($user['phone'] ?? 'N/A'); ?></td>
                         <td>
                             <span class="role-badge <?php echo $user['role']; ?>">
                                 <?php echo strtoupper($user['role']); ?>
                             </span>
                         </td>
-                        <td><?php echo $user['pwd_id']; ?></td>
+                        <td><?php echo htmlspecialchars($pwd_id); ?></td>
                         <td>
-                            <span class="disability-badge">
-                                <i class="ri-wheelchair-line"></i>
-                                <?php echo $user['disability']; ?>
-                            </span>
+                            <?php if ($disability !== 'N/A'): ?>
+                                <span class="disability-badge">
+                                    <i class="ri-wheelchair-line"></i>
+                                    <?php echo htmlspecialchars($disability); ?>
+                                </span>
+                            <?php else: ?>
+                                <span style="color: #94a3b8;">N/A</span>
+                            <?php endif; ?>
                         </td>
-                        <td><?php echo $user['location']; ?></td>
-                        <td><?php echo $user['registration_date']; ?></td>
+                        <td><?php echo htmlspecialchars($location); ?></td>
+                        <td><?php echo htmlspecialchars($user['registration_date']); ?></td>
                         <td>
-                            <span class="status-badge <?php echo $user['status']; ?>">
-                                <?php echo strtoupper($user['status']); ?>
+                            <span class="status-badge <?php echo $status; ?>">
+                                <?php echo $statusLabel; ?>
                             </span>
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn-icon view" onclick="viewUser(<?php echo $user['id']; ?>)" title="View">
+                                <button class="btn-icon view" onclick="viewUser(<?php echo $user['id']; ?>)" title="View Details">
                                     <i class="ri-eye-line"></i>
                                 </button>
-                                <button class="btn-icon edit" onclick="editUser(<?php echo $user['id']; ?>)" title="Edit">
-                                    <i class="ri-edit-line"></i>
-                                </button>
-                                <button class="btn-icon delete" onclick="deleteUser(<?php echo $user['id']; ?>)" title="Delete">
-                                    <i class="ri-delete-bin-line"></i>
+                                <?php if (!$user['is_verified']): ?>
+                                    <button class="btn-icon verify" onclick="verifyUser(<?php echo $user['id']; ?>, <?php echo $currentPage; ?>)" title="Verify Account">
+                                        <i class="ri-checkbox-circle-line"></i>
+                                    </button>
+                                <?php endif; ?>
+                                <button class="btn-icon <?php echo $user['is_active'] ? 'deactivate' : 'activate'; ?>" 
+                                        onclick="toggleActive(<?php echo $user['id']; ?>, <?php echo $currentPage; ?>)" 
+                                        title="<?php echo $user['is_active'] ? 'Deactivate Account' : 'Activate Account'; ?>">
+                                    <i class="ri-<?php echo $user['is_active'] ? 'close' : 'checkbox'; ?>-circle-line"></i>
                                 </button>
                             </div>
                         </td>
@@ -162,16 +202,46 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     <!-- Pagination -->
     <div class="pagination">
         <div class="pagination-info">
-            Showing 1-10 of <?php echo number_format($stats['total']); ?> accounts
+            Showing <strong><?php echo $rangeStart; ?>-<?php echo $rangeEnd; ?></strong> of <strong><?php echo number_format($stats['total']); ?></strong> accounts
         </div>
         <div class="pagination-controls">
-            <button class="page-btn" disabled>Previous</button>
-            <button class="page-number active">1</button>
-            <button class="page-number">2</button>
-            <button class="page-number">3</button>
-            <span>...</span>
-            <button class="page-number">97</button>
-            <button class="page-btn">Next</button>
+
+            <?php if ($currentPage > 1): ?>
+                <a href="<?php echo BASE_URL; ?>index.php?action=admin-users&page=<?php echo $currentPage - 1; ?>" class="page-btn">Previous</a>
+            <?php else: ?>
+                <button class="page-btn" disabled>Previous</button>
+            <?php endif; ?>
+
+            <?php
+                // Show up to 5 page number links centered around current page
+                $startPage = max(1, $currentPage - 2);
+                $endPage   = min($totalPages, $startPage + 4);
+                $startPage = max(1, $endPage - 4); // re-anchor if near the end
+
+                if ($startPage > 1): ?>
+                    <a href="<?php echo BASE_URL; ?>index.php?action=admin-users&page=1" class="page-number">1</a>
+                    <?php if ($startPage > 2): ?><span class="page-ellipsis">...</span><?php endif; ?>
+                <?php endif;
+
+                for ($i = $startPage; $i <= $endPage; $i++): ?>
+                    <?php if ($i === $currentPage): ?>
+                        <span class="page-number active"><?php echo $i; ?></span>
+                    <?php else: ?>
+                        <a href="<?php echo BASE_URL; ?>index.php?action=admin-users&page=<?php echo $i; ?>" class="page-number"><?php echo $i; ?></a>
+                    <?php endif; ?>
+                <?php endfor;
+
+                if ($endPage < $totalPages): ?>
+                    <?php if ($endPage < $totalPages - 1): ?><span class="page-ellipsis">...</span><?php endif; ?>
+                    <a href="<?php echo BASE_URL; ?>index.php?action=admin-users&page=<?php echo $totalPages; ?>" class="page-number"><?php echo $totalPages; ?></a>
+                <?php endif; ?>
+
+            <?php if ($currentPage < $totalPages): ?>
+                <a href="<?php echo BASE_URL; ?>index.php?action=admin-users&page=<?php echo $currentPage + 1; ?>" class="page-btn">Next</a>
+            <?php else: ?>
+                <button class="page-btn" disabled>Next</button>
+            <?php endif; ?>
+
         </div>
     </div>
 </div>

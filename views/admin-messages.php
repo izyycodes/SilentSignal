@@ -139,14 +139,14 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         </td>
                         <td>
                             <?php
-                                $icon = match($message['category']) {
-                                    'Emergency' => 'ri-alarm-warning-line',
-                                    'Technical' => 'ri-tools-line',
-                                    'Feedback'  => 'ri-chat-smile-2-line',
-                                    'Support'   => 'ri-customer-service-2-line',
-                                    'General'   => 'ri-question-line',
-                                    default     => 'ri-message-3-line'
-                                };
+                            $icon = match ($message['category']) {
+                                'Emergency' => 'ri-alarm-warning-line',
+                                'Technical' => 'ri-tools-line',
+                                'Feedback'  => 'ri-chat-smile-2-line',
+                                'Support'   => 'ri-customer-service-2-line',
+                                'General'   => 'ri-question-line',
+                                default     => 'ri-message-3-line'
+                            };
                             ?>
                             <span class="category-badge <?php echo $message['category']; ?>">
                                 <i class="<?php echo $icon; ?>"></i>
@@ -184,7 +184,8 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     <!-- Pagination -->
     <div class="pagination">
         <div class="pagination-info">
-            Showing <strong><?php echo $rangeStart; ?>-<?php echo $rangeEnd; ?></strong> of <strong><?php echo number_format($stats['total']); ?></strong> messages
+            Showing <strong><?php echo $rangeStart; ?>-<?php echo $rangeEnd; ?></strong>
+            of <strong><?php echo number_format($totalMessages); ?></strong> messages
         </div>
         <div class="pagination-controls">
 
@@ -195,28 +196,28 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <?php endif; ?>
 
             <?php
-                // Show up to 5 page number links centered around current page
-                $startPage = max(1, $currentPage - 2);
-                $endPage   = min($totalPages, $startPage + 4);
-                $startPage = max(1, $endPage - 4); // re-anchor if near the end
+            // Show up to 5 page number links centered around current page
+            $startPage = max(1, $currentPage - 2);
+            $endPage   = min($totalPages, $startPage + 4);
+            $startPage = max(1, $endPage - 4); // re-anchor if near the end
 
-                if ($startPage > 1): ?>
-                    <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=1" class="page-number">1</a>
-                    <?php if ($startPage > 2): ?><span class="page-ellipsis">...</span><?php endif; ?>
-                <?php endif;
+            if ($startPage > 1): ?>
+                <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=1" class="page-number">1</a>
+                <?php if ($startPage > 2): ?><span class="page-ellipsis">...</span><?php endif; ?>
+            <?php endif;
 
-                for ($i = $startPage; $i <= $endPage; $i++): ?>
-                    <?php if ($i === $currentPage): ?>
-                        <span class="page-number active"><?php echo $i; ?></span>
-                    <?php else: ?>
-                        <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=<?php echo $i; ?>" class="page-number"><?php echo $i; ?></a>
-                    <?php endif; ?>
-                <?php endfor;
-
-                if ($endPage < $totalPages): ?>
-                    <?php if ($endPage < $totalPages - 1): ?><span class="page-ellipsis">...</span><?php endif; ?>
-                    <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=<?php echo $totalPages; ?>" class="page-number"><?php echo $totalPages; ?></a>
+            for ($i = $startPage; $i <= $endPage; $i++): ?>
+                <?php if ($i === $currentPage): ?>
+                    <span class="page-number active"><?php echo $i; ?></span>
+                <?php else: ?>
+                    <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=<?php echo $i; ?>" class="page-number"><?php echo $i; ?></a>
                 <?php endif; ?>
+            <?php endfor;
+
+            if ($endPage < $totalPages): ?>
+                <?php if ($endPage < $totalPages - 1): ?><span class="page-ellipsis">...</span><?php endif; ?>
+                <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=<?php echo $totalPages; ?>" class="page-number"><?php echo $totalPages; ?></a>
+            <?php endif; ?>
 
             <?php if ($currentPage < $totalPages): ?>
                 <a href="<?php echo BASE_URL; ?>index.php?action=admin-messages&page=<?php echo $currentPage + 1; ?>" class="page-btn">Next</a>

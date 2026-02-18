@@ -128,6 +128,18 @@ switch ($action) {
         $controller->messages();
         break;
 
+    case 'admin-verify-user':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->verifyUser();
+        break;
+
+    case 'admin-toggle-active':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->toggleUserActive();
+        break;
+
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';
         $controller = new HomeController();

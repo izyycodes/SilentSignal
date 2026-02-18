@@ -237,6 +237,23 @@ button {
     font-size: 16px;
 }
 
+.pending-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff8e1;
+    color: #f57c00;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pending-badge i {
+    font-size: 16px;
+}
+
 /* ================================
    TAGS (Allergies, Conditions)
    ================================ */

@@ -16,14 +16,22 @@ class MedicalProfile {
      */
     public function getByUserId($userId) {
         $stmt = $this->db->prepare("
-            SELECT * FROM medical_profiles 
-            WHERE user_id = ? 
+            SELECT mp.*, u.phone_number AS user_phone_number
+            FROM medical_profiles mp
+            JOIN users u ON u.id = mp.user_id
+            WHERE mp.user_id = ? 
             LIMIT 1
         ");
         $stmt->execute([$userId]);
         $profile = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($profile) {
+            // If medical profile phone is empty, use the phone from users table
+            if (empty($profile['phone']) && !empty($profile['user_phone_number'])) {
+                $profile['phone'] = $profile['user_phone_number'];
+            }
+            unset($profile['user_phone_number']);
+            
             // Decode JSON fields
             $profile['allergies'] = json_decode($profile['allergies'] ?? '[]', true);
             $profile['medications'] = json_decode($profile['medications'] ?? '[]', true);

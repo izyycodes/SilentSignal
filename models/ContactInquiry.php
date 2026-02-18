@@ -55,7 +55,7 @@ class ContactInquiry {
     /**
      * Get paginated inquiries for the admin messages page
      */
-    public function getAll($limit = 5, $offset = 0) {
+    public function getAllPaginated($limit = 5, $offset = 0) {
         $stmt = $this->db->prepare("
             SELECT
                 id,
@@ -91,11 +91,11 @@ class ContactInquiry {
     public function getStats() {
         $stmt = $this->db->prepare("
             SELECT
-                COUNT(*)                                                            AS total,
-                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END)               AS pending,
+                COUNT(*) AS total,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
                 SUM(CASE WHEN DATE(created_at) = CURDATE()
-                         AND status = 'replied' THEN 1 ELSE 0 END)                AS replied_today,
-                SUM(CASE WHEN priority = 'urgent' THEN 1 ELSE 0 END)              AS urgent
+                         AND status = 'replied' THEN 1 ELSE 0 END) AS replied_today,
+                SUM(CASE WHEN priority = 'urgent' THEN 1 ELSE 0 END) AS urgent
             FROM {$this->table_name}
         ");
         $stmt->execute();

@@ -183,80 +183,27 @@ class AdminController {
         
         extract($this->getCommonViewData());
         extract($this->getSharedData());
-        
-        // Mock users data
-        $users = [
-            [
-                'id' => 1,
-                'name' => 'Maria Santos',
-                'email' => 'maria.santos@gmail.com',
-                'phone' => '+639123456789',
-                'role' => 'pwd',
-                'pwd_id' => 'PWD-2024-123456',
-                'disability' => 'Deaf/Mute',
-                'location' => 'Bacolod City, Philippines',
-                'registration_date' => 'Jan 15, 2026',
-                'status' => 'verified'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Jose Santos',
-                'email' => 'jose.santos@gmail.com',
-                'phone' => '+639123456790',
-                'role' => 'pwd',
-                'pwd_id' => 'PWD-2024-123457',
-                'disability' => 'Deaf/Mute',
-                'location' => 'Manila, Philippines',
-                'registration_date' => 'Jan 20, 2026',
-                'status' => 'verified'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Ana Santos',
-                'email' => 'ana.santos@gmail.com',
-                'phone' => '+639123456791',
-                'role' => 'family',
-                'pwd_id' => 'N/A',
-                'disability' => 'N/A',
-                'location' => 'Quezon City, Philippines',
-                'registration_date' => 'Jan 22, 2026',
-                'status' => 'pending'
-            ],
-            [
-                'id' => 4,
-                'name' => 'Jerome Buntaliada',
-                'email' => 'jerome.buntaliada@gmail.com',
-                'phone' => '+639123456789',
-                'role' => 'pwd',
-                'pwd_id' => 'PWD-2024-123456',
-                'disability' => 'Deaf/Mute',
-                'location' => 'Bacolod City, Philippines',
-                'registration_date' => 'Oct 10, 2005',
-                'status' => 'verified'
-            ],
-            [
-                'id' => 5,
-                'name' => 'Luis Cruz',
-                'email' => 'luis.cruz@gmail.com',
-                'phone' => '+639123456792',
-                'role' => 'pwd',
-                'pwd_id' => 'PWD-2024-123459',
-                'disability' => 'Deaf/Mute',
-                'location' => 'Cebu City, Philippines',
-                'registration_date' => 'Jan 25, 2026',
-                'status' => 'verified'
-            ]
-        ];
-        
-        $stats = [
-            'total' => 1267,
-            'verified' => 67,
-            'pending' => 1200,
-            'inactive' => 67
-        ];
+
+        require_once MODEL_PATH . 'User.php';
+        $userModel = new User();
+
+        $perPage     = 5;
+        $currentPage = max(1, (int)($_GET['page'] ?? 1));
+        $offset      = ($currentPage - 1) * $perPage;
+
+        $stats       = $userModel->getStats();
+        $users       = $userModel->getAllPaginated($perPage, $offset);
+        $totalPages  = (int)ceil($stats['total'] / $perPage);
+        $rangeStart  = $offset + 1;
+        $rangeEnd    = min($offset + $perPage, $stats['total']);
+        $disabilityTypes = $userModel->getDistinctDisabilityTypes();
+
+        // Variables used in view: $users, $stats, $totalPages,
+        // $currentPage, $rangeStart, $rangeEnd, $perPage
         
         require_once VIEW_PATH . 'admin-users.php';
     }
+
 
     // ==================== EMERGENCY ALERTS ====================
     
@@ -468,12 +415,73 @@ class AdminController {
         $offset      = ($currentPage - 1) * $perPage;
 
         $stats       = $contactInquiry->getStats();
-        $messages    = $contactInquiry->getAll($perPage, $offset);
-        $totalPages  = (int)ceil($stats['total'] / $perPage);
+        $totalMessages = $stats['total'];
+        $messages    = $contactInquiry->getAllPaginated($perPage, $offset);
+        $totalPages  = (int)ceil($totalMessages / $perPage);
         $rangeStart  = $offset + 1;
-        $rangeEnd    = min($offset + $perPage, $stats['total']);
-
+        $rangeEnd    = min($offset + $perPage, $totalMessages);
+        
         require_once VIEW_PATH . 'admin-messages.php';
+    }
+
+    // ==================== USER MANAGEMENT ACTIONS ====================
+
+    /**
+     * Verify a user account
+     */
+    public function verifyUser() {
+        $this->requireAdmin();
+
+        // Get user ID from POST or GET
+        $userId = (int)($_POST['user_id'] ?? $_GET['user_id'] ?? 0);
+        $returnPage = (int)($_POST['page'] ?? $_GET['page'] ?? 1);
+
+        if ($userId <= 0) {
+            $_SESSION['error'] = 'Invalid user ID.';
+            header('Location: ' . BASE_URL . 'index.php?action=admin-users&page=' . $returnPage);
+            exit;
+        }
+
+        require_once MODEL_PATH . 'User.php';
+        $userModel = new User();
+
+        if ($userModel->verifyUser($userId)) {
+            $_SESSION['success'] = 'User account verified successfully!';
+        } else {
+            $_SESSION['error'] = 'Failed to verify user account.';
+        }
+
+        header('Location: ' . BASE_URL . 'index.php?action=admin-users&page=' . $returnPage);
+        exit;
+    }
+
+    /**
+     * Toggle user active status (activate/deactivate)
+     */
+    public function toggleUserActive() {
+        $this->requireAdmin();
+
+        // Get user ID from POST or GET
+        $userId = (int)($_POST['user_id'] ?? $_GET['user_id'] ?? 0);
+        $returnPage = (int)($_POST['page'] ?? $_GET['page'] ?? 1);
+
+        if ($userId <= 0) {
+            $_SESSION['error'] = 'Invalid user ID.';
+            header('Location: ' . BASE_URL . 'index.php?action=admin-users&page=' . $returnPage);
+            exit;
+        }
+
+        require_once MODEL_PATH . 'User.php';
+        $userModel = new User();
+
+        if ($userModel->toggleActive($userId)) {
+            $_SESSION['success'] = 'User status updated successfully!';
+        } else {
+            $_SESSION['error'] = 'Failed to update user status.';
+        }
+
+        header('Location: ' . BASE_URL . 'index.php?action=admin-users&page=' . $returnPage);
+        exit;
     }
 
 }
