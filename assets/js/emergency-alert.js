@@ -207,23 +207,23 @@ function initializeShakeDetection() {
 // PANIC CLICK DETECTION
 // ================================
 function initializePanicClickDetection() {
-    const panicArea = document.getElementById('panicDetectionArea') || document.body;
+    const sosButton = document.getElementById('sosButton');
+    if (!sosButton) return;
     
-    panicArea.addEventListener('click', function(e) {
-        // Ignore clicks on buttons and interactive elements
-        if (e.target.closest('button, a, input, .no-panic')) return;
+    let clickTimes = [];
+    
+    sosButton.addEventListener('click', function(e) {
+        const now = Date.now();
         
-        panicClickCount++;
+        // Add current click time
+        clickTimes.push(now);
         
-        if (panicClickTimer) clearTimeout(panicClickTimer);
+        // Keep only clicks within last 3 seconds
+        clickTimes = clickTimes.filter(time => now - time < 3000);
         
-        panicClickTimer = setTimeout(() => {
-            panicClickCount = 0;
-        }, 3000);
-        
-        // 5 rapid clicks in 3 seconds triggers SOS
-        if (panicClickCount >= 5) {
-            panicClickCount = 0;
+        // 5 rapid clicks in 3 seconds triggers panic SOS
+        if (clickTimes.length >= 5) {
+            clickTimes = []; // Reset
             triggerSOS('panic');
         }
     });
@@ -239,23 +239,107 @@ async function triggerSOS(triggerType) {
     console.log('SOS triggered by:', triggerType);
     
     // Visual feedback
-    showAlertOverlay();
-    vibrate([500, 200, 500, 200, 500]);
+    vibrate([500, 200, 500]);
     
     // Get fresh location
     await refreshLocation();
     
-    // Show confirmation dialog
-    const confirmed = await showSOSConfirmation(triggerType);
-    
-    if (confirmed) {
-        // Send the alert
-        sendEmergencyAlert();
-    } else {
-        cancelAlert();
-    }
+    // Show confirmation modal
+    showSOSConfirmationModal(triggerType);
 }
 
+// ================================
+// SOS CONFIRMATION MODAL
+// ================================
+function showSOSConfirmationModal(triggerType) {
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('sosConfirmModal');
+    
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'sosConfirmModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-icon">
+                    <i class="ri-alarm-warning-fill"></i>
+                </div>
+                <h2>Send Emergency Alert?</h2>
+                <p>This will send an SOS message to all your emergency contacts with your location.</p>
+                <div class="countdown">
+                    Auto-sending in <span id="sosCountdown">10</span> seconds...
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-danger" id="confirmSOSBtn">
+                        <i class="ri-send-plane-fill"></i> Send Now
+                    </button>
+                    <button class="btn btn-secondary" id="cancelSOSBtn">
+                        <i class="ri-close-line"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+    
+    // Reset countdown
+    let countdown = 10;
+    const countdownEl = document.getElementById('sosCountdown');
+    if (countdownEl) countdownEl.textContent = countdown;
+    
+    // Clear any existing timer
+    if (window.sosCountdownTimer) {
+        clearInterval(window.sosCountdownTimer);
+    }
+    
+    // Start countdown
+    window.sosCountdownTimer = setInterval(() => {
+        countdown--;
+        if (countdownEl) countdownEl.textContent = countdown;
+        
+        if (countdown <= 0) {
+            clearInterval(window.sosCountdownTimer);
+            modal.classList.remove('active');
+            sendEmergencyAlert(); // Auto-send after countdown
+        }
+    }, 1000);
+    
+    // Confirm button
+    const confirmBtn = document.getElementById('confirmSOSBtn');
+    if (confirmBtn) {
+        confirmBtn.onclick = () => {
+            clearInterval(window.sosCountdownTimer);
+            modal.classList.remove('active');
+            sendEmergencyAlert();
+        };
+    }
+    
+    // Cancel button
+    const cancelBtn = document.getElementById('cancelSOSBtn');
+    if (cancelBtn) {
+        cancelBtn.onclick = () => {
+            clearInterval(window.sosCountdownTimer);
+            modal.classList.remove('active');
+            cancelAlert();
+        };
+    }
+    
+    // Click outside to cancel
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            clearInterval(window.sosCountdownTimer);
+            modal.classList.remove('active');
+            cancelAlert();
+        }
+    };
+}
+
+// ================================
+// REFRESH LOCATION
+// ================================
 function refreshLocation() {
     return new Promise((resolve) => {
         if ("geolocation" in navigator) {
@@ -277,56 +361,6 @@ function refreshLocation() {
             );
         } else {
             resolve(null);
-        }
-    });
-}
-
-// ================================
-// SOS CONFIRMATION
-// ================================
-function showSOSConfirmation(triggerType) {
-    return new Promise((resolve) => {
-        const modal = document.getElementById('sosConfirmModal');
-        if (modal) {
-            modal.classList.add('active');
-            
-            // Countdown timer (10 seconds)
-            let countdown = 10;
-            const countdownEl = document.getElementById('sosCountdown');
-            
-            const timer = setInterval(() => {
-                countdown--;
-                if (countdownEl) countdownEl.textContent = countdown;
-                
-                if (countdown <= 0) {
-                    clearInterval(timer);
-                    modal.classList.remove('active');
-                    resolve(true); // Auto-confirm after countdown
-                }
-            }, 1000);
-            
-            // Confirm button
-            const confirmBtn = document.getElementById('confirmSOSBtn');
-            if (confirmBtn) {
-                confirmBtn.onclick = () => {
-                    clearInterval(timer);
-                    modal.classList.remove('active');
-                    resolve(true);
-                };
-            }
-            
-            // Cancel button
-            const cancelBtn = document.getElementById('cancelSOSBtn');
-            if (cancelBtn) {
-                cancelBtn.onclick = () => {
-                    clearInterval(timer);
-                    modal.classList.remove('active');
-                    resolve(false);
-                };
-            }
-        } else {
-            // No modal, just confirm
-            resolve(confirm('Send Emergency SOS Alert?'));
         }
     });
 }
@@ -569,7 +603,21 @@ function hideAlertOverlay() {
 
 function cancelAlert() {
     isAlertActive = false;
+    
+    // Clear countdown timer if running
+    if (window.sosCountdownTimer) {
+        clearInterval(window.sosCountdownTimer);
+    }
+    
+    // Hide modal
+    const modal = document.getElementById('sosConfirmModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    
+    // Hide overlay
     hideAlertOverlay();
+    
     showNotification('Alert cancelled', 'info');
     vibrate([100]);
 }
