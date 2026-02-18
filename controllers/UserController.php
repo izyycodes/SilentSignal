@@ -3,6 +3,8 @@
 // Handles all logged-in user pages
 
 require_once __DIR__ . '/../models/MedicalProfile.php';
+require_once __DIR__ . '/../models/CommunicationHub.php';
+require_once __DIR__ . '/../models/FamilyCheckin.php';
 
 class UserController {
     
@@ -367,20 +369,230 @@ class UserController {
     }
     
     /**
-     * Family Check-in Page (placeholder)
+     * Family Check-in Page
      */
     public function familyCheckin() {
         $this->requireLogin();
         $pageTitle = "Family Check-in - Silent Signal";
-        
+
         // Shared header/footer data
         extract($this->getSharedData());
-        
+
+        $userId = $_SESSION['user_id'];
+        $familyCheckinModel = new FamilyCheckin();
+
+        // Sync emergency contacts from medical profile → pwd_emergency_contacts + family_pwd_relationships
+        require_once __DIR__ . '/../models/MedicalProfile.php';
+        $medModel   = new MedicalProfile();
+        $profile    = $medModel->getByUserId($userId);
+        $rawContacts = $profile['emergency_contacts'] ?? [];
+        if (!empty($rawContacts)) {
+            $familyCheckinModel->syncEmergencyContacts($userId, $rawContacts);
+        }
+
+        // Get the family group name and member count (now from pwd_emergency_contacts)
+        $familyGroupName   = $familyCheckinModel->getFamilyGroupName($userId);
+        $familyMemberCount = $familyCheckinModel->getFamilyMemberCount($userId);
+
+        // Get my own latest status
+        $myStatus = $familyCheckinModel->getLatestStatus($userId);
+
+        // Get ALL emergency contacts with their status (registered users have live status)
+        $familyStatuses = $familyCheckinModel->getFamilyStatusesForPwd($userId);
+
+        // Get status history for breadcrumbs
+        $statusHistory = $familyCheckinModel->getStatusHistory($userId, 20);
+
+        // Enrich each contact row for the view
+        $avatarColors = ['#e53935', '#ffc107', '#43a047', '#1976d2', '#9c27b0', '#ef6c00'];
+        foreach ($familyStatuses as $i => &$member) {
+            // Name: use fname/lname if registered user, else use contact_name
+            if (!empty($member['fname'])) {
+                $member['display_name'] = $member['fname'] . ' ' . $member['lname'];
+                $member['initials']     = strtoupper(substr($member['fname'],0,1) . substr($member['lname'],0,1));
+                $member['is_registered'] = true;
+            } else {
+                $member['display_name'] = $member['fname_full'];
+                $nameParts = explode(' ', trim($member['fname_full']));
+                $member['initials']     = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
+                $member['is_registered'] = false;
+            }
+
+            $member['color'] = $avatarColors[$i % count($avatarColors)];
+
+            $statusLabels  = ['safe' => 'SAFE', 'danger' => 'DANGER', 'needs_assistance' => 'NEEDS HELP', 'unknown' => 'UNKNOWN'];
+            $statusClasses = ['safe' => 'safe', 'danger' => 'needs-help', 'needs_assistance' => 'needs-help', 'unknown' => 'unknown'];
+            $cs = $member['current_status'] ?? 'unknown';
+            $member['status_label'] = $statusLabels[$cs] ?? 'UNKNOWN';
+            $member['status_class'] = $statusClasses[$cs] ?? 'unknown';
+
+            // Unregistered contacts cannot have a live status
+            if (!$member['is_registered']) {
+                $member['status_label'] = 'NOT REGISTERED';
+                $member['status_class'] = 'not-registered';
+            }
+
+            if (!empty($member['last_updated'])) {
+                $diff = time() - strtotime($member['last_updated']);
+                if ($diff < 60)        $member['time_ago'] = 'Just now';
+                elseif ($diff < 3600)  $member['time_ago'] = round($diff/60) . ' min ago';
+                elseif ($diff < 86400) $member['time_ago'] = round($diff/3600) . ' hr ago';
+                else                   $member['time_ago'] = round($diff/86400) . ' day ago';
+            } else {
+                $member['time_ago'] = $member['is_registered'] ? 'No update yet' : 'Not on Silent Signal';
+            }
+        }
+        unset($member);
+
         require_once VIEW_PATH . 'family-checkin.php';
+    }
+
+    /**
+     * AJAX: Update status (family check-in)
+     */
+    public function updateCheckinStatus() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input || empty($input['status'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data.']);
+            exit();
+        }
+
+        $allowed = ['safe', 'danger', 'needs_assistance', 'unknown'];
+        $status = in_array($input['status'], $allowed) ? $input['status'] : 'unknown';
+        $latitude = isset($input['latitude']) ? (float)$input['latitude'] : null;
+        $longitude = isset($input['longitude']) ? (float)$input['longitude'] : null;
+        $message = $input['message'] ?? null;
+
+        try {
+            $model = new FamilyCheckin();
+            $ok = $model->saveStatusUpdate(
+                $_SESSION['user_id'],
+                $status,
+                $latitude,
+                $longitude,
+                $message
+            );
+            echo json_encode(['success' => $ok, 'message' => $ok ? 'Status updated.' : 'Failed to save.']);
+        } catch (Exception $e) {
+            error_log("UpdateCheckinStatus Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Server error.']);
+        }
+        exit();
+    }
+
+    /**
+     * AJAX: Get family status (family check-in live refresh)
+     */
+    public function getFamilyStatus() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+
+        try {
+            $model  = new FamilyCheckin();
+            $userId = $_SESSION['user_id'];
+
+            $familyStatuses = $model->getFamilyStatusesForPwd($userId);
+            $myStatus       = $model->getLatestStatus($userId);
+
+            $avatarColors  = ['#e53935', '#ffc107', '#43a047', '#1976d2', '#9c27b0', '#ef6c00'];
+            $statusLabels  = ['safe'=>'SAFE','danger'=>'DANGER','needs_assistance'=>'NEEDS HELP','unknown'=>'UNKNOWN'];
+            $statusClasses = ['safe'=>'safe','danger'=>'needs-help','needs_assistance'=>'needs-help','unknown'=>'unknown'];
+
+            foreach ($familyStatuses as $i => &$member) {
+                if (!empty($member['fname'])) {
+                    $member['display_name'] = $member['fname'] . ' ' . $member['lname'];
+                    $member['initials']     = strtoupper(substr($member['fname'],0,1) . substr($member['lname'],0,1));
+                    $member['is_registered'] = true;
+                } else {
+                    $member['display_name'] = $member['fname_full'];
+                    $np = explode(' ', trim($member['fname_full']));
+                    $member['initials']     = strtoupper(substr($np[0]??'',0,1).substr($np[1]??'',0,1));
+                    $member['is_registered'] = false;
+                }
+                $member['color'] = $avatarColors[$i % count($avatarColors)];
+                $cs = $member['current_status'] ?? 'unknown';
+                if (!$member['is_registered']) {
+                    $member['status_label'] = 'NOT REGISTERED';
+                    $member['status_class'] = 'not-registered';
+                } else {
+                    $member['status_label'] = $statusLabels[$cs] ?? 'UNKNOWN';
+                    $member['status_class'] = $statusClasses[$cs] ?? 'unknown';
+                }
+                if (!empty($member['last_updated'])) {
+                    $diff = time() - strtotime($member['last_updated']);
+                    if ($diff < 60)        $member['time_ago'] = 'Just now';
+                    elseif ($diff < 3600)  $member['time_ago'] = round($diff/60) . ' min ago';
+                    elseif ($diff < 86400) $member['time_ago'] = round($diff/3600) . ' hr ago';
+                    else                   $member['time_ago'] = round($diff/86400) . ' day ago';
+                } else {
+                    $member['time_ago'] = $member['is_registered'] ? 'No update yet' : 'Not on Silent Signal';
+                }
+            }
+            unset($member);
+
+            echo json_encode([
+                'success'        => true,
+                'myStatus'       => $myStatus,
+                'familyStatuses' => $familyStatuses
+            ]);
+        } catch (Exception $e) {
+            error_log("GetFamilyStatus Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Server error.']);
+        }
+        exit();
+    }
+
+    public function getLocationHistory() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+
+        try {
+            $model = new FamilyCheckin();
+            $history = $model->getStatusHistory($_SESSION['user_id'], 20);
+            foreach ($history as &$item) {
+                $diff = time() - strtotime($item['created_at']);
+                if ($diff < 60) $item['time_ago'] = 'Just now';
+                elseif ($diff < 3600) $item['time_ago'] = round($diff/60) . ' min ago';
+                elseif ($diff < 86400) $item['time_ago'] = round($diff/3600) . ' hr ago';
+                else $item['time_ago'] = round($diff/86400) . ' day ago';
+            }
+            unset($item);
+            echo json_encode(['success' => true, 'history' => $history]);
+        } catch (Exception $e) {
+            error_log("GetLocationHistory Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Server error.']);
+        }
+        exit();
+    }
+
+    /**
+     * AJAX: Log media capture (family check-in)
+     */
+    public function logCheckinMedia() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+        $input = json_decode(file_get_contents('php://input'), true);
+        try {
+            $model = new FamilyCheckin();
+            $ok = $model->logMediaCapture(
+                $_SESSION['user_id'],
+                $input['type'] ?? 'photo',
+                $input['latitude'] ?? null,
+                $input['longitude'] ?? null
+            );
+            echo json_encode(['success' => $ok]);
+        } catch (Exception $e) {
+            error_log("LogCheckinMedia Error: " . $e->getMessage());
+            echo json_encode(['success' => false]);
+        }
+        exit();
     }
     
     /**
-     * Communication Hub Page (placeholder)
+     * Communication Hub Page
      */
     public function communicationHub() {
         $this->requireLogin();
@@ -389,49 +601,175 @@ class UserController {
         // Shared header/footer data
         extract($this->getSharedData());
 
+        // Load user's medical profile for emergency contacts
+        $medicalProfileModel = new MedicalProfile();
+        $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
 
+        // Build user info for SMS
+        $userInfo = [
+            'name' => trim(($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? '')) ?: ($_SESSION['user_name'] ?? 'User'),
+            'phone' => $profile['phone'] ?? '',
+            'address' => trim(implode(', ', array_filter([
+                $profile['street_address'] ?? '',
+                $profile['city'] ?? '',
+                $profile['province'] ?? ''
+            ]))),
+            'bloodType' => $profile['blood_type'] ?? '',
+            'pwdId' => $profile['pwd_id'] ?? '',
+        ];
+
+        // Emergency contacts from profile
+        $emergencyContacts = $profile['emergency_contacts'] ?? [];
+        $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+        foreach ($emergencyContacts as $i => &$contact) {
+            if (!isset($contact['color'])) $contact['color'] = $colors[$i % count($colors)];
+            if (!isset($contact['initials'])) {
+                $np = explode(' ', $contact['name'] ?? '');
+                $contact['initials'] = strtoupper(substr($np[0] ?? '', 0, 1) . substr($np[1] ?? '', 0, 1));
+            }
+        }
+        unset($contact);
+
+        // Categories
         $categories = [
-            ['id' => 'all', 'icon' => 'ri-grid-line', 'label' => 'All'],
-            ['id' => 'medical', 'icon' => 'ri-hospital-line', 'label' => 'Medical'],
-            ['id' => 'food', 'icon' => 'ri-restaurant-line', 'label' => 'Food'],
-            ['id' => 'water', 'icon' => 'ri-drop-line', 'label' => 'Water'],
-            ['id' => 'shelter', 'icon' => 'ri-home-line', 'label' => 'Shelter'],
-            ['id' => 'emergency', 'icon' => 'ri-alarm-warning-line', 'label' => 'Emergency'],
+            ['id' => 'all',       'icon' => 'ri-grid-line',          'label' => 'All'],
+            ['id' => 'medical',   'icon' => 'ri-hospital-line',       'label' => 'Medical'],
+            ['id' => 'food',      'icon' => 'ri-restaurant-line',     'label' => 'Food'],
+            ['id' => 'water',     'icon' => 'ri-drop-line',           'label' => 'Water'],
+            ['id' => 'shelter',   'icon' => 'ri-home-line',           'label' => 'Shelter'],
+            ['id' => 'emergency', 'icon' => 'ri-alarm-warning-line',  'label' => 'Emergency'],
         ];
 
         // Pre-defined icon-based messages
         $messages = [
-            // Medical
-            ['id' => 'medical_help', 'cat' => 'medical', 'icon' => 'ri-hospital-line', 'title' => 'Medical Help', 'desc' => 'I need medical assistance'],
-            ['id' => 'medication', 'cat' => 'medical', 'icon' => 'ri-medicine-bottle-line', 'title' => 'Medication', 'desc' => 'I need medication'],
-            ['id' => 'sick', 'cat' => 'medical', 'icon' => 'ri-emotion-sad-line', 'title' => 'Sick', 'desc' => 'I am feeling sick'],
-            // Food
-            ['id' => 'food', 'cat' => 'food', 'icon' => 'ri-restaurant-2-line', 'title' => 'Food', 'desc' => 'I need food'],
-            ['id' => 'drinks', 'cat' => 'food', 'icon' => 'ri-cup-line', 'title' => 'Drinks', 'desc' => 'I need something to drink'],
-            ['id' => 'hungry', 'cat' => 'food', 'icon' => 'ri-cake-line', 'title' => 'Hungry', 'desc' => 'I am hungry'],
-            // Water
-            ['id' => 'water', 'cat' => 'water', 'icon' => 'ri-drop-line', 'title' => 'Water', 'desc' => 'I need clean water'],
-            ['id' => 'drinking_water', 'cat' => 'water', 'icon' => 'ri-goblet-line', 'title' => 'Drinking Water', 'desc' => 'I need drinking water'],
-            // Shelter
-            ['id' => 'shelter', 'cat' => 'shelter', 'icon' => 'ri-home-heart-line', 'title' => 'Shelter', 'desc' => 'I need shelter'],
-            ['id' => 'rest_area', 'cat' => 'shelter', 'icon' => 'ri-hotel-bed-line', 'title' => 'Rest Area', 'desc' => 'Looking for rest area'],
-            // Emergency
-            ['id' => 'emergency', 'cat' => 'emergency', 'icon' => 'ri-alarm-warning-line', 'title' => 'Emergency', 'desc' => 'This is an emergency'],
-            ['id' => 'injured', 'cat' => 'emergency', 'icon' => 'ri-health-book-line', 'title' => 'Injured', 'desc' => 'I am injured'],
-            ['id' => 'danger', 'cat' => 'emergency', 'icon' => 'ri-error-warning-line', 'title' => 'Danger', 'desc' => 'I am in danger'],
-            ['id' => 'flood', 'cat' => 'emergency', 'icon' => 'ri-flood-line', 'title' => 'Flood', 'desc' => 'Flooding in area'],
-            ['id' => 'fire', 'cat' => 'emergency', 'icon' => 'ri-fire-line', 'title' => 'Fire', 'desc' => 'There is a fire'],
-            ['id' => 'lost', 'cat' => 'emergency', 'icon' => 'ri-map-pin-user-line', 'title' => 'Lost', 'desc' => 'I am lost'],
+            ['id' => 'medical_help',   'cat' => 'medical',   'icon' => 'ri-hospital-line',        'title' => 'Medical Help',    'desc' => 'I need medical assistance'],
+            ['id' => 'medication',     'cat' => 'medical',   'icon' => 'ri-medicine-bottle-line',  'title' => 'Medication',      'desc' => 'I need medication'],
+            ['id' => 'sick',           'cat' => 'medical',   'icon' => 'ri-emotion-sad-line',      'title' => 'Sick',            'desc' => 'I am feeling sick'],
+            ['id' => 'first_aid',      'cat' => 'medical',   'icon' => 'ri-first-aid-kit-line',    'title' => 'First Aid',       'desc' => 'I need first aid'],
+            ['id' => 'food',           'cat' => 'food',      'icon' => 'ri-restaurant-2-line',     'title' => 'Food',            'desc' => 'I need food'],
+            ['id' => 'drinks',         'cat' => 'food',      'icon' => 'ri-cup-line',              'title' => 'Drinks',          'desc' => 'I need something to drink'],
+            ['id' => 'hungry',         'cat' => 'food',      'icon' => 'ri-cake-line',             'title' => 'Hungry',          'desc' => 'I am hungry'],
+            ['id' => 'water',          'cat' => 'water',     'icon' => 'ri-drop-line',             'title' => 'Water',           'desc' => 'I need clean water'],
+            ['id' => 'drinking_water', 'cat' => 'water',     'icon' => 'ri-goblet-line',           'title' => 'Drinking Water',  'desc' => 'I need drinking water'],
+            ['id' => 'shelter',        'cat' => 'shelter',   'icon' => 'ri-home-heart-line',       'title' => 'Shelter',         'desc' => 'I need shelter'],
+            ['id' => 'rest_area',      'cat' => 'shelter',   'icon' => 'ri-hotel-bed-line',        'title' => 'Rest Area',       'desc' => 'Looking for rest area'],
+            ['id' => 'emergency',      'cat' => 'emergency', 'icon' => 'ri-alarm-warning-line',    'title' => 'Emergency',       'desc' => 'This is an emergency'],
+            ['id' => 'injured',        'cat' => 'emergency', 'icon' => 'ri-health-book-line',      'title' => 'Injured',         'desc' => 'I am injured'],
+            ['id' => 'danger',         'cat' => 'emergency', 'icon' => 'ri-error-warning-line',    'title' => 'Danger',          'desc' => 'I am in danger'],
+            ['id' => 'flood',          'cat' => 'emergency', 'icon' => 'ri-flood-line',            'title' => 'Flood',           'desc' => 'Flooding in area'],
+            ['id' => 'fire',           'cat' => 'emergency', 'icon' => 'ri-fire-line',             'title' => 'Fire',            'desc' => 'There is a fire'],
+            ['id' => 'lost',           'cat' => 'emergency', 'icon' => 'ri-map-pin-user-line',     'title' => 'Lost',            'desc' => 'I am lost'],
         ];
 
         // Filipino Sign Language (FSL) downloadable resources
         $fslItems = [
-            ['title' => 'Emergency Preparedness Guide', 'desc' => 'FSL illustrated guide for disaster preparation'],
-            ['title' => 'Evacuation Instructions', 'desc' => 'Step-by-step FSL evacuation procedures'],
-            ['title' => 'First Aid in FSL', 'desc' => 'Basic first aid instructions in FSL'],
+            [
+                'title' => 'Emergency Preparedness Guide',
+                'desc'  => 'FSL illustrated guide for disaster preparation',
+                'file'  => 'fsl-emergency-preparedness.pdf',
+            ],
+            [
+                'title' => 'Evacuation Instructions',
+                'desc'  => 'Step-by-step FSL evacuation procedures',
+                'file'  => 'fsl-evacuation-instructions.pdf',
+            ],
+            [
+                'title' => 'First Aid in FSL',
+                'desc'  => 'Basic first aid instructions in FSL',
+                'file'  => 'fsl-first-aid.pdf',
+            ],
+            [
+                'title' => 'Disaster Communication Signs',
+                'desc'  => 'Common disaster-related FSL signs and phrases',
+                'file'  => 'fsl-disaster-communication.pdf',
+            ],
         ];
 
         require_once VIEW_PATH . 'communication-hub.php';
+    }
+
+    /**
+     * AJAX: Send SMS via Communication Hub
+     */
+    public function sendHubSms() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input || empty($input['messages'])) {
+            echo json_encode(['success' => false, 'message' => 'No messages selected.']);
+            exit();
+        }
+
+        try {
+            $model = new CommunicationHub();
+            $ok = $model->logSmsEvent(
+                $_SESSION['user_id'],
+                $input['messages'],
+                $input['contacts'] ?? [],
+                $input['latitude'] ?? null,
+                $input['longitude'] ?? null,
+                $input['locationLabel'] ?? null
+            );
+            echo json_encode([
+                'success' => $ok,
+                'message' => $ok ? 'SMS sent to your emergency contacts!' : 'Failed to log SMS.'
+            ]);
+        } catch (Exception $e) {
+            error_log("SendHubSms Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Server error.']);
+        }
+        exit();
+    }
+
+    /**
+     * AJAX: Log media capture in Communication Hub
+     */
+    public function logHubMedia() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+        $input = json_decode(file_get_contents('php://input'), true);
+        try {
+            $model = new CommunicationHub();
+            $ok = $model->logMediaCapture(
+                $_SESSION['user_id'],
+                $input['type'] ?? 'photo',
+                $input['latitude'] ?? null,
+                $input['longitude'] ?? null
+            );
+            echo json_encode(['success' => $ok]);
+        } catch (Exception $e) {
+            error_log("LogHubMedia Error: " . $e->getMessage());
+            echo json_encode(['success' => false]);
+        }
+        exit();
+    }
+
+    /**
+     * AJAX: Get emergency contacts for current user (for Communication Hub)
+     */
+    public function getEmergencyContacts() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+        try {
+            $model = new MedicalProfile();
+            $profile = $model->getByUserId($_SESSION['user_id']);
+            $contacts = $profile['emergency_contacts'] ?? [];
+            $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+            foreach ($contacts as $i => &$c) {
+                if (!isset($c['color'])) $c['color'] = $colors[$i % count($colors)];
+                if (!isset($c['initials'])) {
+                    $np = explode(' ', $c['name'] ?? '');
+                    $c['initials'] = strtoupper(substr($np[0] ?? '', 0, 1) . substr($np[1] ?? '', 0, 1));
+                }
+            }
+            unset($c);
+            echo json_encode(['success' => true, 'contacts' => $contacts]);
+        } catch (Exception $e) {
+            error_log("GetEmergencyContacts Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'contacts' => []]);
+        }
+        exit();
     }
     
     /**
@@ -583,6 +921,10 @@ class UserController {
             ];
             
             if ($medicalProfile->saveProfile($_SESSION['user_id'], $profileData)) {
+                // Sync emergency contacts → pwd_emergency_contacts + family_pwd_relationships
+                require_once __DIR__ . '/../models/FamilyCheckin.php';
+                $fcModel = new FamilyCheckin();
+                $fcModel->syncEmergencyContacts($_SESSION['user_id'], $profileData['emergency_contacts'] ?? []);
                 echo json_encode(['success' => true, 'message' => 'Profile saved successfully!']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to save profile.']);

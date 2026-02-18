@@ -591,3 +591,129 @@ button:focus-visible,
     outline: 2px solid #1976d2;
     outline-offset: 2px;
 }
+/* ── Additional Styles for Dynamic Family Check-in ── */
+
+.status-current-info {
+    padding: 8px 12px 0;
+    font-size: 12px;
+    color: #666;
+}
+.status-last-updated { display: flex; align-items: center; gap: 4px; }
+
+.card-header { position: relative; display: flex; align-items: center; gap: 10px; }
+.refresh-icon-btn {
+    margin-left: auto;
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 34px; height: 34px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #555;
+    transition: background .2s;
+}
+.refresh-icon-btn:hover { background: #f5f5f5; }
+
+.empty-family {
+    text-align: center;
+    padding: 28px 16px;
+    color: #888;
+}
+.empty-family i { font-size: 36px; display: block; margin-bottom: 8px; }
+.link-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 18px;
+    background: #1A4D7F;
+    color: #fff;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.card-sub { font-size: 13px; color: #666; margin: 0 0 14px; padding: 0 2px; }
+
+.breadcrumb-list { margin-top: 12px; }
+.breadcrumb-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.breadcrumb-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+.breadcrumb-dot.safe { background: #43a047; }
+.breadcrumb-dot.danger, .breadcrumb-dot.needs_assistance { background: #e53935; }
+.breadcrumb-dot.unknown { background: #bbb; }
+.breadcrumb-info { flex: 1; }
+.breadcrumb-status { font-size: 13px; font-weight: 600; color: #333; }
+.breadcrumb-coords { font-size: 11px; color: #888; margin-top: 2px; }
+.breadcrumb-time { font-size: 11px; color: #aaa; display: flex; align-items: center; gap: 3px; margin-top: 3px; }
+.breadcrumb-msg { font-size: 12px; color: #555; margin-top: 3px; font-style: italic; }
+.breadcrumb-map-btn {
+    padding: 6px 8px;
+    background: #e3f2fd;
+    color: #1976d2;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+}
+.breadcrumb-empty { text-align: center; padding: 16px; color: #888; font-size: 13px; }
+
+.family-status-badge.unknown { background: #f5f5f5; color: #888; }
+
+/* Status btn loading state */
+.status-btn.loading { opacity: .7; pointer-events: none; }
+
+/* ── Emergency contact sync styles ── */
+
+.avatar-unregistered {
+    position: absolute;
+    bottom: -2px; right: -2px;
+    width: 14px; height: 14px;
+    background: #ff9800;
+    border-radius: 50%;
+    font-size: 9px;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    border: 1px solid #fff;
+}
+
+/* Make avatar-wrap relative so the badge positions correctly */
+.family-avatar-wrap {
+    position: relative;
+}
+
+.unregistered-tag {
+    display: inline-block;
+    font-size: 10px;
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffcc80;
+    border-radius: 8px;
+    padding: 1px 6px;
+    margin-left: 5px;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+.family-status-badge.not-registered {
+    background: #fff3e0;
+    color: #e65100;
+    font-size: 9px;
+}
+
+.empty-family small {
+    display: block;
+    font-size: 11px;
+    color: #aaa;
+    margin: 4px 0 12px;
+    line-height: 1.4;
+}

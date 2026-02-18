@@ -662,3 +662,95 @@ button {
         grid-template-columns: repeat(3, 1fr);
     }
 }
+/* ── Additional Styles for Dynamic Communication Hub ── */
+
+/* Emergency Contacts */
+.contacts-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+}
+.contact-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 8px 12px;
+    min-width: 160px;
+}
+.contact-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    color: #fff;
+    flex-shrink: 0;
+}
+.contact-name { font-size: 13px; font-weight: 600; color: #333; }
+.contact-phone { font-size: 11px; color: #888; }
+.contact-rel { font-size: 11px; color: #999; margin-left: auto; }
+.contacts-add-btn {
+    margin-left: auto;
+    font-size: 12px;
+    padding: 5px 12px;
+    background: #1A4D7F;
+    color: #fff;
+    border-radius: 20px;
+    text-decoration: none;
+    display: flex; align-items: center; gap: 4px;
+}
+.no-contacts-notice {
+    padding: 14px;
+    background: #fff8e1;
+    border-radius: 10px;
+    border: 1px solid #ffe082;
+    font-size: 13px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.no-contacts-notice a { color: #1A4D7F; font-weight: 500; }
+.sms-warning {
+    font-size: 12px;
+    color: #d84315;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+}
+.sms-warning a { color: #1A4D7F; }
+.sms-from-row {
+    font-size: 12px;
+    color: #444;
+    padding: 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border-bottom: 1px dashed #eee;
+    margin-bottom: 8px;
+}
+.sms-medical-tag {
+    font-size: 12px;
+    color: #e53935;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+}
+.sms-user-info {
+    font-size: 12px;
+    color: #555;
+    padding: 6px 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Card icon red variant */
+.card-icon.red { background: #ffebee; }
+.card-icon.red i { color: #e53935; }

@@ -41,7 +41,14 @@ $isPWD = ($userRole === 'pwd');
 <header class="dashboard-header">
     <div class="header-container">
         <!-- Logo -->
-        <a href="<?php echo BASE_URL; ?>index.php?action=dashboard" class="header-logo">
+        <?php
+        $logoAction = 'dashboard';
+        if (isset($_SESSION['user_role'])) {
+            if ($_SESSION['user_role'] === 'family') $logoAction = 'family-dashboard';
+            elseif ($_SESSION['user_role'] === 'admin') $logoAction = 'admin-dashboard';
+        }
+        ?>
+        <a href="<?php echo BASE_URL; ?>index.php?action=<?php echo $logoAction; ?>" class="header-logo">
             <img src="<?php echo BASE_URL; ?>assets/images/logo.png" alt="Silent Signal Logo">
             <span>Silent Signal.</span>
         </a>
