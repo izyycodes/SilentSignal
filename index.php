@@ -212,6 +212,12 @@ switch ($action) {
         $controller->toggleUserActive();
         break;
 
+    case 'log-emergency-alert':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->logEmergencyAlert();
+        break;
+
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';
         $controller = new HomeController();

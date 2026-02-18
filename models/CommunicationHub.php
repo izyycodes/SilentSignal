@@ -16,16 +16,15 @@ class CommunicationHub {
      */
     public function logSmsEvent($userId, $messages, $contacts, $latitude = null, $longitude = null, $locationLabel = null) {
         $stmt = $this->db->prepare("
-            INSERT INTO comm_hub_logs (user_id, messages_json, contacts_json, latitude, longitude, location_label, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, NOW())
+            INSERT INTO sms_events (user_id, messages, contacts, latitude, longitude, created_at)
+            VALUES (?, ?, ?, ?, ?, NOW())
         ");
         return $stmt->execute([
             $userId,
             json_encode($messages),
             json_encode($contacts),
             $latitude,
-            $longitude,
-            $locationLabel
+            $longitude
         ]);
     }
 
@@ -34,7 +33,7 @@ class CommunicationHub {
      */
     public function logMediaCapture($userId, $type, $latitude = null, $longitude = null) {
         $stmt = $this->db->prepare("
-            INSERT INTO comm_hub_media_logs (user_id, media_type, latitude, longitude, created_at)
+            INSERT INTO hub_media_logs (user_id, media_type, latitude, longitude, created_at)
             VALUES (?, ?, ?, ?, NOW())
         ");
         return $stmt->execute([$userId, $type, $latitude, $longitude]);
@@ -46,7 +45,7 @@ class CommunicationHub {
     public function getRecentLogs($userId, $limit = 10) {
         $limit = (int)$limit;
         $stmt = $this->db->prepare("
-            SELECT * FROM comm_hub_logs
+            SELECT * FROM sms_events
             WHERE user_id = ?
             ORDER BY created_at DESC
             LIMIT {$limit}
