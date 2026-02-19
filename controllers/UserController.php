@@ -832,7 +832,7 @@ class UserController {
         // Emergency Contacts (from JSON - already decoded by model)
         $emergencyContacts = $profile['emergency_contacts'] ?? [];
         
-        // Add colors to contacts if not present
+        // Add colors and initials to contacts if not present
         $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
         foreach ($emergencyContacts as $i => &$contact) {
             if (!isset($contact['color'])) {
@@ -843,7 +843,8 @@ class UserController {
                 $contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
             }
         }
-        
+        unset($contact); // break the reference so $contact no longer points to last element
+
         // SMS Configuration (build from profile data)
         $smsConfig = [
             'name' => $personalInfo['firstName'] . ' ' . $personalInfo['lastName'],
@@ -865,7 +866,8 @@ class UserController {
                 $reminder['color'] = $colors[$i % count($colors)];
             }
         }
-        
+        unset($reminder); // break the reference so $reminder no longer points to last element
+
         // Reminder Features (static)
         $reminderFeatures = [
             'Full-screen visual alerts',

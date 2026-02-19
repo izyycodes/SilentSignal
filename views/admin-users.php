@@ -92,12 +92,6 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <option value="family">Family</option>
                 <option value="admin">Admin</option>
             </select>
-            <select class="filter-select" id="disabilityFilter">
-                <option value="">All Disabilities</option>
-                <?php foreach ($disabilityTypes as $dtype): ?>
-                    <option value="<?php echo htmlspecialchars(strtolower($dtype)); ?>"><?php echo htmlspecialchars($dtype); ?></option>
-                <?php endforeach; ?>
-            </select>
             <button class="btn-primary">
                 <i class="ri-download-line"></i> Export Data
             </button>
@@ -213,10 +207,9 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <?php endif; ?>
 
             <?php
-                // Show up to 5 page number links centered around current page
                 $startPage = max(1, $currentPage - 2);
                 $endPage   = min($totalPages, $startPage + 4);
-                $startPage = max(1, $endPage - 4); // re-anchor if near the end
+                $startPage = max(1, $endPage - 4);
 
                 if ($startPage > 1): ?>
                     <a href="<?php echo BASE_URL; ?>index.php?action=admin-users&page=1" class="page-number">1</a>
