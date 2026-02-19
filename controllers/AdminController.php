@@ -1,8 +1,12 @@
 <?php
 // controllers/AdminController.php
 
-class AdminController
-{
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require_once BASE_PATH . 'vendor/autoload.php';
+
+class AdminController {
 
     // Shared data for header and footer
     protected $navItems;
@@ -10,8 +14,8 @@ class AdminController
     protected $footerLinks;
     protected $footerSupport;
     protected $footerSocial;
-
-
+    
+    
     /**
      * Constructor - Initialize shared data
      */
@@ -83,8 +87,7 @@ class AdminController
     /**
      * Get current user data
      */
-    private function getCurrentUser()
-    {
+    private function getCurrentUser() {
         return [
             'id' => $_SESSION['user_id'] ?? 0,
             'name' => $_SESSION['user_name'] ?? 'Admin',
@@ -97,8 +100,7 @@ class AdminController
     /**
      * Get common admin view data
      */
-    private function getCommonViewData()
-    {
+    private function getCommonViewData() {
         return [
             'currentUser' => $this->getCurrentUser(),
             'currentAction' => $_GET['action'] ?? 'admin-dashboard'
@@ -108,8 +110,7 @@ class AdminController
     /**
      * Check if user is admin
      */
-    private function requireAdmin()
-    {
+    private function requireAdmin() {
         if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
             $_SESSION['error'] = "Access denied. Admin privileges required.";
             header("Location: " . BASE_URL . "index.php?action=auth");
@@ -118,18 +119,17 @@ class AdminController
     }
     
     // ==================== DASHBOARD ====================
-
+    
     /**
      * Admin Dashboard (Overview)
      */
-    public function dashboard()
-    {
+    public function dashboard() {
         $this->requireAdmin();
         $pageTitle = "Admin Dashboard - Silent Signal";
-
+        
         extract($this->getCommonViewData());
         extract($this->getSharedData());
-
+        
         // Mock statistics
         $stats = [
             'totalUsers' => 1247,
@@ -141,7 +141,7 @@ class AdminController
             'messageInquiries' => 42,
             'pendingMessages' => 12
         ];
-
+        
         // Mock recent activity
         $recentActivity = [
             [
@@ -173,20 +173,19 @@ class AdminController
                 'time' => '2 hours ago'
             ]
         ];
-
+        
         require_once VIEW_PATH . 'admin-dashboard.php';
     }
 
     // ==================== USERS MANAGEMENT ====================
-
+    
     /**
      * Users Management Page
      */
-    public function users()
-    {
+    public function users() {
         $this->requireAdmin();
         $pageTitle = "User Management - Admin - Silent Signal";
-
+        
         extract($this->getCommonViewData());
         extract($this->getSharedData());
 
@@ -205,23 +204,22 @@ class AdminController
 
         // Variables used in view: $users, $stats, $totalPages,
         // $currentPage, $rangeStart, $rangeEnd, $perPage
-
+        
         require_once VIEW_PATH . 'admin-users.php';
     }
 
     // ==================== EMERGENCY ALERTS ====================
-
+    
     /**
      * Emergency Alerts Page
      */
-    public function emergencyAlerts()
-    {
+    public function emergencyAlerts() {
         $this->requireAdmin();
         $pageTitle = "Emergency Alerts - Admin - Silent Signal";
-
+        
         extract($this->getCommonViewData());
         extract($this->getSharedData());
-
+        
         // Mock emergency alerts
         $alerts = [
             [
@@ -297,30 +295,29 @@ class AdminController
                 'status' => 'resolved'
             ]
         ];
-
+        
         $stats = [
             'total_today' => 1267,
             'critical' => 67,
             'active' => 1200,
             'resolved_today' => 67
         ];
-
+        
         require_once VIEW_PATH . 'admin-emergency-alerts.php';
     }
 
     // ==================== DISASTER ALERTS ====================
-
+    
     /**
      * Disaster Alerts Page
      */
-    public function disasterAlerts()
-    {
+    public function disasterAlerts() {
         $this->requireAdmin();
         $pageTitle = "Disaster Alerts - Admin - Silent Signal";
-
+        
         extract($this->getCommonViewData());
         extract($this->getSharedData());
-
+        
         // Mock disaster alerts
         $alerts = [
             [
@@ -390,24 +387,23 @@ class AdminController
                 'status' => 'cleared'
             ]
         ];
-
+        
         $stats = [
             'active_disasters' => 1267,
             'typhoons' => 67,
             'earthquakes' => 1200,
             'floods' => 67
         ];
-
+        
         require_once VIEW_PATH . 'admin-disaster-alerts.php';
     }
 
     // ==================== MESSAGE INQUIRIES ====================
-
+    
     /**
      * Message Inquiries Page
      */
-    public function messages()
-    {
+    public function messages() {
         $this->requireAdmin();
         $pageTitle = "Message Inquiries - Admin - Silent Signal";
 
@@ -435,8 +431,7 @@ class AdminController
     /**
      * Verify a user account
      */
-    public function verifyUser()
-    {
+    public function verifyUser() {
         $this->requireAdmin();
 
         $userId = (int)($_POST['user_id'] ?? $_GET['user_id'] ?? 0);
@@ -464,8 +459,7 @@ class AdminController
     /**
      * Toggle user active status (activate/deactivate)
      */
-    public function toggleUserActive()
-    {
+    public function toggleUserActive() {
         $this->requireAdmin();
 
         $userId = (int)($_POST['user_id'] ?? $_GET['user_id'] ?? 0);
@@ -495,11 +489,8 @@ class AdminController
     /**
      * Send reply email to message sender
      */
-    public function sendMessageReply()
-    {
+    public function sendMessageReply() {
         $this->requireAdmin();
-
-        require_once BASE_PATH . 'vendor/autoload.php';
 
         $messageId  = (int)($_POST['message_id'] ?? 0);
         $replyText  = trim($_POST['reply_text'] ?? '');
@@ -538,24 +529,26 @@ class AdminController
         $emailSent = false;
 
         try {
-            $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+            $mail = new PHPMailer(true);
 
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'aizhellegwynneth@gmail.com';
-            $mail->Password   = 'gtub oycl mxfj nxat';
-            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Username   = 'ssilentsignal@gmail.com'; 
+            $mail->Password   = 'rnfa bxze eyix tmjw';      
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
 
             $mail->setFrom(CONTACT_EMAIL, 'Silent Signal Support');
             $mail->addAddress($to, $message['name'] ?: '');
+
             $mail->Subject = $subject;
             $mail->Body    = $emailBody;
 
             $mail->send();
             $emailSent = true;
-        } catch (\PHPMailer\PHPMailer\Exception $e) {
+
+        } catch (Exception $e) {
             error_log("Mailer Error for message ID {$messageId}: " . $mail->ErrorInfo);
             $emailSent = false;
         }
@@ -575,8 +568,7 @@ class AdminController
     /**
      * Mark message as resolved
      */
-    public function resolveMessage()
-    {
+    public function resolveMessage() {
         $this->requireAdmin();
 
         $messageId  = (int)($_POST['message_id'] ?? $_GET['message_id'] ?? 0);
@@ -604,8 +596,7 @@ class AdminController
     /**
      * Update message status (in_review, replied, resolved)
      */
-    public function updateMessageStatus()
-    {
+    public function updateMessageStatus() {
         $this->requireAdmin();
 
         $messageId  = (int)($_POST['message_id'] ?? 0);
@@ -632,4 +623,6 @@ class AdminController
         header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
         exit;
     }
+
 }
+?>
