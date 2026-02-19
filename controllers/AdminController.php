@@ -1,6 +1,11 @@
 <?php
 // controllers/AdminController.php
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require_once BASE_PATH . 'vendor/autoload.php';
+
 class AdminController {
 
     // Shared data for header and footer
@@ -196,14 +201,12 @@ class AdminController {
         $totalPages  = (int)ceil($stats['total'] / $perPage);
         $rangeStart  = $offset + 1;
         $rangeEnd    = min($offset + $perPage, $stats['total']);
-        $disabilityTypes = $userModel->getDistinctDisabilityTypes();
 
         // Variables used in view: $users, $stats, $totalPages,
         // $currentPage, $rangeStart, $rangeEnd, $perPage
         
         require_once VIEW_PATH . 'admin-users.php';
     }
-
 
     // ==================== EMERGENCY ALERTS ====================
     
@@ -415,12 +418,11 @@ class AdminController {
         $offset      = ($currentPage - 1) * $perPage;
 
         $stats       = $contactInquiry->getStats();
-        $totalMessages = $stats['total'];
         $messages    = $contactInquiry->getAllPaginated($perPage, $offset);
-        $totalPages  = (int)ceil($totalMessages / $perPage);
+        $totalPages  = (int)ceil($stats['total'] / $perPage);
         $rangeStart  = $offset + 1;
-        $rangeEnd    = min($offset + $perPage, $totalMessages);
-        
+        $rangeEnd    = min($offset + $perPage, $stats['total']);
+
         require_once VIEW_PATH . 'admin-messages.php';
     }
 
@@ -432,7 +434,6 @@ class AdminController {
     public function verifyUser() {
         $this->requireAdmin();
 
-        // Get user ID from POST or GET
         $userId = (int)($_POST['user_id'] ?? $_GET['user_id'] ?? 0);
         $returnPage = (int)($_POST['page'] ?? $_GET['page'] ?? 1);
 
@@ -461,7 +462,6 @@ class AdminController {
     public function toggleUserActive() {
         $this->requireAdmin();
 
-        // Get user ID from POST or GET
         $userId = (int)($_POST['user_id'] ?? $_GET['user_id'] ?? 0);
         $returnPage = (int)($_POST['page'] ?? $_GET['page'] ?? 1);
 
@@ -481,6 +481,146 @@ class AdminController {
         }
 
         header('Location: ' . BASE_URL . 'index.php?action=admin-users&page=' . $returnPage);
+        exit;
+    }
+
+    // ==================== MESSAGE REPLY & STATUS ====================
+
+    /**
+     * Send reply email to message sender
+     */
+    public function sendMessageReply() {
+        $this->requireAdmin();
+
+        $messageId  = (int)($_POST['message_id'] ?? 0);
+        $replyText  = trim($_POST['reply_text'] ?? '');
+        $returnPage = (int)($_POST['page'] ?? 1);
+
+        if ($messageId <= 0 || empty($replyText)) {
+            $_SESSION['error'] = 'Invalid message ID or empty reply.';
+            header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
+            exit;
+        }
+
+        require_once MODEL_PATH . 'ContactInquiry.php';
+        $inquiryModel = new ContactInquiry();
+
+        $message = $inquiryModel->getById($messageId);
+
+        if (!$message) {
+            $_SESSION['error'] = 'Message not found.';
+            header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
+            exit;
+        }
+
+        $to      = $message['email'];
+        $subject = 'Re: ' . $message['subject'] . ' - Silent Signal Support';
+
+        $emailBody  = "Hello " . ($message['name'] ?: 'there') . ",\n\n";
+        $emailBody .= "Thank you for contacting Silent Signal. Here is our response to your inquiry:\n\n";
+        $emailBody .= $replyText . "\n\n";
+        $emailBody .= "---\n";
+        $emailBody .= "Original Message:\n";
+        $emailBody .= $message['message'] . "\n\n";
+        $emailBody .= "Best regards,\n";
+        $emailBody .= "Silent Signal Support Team\n";
+        $emailBody .= CONTACT_EMAIL;
+
+        $emailSent = false;
+
+        try {
+            $mail = new PHPMailer(true);
+
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'ssilentsignal@gmail.com'; 
+            $mail->Password   = 'rnfa bxze eyix tmjw';      
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+
+            $mail->setFrom(CONTACT_EMAIL, 'Silent Signal Support');
+            $mail->addAddress($to, $message['name'] ?: '');
+
+            $mail->Subject = $subject;
+            $mail->Body    = $emailBody;
+
+            $mail->send();
+            $emailSent = true;
+
+        } catch (Exception $e) {
+            error_log("Mailer Error for message ID {$messageId}: " . $mail->ErrorInfo);
+            $emailSent = false;
+        }
+
+        if ($emailSent) {
+            $adminUserId = $_SESSION['user_id'];
+            $inquiryModel->saveReply($messageId, $adminUserId, $replyText);
+            $_SESSION['success'] = 'Reply sent successfully to ' . $to;
+        } else {
+            $_SESSION['error'] = 'Failed to send email. Please check your SMTP configuration.';
+        }
+
+        header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
+        exit;
+    }
+
+    /**
+     * Mark message as resolved
+     */
+    public function resolveMessage() {
+        $this->requireAdmin();
+
+        $messageId  = (int)($_POST['message_id'] ?? $_GET['message_id'] ?? 0);
+        $returnPage = (int)($_POST['page'] ?? $_GET['page'] ?? 1);
+
+        if ($messageId <= 0) {
+            $_SESSION['error'] = 'Invalid message ID.';
+            header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
+            exit;
+        }
+
+        require_once MODEL_PATH . 'ContactInquiry.php';
+        $inquiryModel = new ContactInquiry();
+
+        if ($inquiryModel->updateStatus($messageId, 'resolved')) {
+            $_SESSION['success'] = 'Message marked as resolved.';
+        } else {
+            $_SESSION['error'] = 'Failed to update message status.';
+        }
+
+        header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
+        exit;
+    }
+
+    /**
+     * Update message status (in_review, replied, resolved)
+     */
+    public function updateMessageStatus() {
+        $this->requireAdmin();
+
+        $messageId  = (int)($_POST['message_id'] ?? 0);
+        $newStatus  = trim($_POST['status'] ?? '');
+        $returnPage = (int)($_POST['page'] ?? 1);
+
+        $validStatuses = ['pending', 'in_review', 'replied', 'resolved'];
+
+        if ($messageId <= 0 || !in_array($newStatus, $validStatuses)) {
+            $_SESSION['error'] = 'Invalid message ID or status.';
+            header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
+            exit;
+        }
+
+        require_once MODEL_PATH . 'ContactInquiry.php';
+        $inquiryModel = new ContactInquiry();
+
+        if ($inquiryModel->updateStatus($messageId, $newStatus)) {
+            $_SESSION['success'] = 'Message status updated to ' . ucfirst(str_replace('_', ' ', $newStatus));
+        } else {
+            $_SESSION['error'] = 'Failed to update message status.';
+        }
+
+        header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
         exit;
     }
 

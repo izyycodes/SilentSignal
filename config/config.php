@@ -43,11 +43,12 @@ if ($isLocal) {
 
 // Contact Information (same for both environments)
 define('CONTACT_PHONE', '+639123456789');
-define('CONTACT_EMAIL', 'contact@silentsignal.com');
+define('CONTACT_EMAIL', 'ssilentsignal@gmail.com');
 define('CONTACT_ADDRESS', 'Bacolod City, Philippines');
-define('CONTACT_WEBSITE', 'www.silentsignal.com');
+define('CONTACT_WEBSITE', 'silentsignal.helioho.st');
 
 // Paths (same for both environments)
+define('BASE_PATH', __DIR__ . '/../'); 
 define('VIEW_PATH', __DIR__ . '/../views/');
 define('CONTROLLER_PATH', __DIR__ . '/../controllers/');
 define('MODEL_PATH', __DIR__ . '/../models/');

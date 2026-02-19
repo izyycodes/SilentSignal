@@ -6,6 +6,21 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 
 <div class="dashboard-container">
 
+    <!-- Success/Error Messages -->
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success">
+            <i class="ri-checkbox-circle-line"></i>
+            <?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-error">
+            <i class="ri-error-warning-line"></i>
+            <?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?>
+        </div>
+    <?php endif; ?>
+
     <!-- Page Header -->
     <div class="page-header">
         <div class="header-content">
@@ -122,8 +137,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         data-status="<?php echo htmlspecialchars($message['status']); ?>"
                         data-date="<?php echo htmlspecialchars($message['date_received']); ?>"
                         data-reply="<?php echo htmlspecialchars($message['reply_message'] ?? ''); ?>"
-                        data-date-replied="<?php echo htmlspecialchars($message['date_replied'] ?? ''); ?>"
-                        onclick="viewMessage(this)">
+                        data-date-replied="<?php echo htmlspecialchars($message['date_replied'] ?? ''); ?>">
 
                         <td class="message-id"><?php echo $message['message_id']; ?></td>
                         <td>
@@ -156,7 +170,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <td>
                             <div class="subject"><?php echo htmlspecialchars($message['subject']); ?></div>
                         </td>
-                        <td>
+                        <td class="clickable-message" onclick="viewMessage(this.closest('tr'))">
                             <div class="message-preview"><?php echo htmlspecialchars($message['preview']); ?>...</div>
                         </td>
                         <td>
@@ -165,9 +179,15 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                             </span>
                         </td>
                         <td>
-                            <span class="status-badge <?php echo $message['status']; ?>">
-                                <?php echo ucfirst(str_replace('_', ' ', $message['status'])); ?>
-                            </span>
+                            <select class="status-select <?php echo $message['status']; ?>" 
+                                    onchange="updateStatus(<?php echo $message['id']; ?>, this.value, <?php echo $currentPage; ?>)"
+                                    onclick="event.stopPropagation()"
+                                    title="Change status">
+                                <option value="pending" <?php echo $message['status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                <option value="in_review" <?php echo $message['status'] === 'in_review' ? 'selected' : ''; ?>>In Review</option>
+                                <option value="replied" <?php echo $message['status'] === 'replied' ? 'selected' : ''; ?>>Replied</option>
+                                <option value="resolved" <?php echo $message['status'] === 'resolved' ? 'selected' : ''; ?>>Resolved</option>
+                            </select>
                         </td>
                         <td>
                             <div class="time-info">
@@ -185,7 +205,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     <div class="pagination">
         <div class="pagination-info">
             Showing <strong><?php echo $rangeStart; ?>-<?php echo $rangeEnd; ?></strong>
-            of <strong><?php echo number_format($totalMessages); ?></strong> messages
+            of <strong><?php echo number_format($stats['total']); ?></strong> messages
         </div>
         <div class="pagination-controls">
 

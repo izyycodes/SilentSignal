@@ -71,52 +71,10 @@ switch ($action) {
         $controller->familyCheckin();
         break;
 
-    case 'update-checkin-status':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->updateCheckinStatus();
-        break;
-
-    case 'get-family-status':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->getFamilyStatus();
-        break;
-
-    case 'get-location-history':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->getLocationHistory();
-        break;
-
-    case 'log-checkin-media':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->logCheckinMedia();
-        break;
-
     case 'communication-hub':
         require_once CONTROLLER_PATH . 'UserController.php';
         $controller = new UserController();
         $controller->communicationHub();
-        break;
-
-    case 'send-hub-sms':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->sendHubSms();
-        break;
-
-    case 'log-hub-media':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->logHubMedia();
-        break;
-
-    case 'get-emergency-contacts':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->getEmergencyContacts();
         break;
 
     case 'medical-profile':
@@ -137,36 +95,6 @@ switch ($action) {
         require_once CONTROLLER_PATH . 'FamilyController.php';
         $controller = new FamilyController();
         $controller->familyDashboard();
-        break;
-
-    case 'get-pwd-live-status':
-        require_once CONTROLLER_PATH . 'FamilyController.php';
-        $controller = new FamilyController();
-        $controller->getPwdLiveStatus();
-        break;
-
-    case 'get-pwd-profile':
-        require_once CONTROLLER_PATH . 'FamilyController.php';
-        $controller = new FamilyController();
-        $controller->getPwdProfile();
-        break;
-
-    case 'respond-to-alert':
-        require_once CONTROLLER_PATH . 'FamilyController.php';
-        $controller = new FamilyController();
-        $controller->respondToAlert();
-        break;
-
-    case 'alert-all-family':
-        require_once CONTROLLER_PATH . 'FamilyController.php';
-        $controller = new FamilyController();
-        $controller->alertAllFamily();
-        break;
-
-    case 'refresh-family-dashboard':
-        require_once CONTROLLER_PATH . 'FamilyController.php';
-        $controller = new FamilyController();
-        $controller->refreshDashboard();
         break;
 
     // Admin Module    
@@ -212,10 +140,22 @@ switch ($action) {
         $controller->toggleUserActive();
         break;
 
-    case 'log-emergency-alert':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->logEmergencyAlert();
+    case 'admin-send-reply':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->sendMessageReply();
+        break;
+
+    case 'admin-resolve-message':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->resolveMessage();
+        break;
+
+    case 'admin-update-message-status':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->updateMessageStatus();
         break;
 
     default:

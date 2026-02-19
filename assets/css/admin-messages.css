@@ -660,6 +660,118 @@
 
 .btn-modal-danger:hover { background: #e2e8f0; }
 
+/* Alert Messages */
+.alert {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    animation: slideDown 0.3s ease-out;
+}
+
+.alert i {
+    font-size: 1.25rem;
+}
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Status Dropdown in Table */
+.status-select {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 0.75rem;
+    padding-right: 1.75rem;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+}
+
+.status-select.pending {
+    background-color: #fef9c3;
+    color: #854d0e;
+}
+
+.status-select.in_review {
+    background-color: #e0e7ff;
+    color: #3730a3;
+}
+
+.status-select.replied {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-select.resolved {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+.status-select:hover {
+    opacity: 0.8;
+    border-color: currentColor;
+}
+
+.status-select:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Clickable Message Cell */
+.clickable-message {
+    cursor: pointer;
+    position: relative;
+}
+
+.clickable-message:hover {
+    background: #f8fafc;
+}
+
+.clickable-message:hover .message-preview {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+/* Remove hover effect from message-row since only specific cell is clickable */
+.message-row {
+    cursor: default;
+}
+
+.message-row:hover {
+    background: transparent;
+}
+
 /* Responsive */
 @media (max-width: 1350px) {
     .table-container { overflow-x: auto; }

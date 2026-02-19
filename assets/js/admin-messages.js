@@ -3,7 +3,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     initializeSearch();
     initializeFilters();
+    updatePaginationInfo();
 });
+
 // ─────────────────────────────────────────────
 // SEARCH
 // ─────────────────────────────────────────────
@@ -51,6 +53,16 @@ function applyFilters() {
     });
 
     updatePaginationInfo();
+}
+
+function updatePaginationInfo() {
+    const visible = document.querySelectorAll('.data-table tbody tr:not([style*="display: none"])').length;
+    const total   = document.querySelectorAll('.data-table tbody tr').length;
+    const info    = document.querySelector('.pagination-info');
+    if (info) {
+        const end = visible > 0 ? visible : 0;
+        info.innerHTML = `Showing <strong>1-${end}</strong> of <strong>${total}</strong> messages`;
+    }
 }
 
 // ─────────────────────────────────────────────
@@ -121,7 +133,7 @@ function closeMessageModal() {
 }
 
 // ─────────────────────────────────────────────
-// SEND REPLY  (TODO: wire to real endpoint)
+// SEND REPLY — wire to backend
 // ─────────────────────────────────────────────
 function sendReply() {
     const reply = document.getElementById('replyTextarea').value.trim();
@@ -131,25 +143,101 @@ function sendReply() {
         return;
     }
 
-    // TODO: POST to index.php?action=admin-reply with currentMessageId + reply
-    console.log('Sending reply to message ID:', currentMessageId);
-    console.log('Reply text:', reply);
+    if (!confirm('Send this reply via email to the user?')) {
+        return;
+    }
 
-    alert('Reply sent! (Connect to backend to persist this.)');
-    closeMessageModal();
+    // Get current page from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = urlParams.get('page') || 1;
+
+    // Create form and submit
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'index.php?action=admin-send-reply';
+
+    const messageIdInput = document.createElement('input');
+    messageIdInput.type = 'hidden';
+    messageIdInput.name = 'message_id';
+    messageIdInput.value = currentMessageId;
+
+    const replyInput = document.createElement('input');
+    replyInput.type = 'hidden';
+    replyInput.name = 'reply_text';
+    replyInput.value = reply;
+
+    const pageInput = document.createElement('input');
+    pageInput.type = 'hidden';
+    pageInput.name = 'page';
+    pageInput.value = currentPage;
+
+    form.appendChild(messageIdInput);
+    form.appendChild(replyInput);
+    form.appendChild(pageInput);
+    document.body.appendChild(form);
+    form.submit();
 }
 
 // ─────────────────────────────────────────────
-// MARK AS RESOLVED  (TODO: wire to real endpoint)
+// MARK AS RESOLVED — wire to backend
 // ─────────────────────────────────────────────
 function markAsResolved() {
     if (!confirm('Mark this message as resolved?')) return;
 
-    // TODO: POST to index.php?action=admin-resolve with currentMessageId
-    console.log('Resolving message ID:', currentMessageId);
+    // Get current page from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = urlParams.get('page') || 1;
 
-    alert('Message marked as resolved! (Connect to backend to persist this.)');
-    closeMessageModal();
+    // Create form and submit
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'index.php?action=admin-resolve-message';
+
+    const messageIdInput = document.createElement('input');
+    messageIdInput.type = 'hidden';
+    messageIdInput.name = 'message_id';
+    messageIdInput.value = currentMessageId;
+
+    const pageInput = document.createElement('input');
+    pageInput.type = 'hidden';
+    pageInput.name = 'page';
+    pageInput.value = currentPage;
+
+    form.appendChild(messageIdInput);
+    form.appendChild(pageInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// ─────────────────────────────────────────────
+// UPDATE STATUS — from dropdown in table
+// ─────────────────────────────────────────────
+function updateStatus(messageId, newStatus, currentPage) {
+    // Create form and submit
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'index.php?action=admin-update-message-status';
+
+    const messageIdInput = document.createElement('input');
+    messageIdInput.type = 'hidden';
+    messageIdInput.name = 'message_id';
+    messageIdInput.value = messageId;
+
+    const statusInput = document.createElement('input');
+    statusInput.type = 'hidden';
+    statusInput.name = 'status';
+    statusInput.value = newStatus;
+
+    const pageInput = document.createElement('input');
+    pageInput.type = 'hidden';
+    pageInput.name = 'page';
+    pageInput.value = currentPage;
+
+    form.appendChild(messageIdInput);
+    form.appendChild(statusInput);
+    form.appendChild(pageInput);
+    document.body.appendChild(form);
+    form.submit();
 }
 
 // ─────────────────────────────────────────────
