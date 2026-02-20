@@ -10,13 +10,168 @@ document.addEventListener('DOMContentLoaded', function () {
     let originalFormData = null;
 
     // ================================
+    // CUSTOM MODAL SYSTEM
+    // ================================
+    const modalOverlay = document.getElementById('customModalOverlay');
+    const modal        = document.getElementById('customModal');
+    const modalIcon    = document.getElementById('customModalIcon');
+    const modalTitle   = document.getElementById('customModalTitle');
+    const modalBody    = document.getElementById('customModalBody');
+    const modalFooter  = document.getElementById('customModalFooter');
+    const modalClose   = document.getElementById('customModalClose');
+
+    function openModal() {
+        modalOverlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modal.style.animation = 'none';
+        modalOverlay.style.animation = 'none';
+        modalOverlay.style.display = 'none';
+        modal.style.animation = '';
+        modalOverlay.style.animation = '';
+        document.body.style.overflow = '';
+    }
+
+    if (modalClose) modalClose.addEventListener('click', closeModal);
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function (e) {
+            if (e.target === modalOverlay) closeModal();
+        });
+    }
+
+    /**
+     * showInputModal — replaces prompt()
+     * fields: [{ name, label, type='text', placeholder, value, options (for select) }]
+     * Returns a Promise that resolves with { fieldName: value, ... } or null if cancelled.
+     */
+    function showInputModal({ title, icon = 'ri-edit-line', iconClass = 'icon-teal', description = '', fields = [] }) {
+        return new Promise((resolve) => {
+            modalIcon.className = 'custom-modal-icon ' + iconClass;
+            modalIcon.innerHTML = `<i class="${icon}"></i>`;
+            modalTitle.textContent = title;
+
+            let bodyHTML = description ? `<p class="modal-description">${description}</p><hr class="modal-divider">` : '';
+
+            fields.forEach(field => {
+                bodyHTML += `<div class="modal-field">`;
+                bodyHTML += `<label for="mf_${field.name}">${field.label}</label>`;
+
+                if (field.type === 'select') {
+                    bodyHTML += `<select id="mf_${field.name}" class="form-control">`;
+                    field.options.forEach(opt => {
+                        const selected = field.value === opt.value ? 'selected' : '';
+                        bodyHTML += `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+                    });
+                    bodyHTML += `</select>`;
+                } else {
+                    bodyHTML += `<input type="${field.type || 'text'}" 
+                        id="mf_${field.name}" 
+                        class="form-control" 
+                        placeholder="${field.placeholder || ''}" 
+                        value="${field.value || ''}">`;
+                }
+                bodyHTML += `</div>`;
+            });
+
+            modalBody.innerHTML = bodyHTML;
+            modalFooter.innerHTML = `
+                <button class="modal-btn modal-btn-secondary" id="mf_cancel"><i class="ri-close-line"></i> Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="mf_confirm"><i class="ri-check-line"></i> Confirm</button>
+            `;
+
+            openModal();
+
+            // Focus first input
+            const firstInput = modalBody.querySelector('input, select');
+            if (firstInput) setTimeout(() => firstInput.focus(), 100);
+
+            // Allow Enter to submit
+            modalBody.addEventListener('keydown', function handler(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('mf_confirm')?.click();
+                    modalBody.removeEventListener('keydown', handler);
+                }
+            });
+
+            document.getElementById('mf_cancel').addEventListener('click', () => {
+                closeModal();
+                resolve(null);
+            });
+
+            document.getElementById('mf_confirm').addEventListener('click', () => {
+                const result = {};
+                fields.forEach(field => {
+                    const el = document.getElementById('mf_' + field.name);
+                    result[field.name] = el ? el.value.trim() : '';
+                });
+                closeModal();
+                resolve(result);
+            });
+        });
+    }
+
+    /**
+     * showConfirmModal — replaces confirm()
+     * Returns a Promise that resolves with true (confirmed) or false (cancelled).
+     */
+    function showConfirmModal({ title, message, icon = 'ri-alert-line', iconClass = 'icon-red', confirmLabel = 'Confirm', confirmClass = 'modal-btn-danger', warning = '' }) {
+        return new Promise((resolve) => {
+            modalIcon.className = 'custom-modal-icon ' + iconClass;
+            modalIcon.innerHTML = `<i class="${icon}"></i>`;
+            modalTitle.textContent = title;
+
+            let bodyHTML = `<p class="modal-confirm-text">${message}</p>`;
+            if (warning) {
+                bodyHTML += `<div class="modal-warning-box"><i class="ri-error-warning-line"></i> ${warning}</div>`;
+            }
+            modalBody.innerHTML = bodyHTML;
+
+            modalFooter.innerHTML = `
+                <button class="modal-btn modal-btn-secondary" id="mc_cancel"><i class="ri-close-line"></i> Cancel</button>
+                <button class="modal-btn ${confirmClass}" id="mc_confirm"><i class="ri-check-line"></i> ${confirmLabel}</button>
+            `;
+
+            openModal();
+
+            document.getElementById('mc_cancel').addEventListener('click', () => {
+                closeModal();
+                resolve(false);
+            });
+            document.getElementById('mc_confirm').addEventListener('click', () => {
+                closeModal();
+                resolve(true);
+            });
+        });
+    }
+
+    /**
+     * showAlertModal — replaces alert()
+     */
+    function showAlertModal({ title, message, icon = 'ri-information-line', iconClass = 'icon-blue', buttonLabel = 'OK' }) {
+        return new Promise((resolve) => {
+            modalIcon.className = 'custom-modal-icon ' + iconClass;
+            modalIcon.innerHTML = `<i class="${icon}"></i>`;
+            modalTitle.textContent = title;
+            modalBody.innerHTML = `<p class="modal-confirm-text">${message}</p>`;
+            modalFooter.innerHTML = `
+                <button class="modal-btn modal-btn-primary" id="ma_ok"><i class="ri-check-line"></i> ${buttonLabel}</button>
+            `;
+            openModal();
+            document.getElementById('ma_ok').addEventListener('click', () => {
+                closeModal();
+                resolve();
+            });
+        });
+    }
+
+    // ================================
     // INITIALIZE
     // ================================
     function init() {
-        // Store original form data
         originalFormData = collectFormData();
-
-        // Make all inputs readonly initially
         setFormReadonly(true);
     }
 
@@ -27,23 +182,24 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabPanes = document.querySelectorAll('.tab-pane');
 
     tabBtns.forEach(btn => {
-        btn.addEventListener('click', function (e) {
+        btn.addEventListener('click', async function (e) {
             if (hasUnsavedChanges) {
-                if (!confirm('You have unsaved changes. Do you want to discard them?')) {
-                    e.preventDefault();
-                    return;
-                }
-                // Reset changes
+                const confirmed = await showConfirmModal({
+                    title: 'Unsaved Changes',
+                    message: 'You have unsaved changes on this tab. Switching tabs will discard them.',
+                    icon: 'ri-edit-line',
+                    iconClass: 'icon-orange',
+                    confirmLabel: 'Discard & Switch',
+                    confirmClass: 'modal-btn-danger',
+                    warning: 'This action cannot be undone.'
+                });
+                if (!confirmed) return;
                 resetForm();
             }
 
             const tabId = this.getAttribute('data-tab');
-
-            // Remove active from all tabs
             tabBtns.forEach(b => b.classList.remove('active'));
             tabPanes.forEach(p => p.classList.remove('active'));
-
-            // Add active to clicked tab
             this.classList.add('active');
             document.getElementById(tabId).classList.add('active');
         });
@@ -56,10 +212,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (saveBtn) {
         saveBtn.addEventListener('click', function () {
             if (!isEditing) {
-                // Enable editing mode
                 enableEditMode();
             } else {
-                // Save changes
                 saveChanges();
             }
         });
@@ -69,11 +223,9 @@ document.addEventListener('DOMContentLoaded', function () {
         isEditing = true;
         setFormReadonly(false);
 
-        // Update button
         saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
         saveBtn.style.background = 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)';
 
-        // Add cancel button
         const cancelBtn = document.createElement('button');
         cancelBtn.className = 'btn btn-cancel';
         cancelBtn.id = 'cancelChangesBtn';
@@ -81,9 +233,17 @@ document.addEventListener('DOMContentLoaded', function () {
         cancelBtn.style.cssText = 'margin-left: 10px; background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); color: #fff;';
         saveBtn.parentNode.insertBefore(cancelBtn, saveBtn.nextSibling);
 
-        cancelBtn.addEventListener('click', function () {
+        cancelBtn.addEventListener('click', async function () {
             if (hasUnsavedChanges) {
-                if (!confirm('Discard all changes?')) return;
+                const confirmed = await showConfirmModal({
+                    title: 'Discard Changes',
+                    message: 'Are you sure you want to discard all unsaved changes?',
+                    icon: 'ri-edit-line',
+                    iconClass: 'icon-orange',
+                    confirmLabel: 'Discard',
+                    confirmClass: 'modal-btn-danger'
+                });
+                if (!confirmed) return;
             }
             disableEditMode();
             resetForm();
@@ -97,17 +257,14 @@ document.addEventListener('DOMContentLoaded', function () {
         hasUnsavedChanges = false;
         setFormReadonly(true);
 
-        // Update button
         saveBtn.innerHTML = '<i class="ri-edit-line"></i> Edit Profile';
         saveBtn.style.background = '';
 
-        // Remove cancel button
         const cancelBtn = document.getElementById('cancelChangesBtn');
         if (cancelBtn) cancelBtn.remove();
     }
 
     function setFormReadonly(readonly) {
-        // Personal info inputs
         document.querySelectorAll('.form-control').forEach(input => {
             input.readOnly = readonly;
             if (readonly) {
@@ -119,28 +276,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Disability edit mode
-        const disabilityDisplay = document.getElementById('disabilityDisplay');
-        const disabilityEditMode = document.getElementById('disabilityEditMode');
-        if (disabilityDisplay && disabilityEditMode) {
-            disabilityDisplay.style.display = readonly ? '' : 'none';
-            disabilityEditMode.style.display = readonly ? 'none' : 'block';
-            if (!readonly) {
-                // Sync select to current value
-                const currentVal = document.getElementById('disabilityTypeHidden').value;
-                const disabilitySelect = document.getElementById('disabilitySelect');
-                const knownOptions = ['Deaf/Mute', 'Blind', 'Mobility Impaired', 'Intellectually Disabled', 'Psychosocial Disability', 'Chronic Illness'];
-                if (knownOptions.includes(currentVal)) {
-                    disabilitySelect.value = currentVal;
-                    document.getElementById('disabilityCustomInput').style.display = 'none';
-                } else if (currentVal && currentVal !== 'Not specified') {
-                    disabilitySelect.value = 'Other';
-                    const customInput = document.getElementById('disabilityCustomInput');
-                    customInput.style.display = 'block';
-                    customInput.value = currentVal;
-                }
-            }
-        }
+        // Disability is always readonly — no edit mode toggle needed
+        // The hidden input always carries "Deaf/Mute"
 
         // Blood type select
         const bloodTypeSelect = document.getElementById('bloodTypeSelect');
@@ -152,11 +289,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const smsTemplate = document.getElementById('smsTemplate');
         if (smsTemplate) {
             smsTemplate.readOnly = readonly;
-            if (readonly) {
-                smsTemplate.style.background = '#f5f5f5';
-            } else {
-                smsTemplate.style.background = '';
-            }
+            smsTemplate.style.background = readonly ? '#f5f5f5' : '';
         }
 
         // Hide/show action buttons
@@ -164,127 +297,111 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.style.display = readonly ? 'none' : 'flex';
         });
 
-        // Hide/show Add Contact button
         const addContactBtn = document.getElementById('addContactBtn');
-        if (addContactBtn) {
-            addContactBtn.style.display = readonly ? 'none' : 'inline-flex';
-        }
+        if (addContactBtn) addContactBtn.style.display = readonly ? 'none' : 'inline-flex';
 
-        // Hide/show Add Reminder button
         const addReminderBtn = document.getElementById('addReminderBtn');
-        if (addReminderBtn) {
-            addReminderBtn.style.display = readonly ? 'none' : 'inline-flex';
-        }
+        if (addReminderBtn) addReminderBtn.style.display = readonly ? 'none' : 'inline-flex';
 
-        // Time picker buttons
         document.querySelectorAll('.btn-set-time').forEach(btn => {
             btn.style.display = readonly ? 'none' : 'inline-flex';
         });
 
         // Toggle medication reminder editing
+        // IMPORTANT: when switching TO readonly, sync input values → display elements first
         document.querySelectorAll('.reminder-card').forEach(card => {
             const nameDisplay = card.querySelector('.reminder-name-display');
-            const nameEdit = card.querySelector('.reminder-name-edit');
+            const nameEdit    = card.querySelector('.reminder-name-edit');
             const freqDisplay = card.querySelector('.reminder-frequency-display');
-            const freqEdit = card.querySelector('.reminder-frequency-edit');
-            const deleteBtn = card.querySelector('.btn-delete-reminder');
+            const freqEdit    = card.querySelector('.reminder-frequency-edit');
+            const deleteBtn   = card.querySelector('.btn-delete-reminder');
 
             if (nameDisplay && nameEdit) {
+                // Sync input → h4 before switching to readonly
+                if (readonly && nameEdit.value.trim()) {
+                    nameDisplay.textContent = nameEdit.value.trim();
+                }
                 nameDisplay.style.display = readonly ? 'block' : 'none';
-                nameEdit.style.display = readonly ? 'none' : 'block';
+                nameEdit.style.display    = readonly ? 'none'  : 'block';
                 if (!readonly) {
-                    nameEdit.readOnly = false;
+                    nameEdit.readOnly     = false;
                     nameEdit.style.cursor = 'text';
+                    // Sync h4 → input when entering edit mode
+                    nameEdit.value = nameDisplay.textContent.trim();
                 }
             }
             if (freqDisplay && freqEdit) {
+                // Sync select → span before switching to readonly
+                if (readonly && freqEdit.value) {
+                    freqDisplay.textContent = freqEdit.value;
+                }
                 freqDisplay.style.display = readonly ? 'inline-block' : 'none';
-                freqEdit.style.display = readonly ? 'none' : 'inline-block';
-                freqEdit.disabled = readonly;
+                freqEdit.style.display    = readonly ? 'none'         : 'inline-block';
+                freqEdit.disabled         = readonly;
+                if (!readonly) {
+                    // Sync span → select when entering edit mode
+                    freqEdit.value = freqDisplay.textContent.trim();
+                }
             }
-            if (deleteBtn) {
-                deleteBtn.style.display = readonly ? 'none' : 'inline-flex';
-            }
-        });
-
-    }
-
-
-    // ================================
-    // DISABILITY SELECT HANDLER
-    // ================================
-    const disabilitySelect = document.getElementById('disabilitySelect');
-    if (disabilitySelect) {
-        disabilitySelect.addEventListener('change', function () {
-            const customInput = document.getElementById('disabilityCustomInput');
-            const hidden = document.getElementById('disabilityTypeHidden');
-            if (this.value === 'Other') {
-                customInput.style.display = 'block';
-                customInput.value = '';
-                hidden.value = '';
-            } else {
-                customInput.style.display = 'none';
-                hidden.value = this.value;
-            }
-        });
-    }
-    const disabilityCustomInput = document.getElementById('disabilityCustomInput');
-    if (disabilityCustomInput) {
-        disabilityCustomInput.addEventListener('input', function () {
-            document.getElementById('disabilityTypeHidden').value = this.value;
+            if (deleteBtn) deleteBtn.style.display = readonly ? 'none' : 'inline-flex';
         });
     }
 
     // ================================
-    // ADD REMINDER FUNCTIONALITY  
+    // ADD REMINDER — uses modal
     // ================================
-
-    // ADD THIS EVENT LISTENER for adding new reminders:
-
     const addReminderBtn = document.getElementById('addReminderBtn');
     if (addReminderBtn) {
-        addReminderBtn.addEventListener('click', function () {
-            // Create modal/prompt for new reminder
-            const name = prompt('Enter medication name:');
-            if (!name || name.trim() === '') return;
+        addReminderBtn.addEventListener('click', async function () {
+            const result = await showInputModal({
+                title: 'Add Medication Reminder',
+                icon: 'ri-capsule-line',
+                iconClass: 'icon-blue',
+                description: 'Fill in the details for your new medication reminder.',
+                fields: [
+                    { name: 'name', label: 'Medication Name', placeholder: 'e.g. Metformin 500mg', value: '' },
+                    {
+                        name: 'frequency', label: 'Frequency', type: 'select',
+                        value: 'Once daily',
+                        options: [
+                            { value: 'Once daily',        label: 'Once daily' },
+                            { value: 'Twice daily',       label: 'Twice daily' },
+                            { value: 'Three times daily', label: 'Three times daily' },
+                            { value: 'Every 4 hours',     label: 'Every 4 hours' },
+                            { value: 'Every 6 hours',     label: 'Every 6 hours' },
+                            { value: 'Every 8 hours',     label: 'Every 8 hours' },
+                            { value: 'As needed',         label: 'As needed' }
+                        ]
+                    }
+                ]
+            });
 
-            const frequencies = [
-                'Once daily',
-                'Twice daily',
-                'Three times daily',
-                'Every 4 hours',
-                'Every 6 hours',
-                'Every 8 hours',
-                'As needed'
-            ];
+            if (!result || !result.name) return;
 
-            let freqChoice = prompt(
-                'Select frequency (enter number):\n' +
-                frequencies.map((f, i) => `${i + 1}. ${f}`).join('\n')
-            );
-
-            if (!freqChoice || freqChoice < 1 || freqChoice > frequencies.length) {
-                freqChoice = 1; // default to once daily
-            }
-
-            const frequency = frequencies[parseInt(freqChoice) - 1];
-            const time = '8:00 AM'; // default time
-
-            addMedicationReminder(name.trim(), frequency, time);
+            addMedicationReminder(result.name, result.frequency, '8:00 AM');
             hasUnsavedChanges = true;
         });
     }
 
     // ================================
-    // DELETE REMINDER FUNCTIONALITY
+    // DELETE REMINDER — uses modal
     // ================================
-
-    // ADD THIS EVENT DELEGATION for delete buttons:
-
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', async function (e) {
         if (e.target.closest('.btn-delete-reminder')) {
-            if (confirm('Delete this medication reminder?')) {
-                e.target.closest('.reminder-card').remove();
+            const card = e.target.closest('.reminder-card');
+            const medName = card?.querySelector('h4')?.textContent || 'this reminder';
+
+            const confirmed = await showConfirmModal({
+                title: 'Delete Reminder',
+                message: `Are you sure you want to delete the reminder for <strong>${medName}</strong>?`,
+                icon: 'ri-delete-bin-line',
+                iconClass: 'icon-red',
+                confirmLabel: 'Delete',
+                confirmClass: 'modal-btn-danger'
+            });
+
+            if (confirmed) {
+                card.remove();
                 hasUnsavedChanges = true;
                 showNotification('Reminder deleted', 'info');
             }
@@ -292,9 +409,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ================================
-    // HELPER FUNCTION TO ADD REMINDER
+    // HELPER: ADD REMINDER CARD
     // ================================
-
     function addMedicationReminder(name, frequency, time) {
         const container = document.querySelector('.reminders-list');
         if (!container) return;
@@ -307,137 +423,97 @@ document.addEventListener('DOMContentLoaded', function () {
         card.style.animation = 'fadeIn 0.3s ease';
 
         card.innerHTML = `
-        <div class="reminder-icon" style="background: ${randomColor};">
-            <i class="ri-capsule-fill"></i>
-        </div>
-        <div class="reminder-info">
-            <h4 class="reminder-name-display" style="display: none;">${name}</h4>
-            <input type="text" class="reminder-name-edit form-control" 
-                   value="${name}" 
-                   style="margin-bottom: 8px; font-size: 1.1rem; font-weight: 600;"
-                   placeholder="Enter medication name">
-            
-            <span class="reminder-frequency-display reminder-frequency" style="display: none;">${frequency}</span>
-            <select class="reminder-frequency-edit form-control" style="margin-bottom: 8px; width: auto;">
-                <option value="Once daily" ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option>
-                <option value="Twice daily" ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option>
-                <option value="Three times daily" ${frequency === 'Three times daily' ? 'selected' : ''}>Three times daily</option>
-                <option value="Every 4 hours" ${frequency === 'Every 4 hours' ? 'selected' : ''}>Every 4 hours</option>
-                <option value="Every 6 hours" ${frequency === 'Every 6 hours' ? 'selected' : ''}>Every 6 hours</option>
-                <option value="Every 8 hours" ${frequency === 'Every 8 hours' ? 'selected' : ''}>Every 8 hours</option>
-                <option value="As needed" ${frequency === 'As needed' ? 'selected' : ''}>As needed</option>
-            </select>
-            
-            <span class="reminder-time"><i class="ri-time-line"></i> ${time}</span>
-        </div>
-        <div class="reminder-actions">
-            <button class="btn btn-set-time">Set Time</button>
-            <button class="btn btn-delete-reminder" style="background: #f44336; margin-left: 5px; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">
-                <i class="ri-delete-bin-line"></i>
-            </button>
-        </div>
-    `;
+            <div class="reminder-icon" style="background: ${randomColor};">
+                <i class="ri-capsule-fill"></i>
+            </div>
+            <div class="reminder-info">
+                <h4 class="reminder-name-display" style="display: none;">${name}</h4>
+                <input type="text" class="reminder-name-edit form-control" 
+                       value="${name}" 
+                       style="margin-bottom: 8px; font-size: 1.1rem; font-weight: 600;"
+                       placeholder="Enter medication name">
+                <span class="reminder-frequency-display reminder-frequency" style="display: none;">${frequency}</span>
+                <select class="reminder-frequency-edit form-control" style="margin-bottom: 8px; width: auto;">
+                    <option value="Once daily"        ${frequency === 'Once daily'        ? 'selected' : ''}>Once daily</option>
+                    <option value="Twice daily"       ${frequency === 'Twice daily'       ? 'selected' : ''}>Twice daily</option>
+                    <option value="Three times daily" ${frequency === 'Three times daily' ? 'selected' : ''}>Three times daily</option>
+                    <option value="Every 4 hours"     ${frequency === 'Every 4 hours'     ? 'selected' : ''}>Every 4 hours</option>
+                    <option value="Every 6 hours"     ${frequency === 'Every 6 hours'     ? 'selected' : ''}>Every 6 hours</option>
+                    <option value="Every 8 hours"     ${frequency === 'Every 8 hours'     ? 'selected' : ''}>Every 8 hours</option>
+                    <option value="As needed"         ${frequency === 'As needed'         ? 'selected' : ''}>As needed</option>
+                </select>
+                <span class="reminder-time"><i class="ri-time-line"></i> ${time}</span>
+            </div>
+            <div class="reminder-actions">
+                <button class="btn btn-set-time">Set Time</button>
+                <button class="btn btn-delete-reminder" style="background: #f44336; margin-left: 5px; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center;">
+                    <i class="ri-delete-bin-line"></i>
+                </button>
+            </div>
+        `;
 
         container.appendChild(card);
-        
-        // Apply readonly state to newly added reminder if not editing
-        if (!isEditing) {
-            const nameDisplay = card.querySelector('.reminder-name-display');
-            const nameEdit = card.querySelector('.reminder-name-edit');
-            const freqDisplay = card.querySelector('.reminder-frequency-display');
-            const freqEdit = card.querySelector('.reminder-frequency-edit');
-            const deleteBtn = card.querySelector('.btn-delete-reminder');
-            const setTimeBtn = card.querySelector('.btn-set-time');
-
-            if (nameDisplay && nameEdit) {
-                nameDisplay.style.display = 'block';
-                nameEdit.style.display = 'none';
-            }
-            if (freqDisplay && freqEdit) {
-                freqDisplay.style.display = 'inline-block';
-                freqEdit.style.display = 'none';
-            }
-            if (deleteBtn) {
-                deleteBtn.style.display = 'none';
-            }
-            if (setTimeBtn) {
-                setTimeBtn.style.display = 'none';
-            }
-        }
-        
         showNotification('Reminder added! Remember to save.', 'success');
     }
 
+    // ================================
+    // SAVE CHANGES
+    // ================================
     function saveChanges() {
-        // Collect form data
         const formData = collectFormData();
 
-        // Show saving state
         saveBtn.innerHTML = '<i class="ri-loader-4-line"></i> Saving...';
         saveBtn.disabled = true;
 
-        // Send to server
         fetch(BASE_URL + 'index.php?action=save-medical-profile', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update original data
-                    originalFormData = formData;
-                    hasUnsavedChanges = false;
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                originalFormData = formData;
+                hasUnsavedChanges = false;
 
-                    // Update disability display value
-                    const disabilityDisplay = document.getElementById('disabilityDisplay');
-                    const disabilityHidden = document.getElementById('disabilityTypeHidden');
-                    if (disabilityDisplay && formData.disabilityType) {
-                        disabilityDisplay.textContent = formData.disabilityType;
-                        if (disabilityHidden) disabilityHidden.value = formData.disabilityType;
-                    }
+                const disabilityDisplay = document.getElementById('disabilityDisplay');
+                if (disabilityDisplay) disabilityDisplay.textContent = 'Deaf/Mute';
 
-                    saveBtn.innerHTML = '<i class="ri-check-line"></i> Saved!';
-                    showNotification('Changes saved successfully!', 'success');
-
-                    // Reset button and exit edit mode after delay
-                    setTimeout(() => {
-                        saveBtn.disabled = false;
-                        disableEditMode();
-                    }, 1500);
-                } else {
-                    throw new Error(data.message || 'Failed to save');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                saveBtn.innerHTML = '<i class="ri-error-warning-line"></i> Save Failed';
-                saveBtn.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
-                showNotification('Failed to save changes: ' + error.message, 'error');
+                saveBtn.innerHTML = '<i class="ri-check-line"></i> Saved!';
+                showNotification('Changes saved successfully!', 'success');
 
                 setTimeout(() => {
-                    saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
-                    saveBtn.style.background = '';
                     saveBtn.disabled = false;
-                }, 3000);
-            });
+                    disableEditMode();
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Failed to save');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            saveBtn.innerHTML = '<i class="ri-error-warning-line"></i> Save Failed';
+            saveBtn.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+            showNotification('Failed to save changes: ' + error.message, 'error');
+
+            setTimeout(() => {
+                saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
+                saveBtn.style.background = '';
+                saveBtn.disabled = false;
+            }, 3000);
+        });
     }
 
     function resetForm() {
-    if (!originalFormData) return;
-
-    // Reset all form inputs by name - data is now flat, not nested
-    document.querySelectorAll('.form-control[name]').forEach(input => {
-        const name = input.getAttribute('name');
-        if (originalFormData[name] !== undefined) {
-            input.value = originalFormData[name];
-        }
-    });
-
-    hasUnsavedChanges = false;
-}
+        if (!originalFormData) return;
+        document.querySelectorAll('.form-control[name]').forEach(input => {
+            const name = input.getAttribute('name');
+            if (originalFormData[name] !== undefined) {
+                input.value = originalFormData[name];
+            }
+        });
+        hasUnsavedChanges = false;
+    }
 
     // ================================
     // TRACK CHANGES
@@ -453,27 +529,22 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================================
     const bloodTypeDisplay = document.querySelector('.blood-type-value');
     if (bloodTypeDisplay) {
-        // Create hidden select
         const bloodTypeSelect = document.createElement('select');
         bloodTypeSelect.id = 'bloodTypeSelect';
         bloodTypeSelect.className = 'form-control';
         bloodTypeSelect.style.cssText = 'font-size: 1.5rem; font-weight: bold; text-align: center; display: none;';
         bloodTypeSelect.disabled = true;
 
-        const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-        bloodTypes.forEach(type => {
+        ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].forEach(type => {
             const option = document.createElement('option');
             option.value = type;
             option.textContent = type;
-            if (type === bloodTypeDisplay.textContent.trim()) {
-                option.selected = true;
-            }
+            if (type === bloodTypeDisplay.textContent.trim()) option.selected = true;
             bloodTypeSelect.appendChild(option);
         });
 
         bloodTypeDisplay.parentNode.appendChild(bloodTypeSelect);
 
-        // Toggle display/select based on edit mode
         const originalSetReadonly = setFormReadonly;
         setFormReadonly = function (readonly) {
             originalSetReadonly(readonly);
@@ -497,25 +568,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================================
     const smsPreviewContent = document.querySelector('.sms-preview-content');
     if (smsPreviewContent) {
-        // Make SMS template editable
-        const smsText = smsPreviewContent.innerHTML;
         const smsTemplate = document.createElement('textarea');
         smsTemplate.id = 'smsTemplate';
         smsTemplate.className = 'form-control';
         smsTemplate.style.cssText = 'width: 100%; min-height: 300px; font-family: monospace; font-size: 13px; display: none; resize: vertical;';
         smsTemplate.value = smsPreviewContent.textContent.trim();
         smsTemplate.readOnly = true;
-
         smsPreviewContent.parentNode.appendChild(smsTemplate);
 
-        // Add to readonly toggle
         const originalSetReadonly2 = setFormReadonly;
         setFormReadonly = function (readonly) {
             originalSetReadonly2(readonly);
             if (readonly) {
                 smsPreviewContent.style.display = '';
                 smsTemplate.style.display = 'none';
-                // Update preview with template
                 const lines = smsTemplate.value.split('\n');
                 let html = '';
                 lines.forEach(line => {
@@ -538,221 +604,196 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================
-    // MEDICATION REMINDER TIME PICKER
+    // MEDICATION REMINDER TIME PICKER — modal
     // ================================
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', async function (e) {
         if (e.target.closest('.btn-set-time')) {
             const reminderCard = e.target.closest('.reminder-card');
             const timeSpan = reminderCard.querySelector('.reminder-time');
 
-            // Create time picker modal
-            const modal = createTimePickerModal(timeSpan.textContent, reminderCard);
-            document.body.appendChild(modal);
+            // Parse current times
+            const timeMatch = timeSpan.textContent.match(/(\d+:\d+\s*[AP]M)/gi);
+            const defaultTime1 = timeMatch && timeMatch[0] ? convertTo24Hour(timeMatch[0]) : '08:00';
+            const defaultTime2 = timeMatch && timeMatch[1] ? convertTo24Hour(timeMatch[1]) : '20:00';
 
-            modal.style.display = 'flex';
+            // Build a custom time picker modal
+            modalIcon.className = 'custom-modal-icon icon-blue';
+            modalIcon.innerHTML = '<i class="ri-time-line"></i>';
+            modalTitle.textContent = 'Set Reminder Times';
+            modalBody.innerHTML = `
+                <p class="modal-description">Choose when you want to be reminded to take this medication.</p>
+                <hr class="modal-divider">
+                <div class="time-fields-row">
+                    <div class="modal-field">
+                        <label for="tp_time1">Morning Time</label>
+                        <input type="time" id="tp_time1" class="form-control" value="${defaultTime1}">
+                    </div>
+                    <div class="modal-field">
+                        <label for="tp_time2">Evening Time</label>
+                        <input type="time" id="tp_time2" class="form-control" value="${defaultTime2}">
+                    </div>
+                </div>
+            `;
+            modalFooter.innerHTML = `
+                <button class="modal-btn modal-btn-secondary" id="tp_cancel"><i class="ri-close-line"></i> Cancel</button>
+                <button class="modal-btn modal-btn-save" id="tp_save"><i class="ri-save-line"></i> Save Times</button>
+            `;
+            openModal();
 
-            hasUnsavedChanges = true;
+            document.getElementById('tp_cancel').addEventListener('click', closeModal);
+            document.getElementById('tp_save').addEventListener('click', function () {
+                const t1 = document.getElementById('tp_time1').value;
+                const t2 = document.getElementById('tp_time2').value;
+
+                if (!t1 || !t2) {
+                    showAlertModal({
+                        title: 'Both Times Required',
+                        message: 'Please set both morning and evening reminder times before saving.',
+                        icon: 'ri-alert-line',
+                        iconClass: 'icon-orange'
+                    });
+                    return;
+                }
+
+                timeSpan.innerHTML = `<i class="ri-time-line"></i> ${convertTo12Hour(t1)}, ${convertTo12Hour(t2)}`;
+                closeModal();
+                showNotification('Reminder times updated', 'success');
+                hasUnsavedChanges = true;
+            });
         }
     });
 
-    function createTimePickerModal(currentTime, reminderCard) {
-        const modal = document.createElement('div');
-        modal.className = 'time-picker-modal';
-        modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-    `;
-
-        // Extract current times or use defaults
-        let time1 = '08:00';
-        let time2 = '20:00';
-
-        const timeText = currentTime.replace(/.*?(\d+:\d+\s*[AP]M)/gi, '$1');
-        const timeMatch = currentTime.match(/(\d+:\d+\s*[AP]M)/gi);
-
-        if (timeMatch && timeMatch.length >= 2) {
-            time1 = convertTo24Hour(timeMatch[0]);
-            time2 = convertTo24Hour(timeMatch[1]);
-        } else if (timeMatch && timeMatch.length === 1) {
-            time1 = convertTo24Hour(timeMatch[0]);
-        }
-
-        modal.innerHTML = `
-        <div style="background: white; border-radius: 15px; padding: 30px; width: 400px; max-width: 90%;">
-            <h3 style="margin: 0 0 20px 0; color: #333;">Set Reminder Times</h3>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; color: #666; font-weight: 600;">Morning Time</label>
-                <input type="time" class="time-input-1" value="${time1}" 
-                       style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
-            </div>
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 5px; color: #666; font-weight: 600;">Evening Time</label>
-                <input type="time" class="time-input-2" value="${time2}" 
-                       style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-modal-save" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                    <i class="ri-check-line"></i> Save Times
-                </button>
-                <button class="btn-modal-cancel" style="flex: 1; padding: 12px; background: #e0e0e0; color: #666; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                    <i class="ri-close-line"></i> Cancel
-                </button>
-            </div>
-        </div>
-    `;
-
-        // Save button handler
-        modal.querySelector('.btn-modal-save').addEventListener('click', function () {
-            const newTime1 = modal.querySelector('.time-input-1').value;
-            const newTime2 = modal.querySelector('.time-input-2').value;
-
-            if (!newTime1 || !newTime2) {
-                alert('Please set both morning and evening times.');
-                return;
-            }
-
-            const formatted1 = convertTo12Hour(newTime1);
-            const formatted2 = convertTo12Hour(newTime2);
-
-            // Update the time display in the reminder card
-            const timeSpan = reminderCard.querySelector('.reminder-time');
-            timeSpan.innerHTML = `<i class="ri-time-line"></i> ${formatted1}, ${formatted2}`;
-
-            modal.remove();
-            showNotification('Reminder times updated', 'success');
-            hasUnsavedChanges = true;
-        });
-
-        // Cancel button handler
-        modal.querySelector('.btn-modal-cancel').addEventListener('click', function () {
-            modal.remove();
-        });
-
-        // Click outside to close
-        modal.addEventListener('click', function (e) {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
-
-        return modal;
-    }
-
     function convertTo24Hour(time12h) {
-        // Clean up the input
         time12h = time12h.trim();
-
-        // Check if already in 24-hour format
-        if (/^\d{2}:\d{2}$/.test(time12h)) {
-            return time12h;
-        }
-
-        // Parse 12-hour format
+        if (/^\d{2}:\d{2}$/.test(time12h)) return time12h;
         const match = time12h.match(/(\d+):(\d+)\s*(AM|PM)/i);
-        if (!match) {
-            return '08:00'; // Default fallback
-        }
-
+        if (!match) return '08:00';
         let [, hours, minutes, modifier] = match;
         hours = parseInt(hours, 10);
-
-        if (modifier.toUpperCase() === 'PM' && hours !== 12) {
-            hours += 12;
-        } else if (modifier.toUpperCase() === 'AM' && hours === 12) {
-            hours = 0;
-        }
-
+        if (modifier.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+        else if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
         return `${hours.toString().padStart(2, '0')}:${minutes}`;
     }
 
     function convertTo12Hour(time24h) {
         if (!time24h) return '8:00 AM';
-
         let [hours, minutes] = time24h.split(':');
         hours = parseInt(hours, 10);
-
         const modifier = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12 || 12;
-
         return `${hours}:${minutes} ${modifier}`;
     }
 
     // ================================
-    // ADD ALLERGY
+    // ADD ALLERGY — modal
     // ================================
     const addAllergyBtn = document.getElementById('addAllergyBtn');
     if (addAllergyBtn) {
-        addAllergyBtn.addEventListener('click', function () {
-            const allergy = prompt('Enter allergy:');
-            if (allergy && allergy.trim()) {
-                addTag('allergiesContainer', allergy.trim(), 'red');
+        addAllergyBtn.addEventListener('click', async function () {
+            const result = await showInputModal({
+                title: 'Add Allergy',
+                icon: 'ri-alert-line',
+                iconClass: 'icon-red',
+                fields: [
+                    { name: 'allergy', label: 'Allergy', placeholder: 'e.g. Penicillin, Peanuts, Latex', value: '' }
+                ]
+            });
+            if (result && result.allergy) {
+                addTag('allergiesContainer', result.allergy, 'red');
                 hasUnsavedChanges = true;
             }
         });
     }
 
     // ================================
-    // ADD MEDICATION
+    // ADD MEDICATION — modal
     // ================================
     const addMedicationBtn = document.getElementById('addMedicationBtn');
     if (addMedicationBtn) {
-        addMedicationBtn.addEventListener('click', function () {
-            const medication = prompt('Enter medication name and dosage:');
-            if (medication && medication.trim()) {
-                addMedication('medicationsContainer', medication.trim());
+        addMedicationBtn.addEventListener('click', async function () {
+            const result = await showInputModal({
+                title: 'Add Medication',
+                icon: 'ri-capsule-line',
+                iconClass: 'icon-green',
+                fields: [
+                    { name: 'medication', label: 'Medication Name & Dosage', placeholder: 'e.g. Metformin 500mg twice daily', value: '' }
+                ]
+            });
+            if (result && result.medication) {
+                addMedication('medicationsContainer', result.medication);
                 hasUnsavedChanges = true;
             }
         });
     }
 
     // ================================
-    // ADD MEDICAL CONDITION
+    // ADD MEDICAL CONDITION — modal
     // ================================
     const addConditionBtn = document.getElementById('addConditionBtn');
     if (addConditionBtn) {
-        addConditionBtn.addEventListener('click', function () {
-            const condition = prompt('Enter medical condition:');
-            if (condition && condition.trim()) {
-                addTag('conditionsContainer', condition.trim(), 'yellow');
+        addConditionBtn.addEventListener('click', async function () {
+            const result = await showInputModal({
+                title: 'Add Medical Condition',
+                icon: 'ri-stethoscope-line',
+                iconClass: 'icon-yellow',
+                fields: [
+                    { name: 'condition', label: 'Medical Condition', placeholder: 'e.g. Type 2 Diabetes, Hypertension', value: '' }
+                ]
+            });
+            if (result && result.condition) {
+                addTag('conditionsContainer', result.condition, 'yellow');
                 hasUnsavedChanges = true;
             }
         });
     }
 
     // ================================
-    // ADD CONTACT
+    // ADD CONTACT — modal
     // ================================
     const addContactBtn = document.getElementById('addContactBtn');
     if (addContactBtn) {
-        addContactBtn.addEventListener('click', function () {
-            const name = prompt('Enter contact name:');
-            if (name && name.trim()) {
-                const relation = prompt('Enter relation (e.g., Mother, Father, Spouse):');
-                const phone = prompt('Enter phone number:');
-
-                if (relation && phone) {
-                    addContact(name.trim(), relation.trim(), phone.trim());
-                    hasUnsavedChanges = true;
-                }
+        addContactBtn.addEventListener('click', async function () {
+            const result = await showInputModal({
+                title: 'Add Emergency Contact',
+                icon: 'ri-user-add-line',
+                iconClass: 'icon-teal',
+                description: 'This contact will be alerted in case of an emergency.',
+                fields: [
+                    { name: 'name',     label: 'Full Name',   placeholder: 'e.g. Maria Santos', value: '' },
+                    { name: 'relation', label: 'Relation',    placeholder: 'e.g. Mother, Spouse, Friend', value: '' },
+                    { name: 'phone',    label: 'Phone Number', placeholder: 'e.g. 0912 345 6789', value: '' }
+                ]
+            });
+            if (result && result.name && result.relation && result.phone) {
+                addContact(result.name, result.relation, result.phone);
+                hasUnsavedChanges = true;
+            } else if (result) {
+                showAlertModal({
+                    title: 'Incomplete Details',
+                    message: 'Please fill in all fields: name, relation, and phone number.',
+                    icon: 'ri-alert-line',
+                    iconClass: 'icon-orange'
+                });
             }
         });
     }
 
     // ================================
-    // TAG REMOVAL EVENT DELEGATION
+    // TAG / ITEM / CONTACT REMOVAL — modal confirms
     // ================================
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', async function (e) {
         if (e.target.closest('.tag-remove')) {
             const tag = e.target.closest('.tag');
-            if (tag) {
+            const label = tag?.querySelector('span')?.textContent || 'this item';
+            const confirmed = await showConfirmModal({
+                title: 'Remove Item',
+                message: `Remove <strong>${label}</strong> from the list?`,
+                icon: 'ri-close-circle-line',
+                iconClass: 'icon-red',
+                confirmLabel: 'Remove',
+                confirmClass: 'modal-btn-danger'
+            });
+            if (confirmed && tag) {
                 tag.style.animation = 'fadeOut 0.3s ease';
                 setTimeout(() => tag.remove(), 300);
                 hasUnsavedChanges = true;
@@ -761,7 +802,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (e.target.closest('.item-remove')) {
             const item = e.target.closest('.medication-item');
-            if (item) {
+            const label = item?.querySelector('span')?.textContent || 'this medication';
+            const confirmed = await showConfirmModal({
+                title: 'Remove Medication',
+                message: `Remove <strong>${label}</strong> from your medication list?`,
+                icon: 'ri-capsule-line',
+                iconClass: 'icon-red',
+                confirmLabel: 'Remove',
+                confirmClass: 'modal-btn-danger'
+            });
+            if (confirmed && item) {
                 item.style.animation = 'fadeOut 0.3s ease';
                 setTimeout(() => item.remove(), 300);
                 hasUnsavedChanges = true;
@@ -770,7 +820,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (e.target.closest('.action-btn.delete')) {
             const card = e.target.closest('.contact-card');
-            if (card && confirm('Remove this contact?')) {
+            const name = card?.querySelector('h4')?.textContent || 'this contact';
+            const confirmed = await showConfirmModal({
+                title: 'Remove Contact',
+                message: `Remove <strong>${name}</strong> from your emergency contacts?`,
+                icon: 'ri-user-unfollow-line',
+                iconClass: 'icon-red',
+                confirmLabel: 'Remove',
+                confirmClass: 'modal-btn-danger',
+                warning: 'This contact will no longer receive emergency alerts.'
+            });
+            if (confirmed && card) {
                 card.style.animation = 'fadeOut 0.3s ease';
                 setTimeout(() => card.remove(), 300);
                 hasUnsavedChanges = true;
@@ -789,13 +849,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Intercept sidebar links
     document.querySelectorAll('.sidebar-menu a').forEach(link => {
-        link.addEventListener('click', function (e) {
+        link.addEventListener('click', async function (e) {
             if (hasUnsavedChanges) {
-                if (!confirm('You have unsaved changes. Do you want to discard them and leave this page?')) {
-                    e.preventDefault();
-                }
+                e.preventDefault();
+                const href = this.href;
+                const confirmed = await showConfirmModal({
+                    title: 'Unsaved Changes',
+                    message: 'You have unsaved changes. Leaving this page will discard them.',
+                    icon: 'ri-edit-line',
+                    iconClass: 'icon-orange',
+                    confirmLabel: 'Leave Page',
+                    confirmClass: 'modal-btn-danger',
+                    warning: 'All unsaved changes will be permanently lost.'
+                });
+                if (confirmed) window.location.href = href;
             }
         });
     });
@@ -803,11 +871,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================================
     // HELPER FUNCTIONS
     // ================================
-
     function addTag(containerId, text, color) {
         const container = document.getElementById(containerId);
         if (!container) return;
-
         const tag = document.createElement('div');
         tag.className = `tag tag-${color}`;
         tag.innerHTML = `
@@ -815,19 +881,13 @@ document.addEventListener('DOMContentLoaded', function () {
             <button class="tag-remove"><i class="ri-close-line"></i></button>
         `;
         tag.style.animation = 'fadeIn 0.3s ease';
-
-        // Hide remove button if not editing
-        if (!isEditing) {
-            tag.querySelector('.tag-remove').style.display = 'none';
-        }
-
+        if (!isEditing) tag.querySelector('.tag-remove').style.display = 'none';
         container.appendChild(tag);
     }
 
     function addMedication(containerId, text) {
         const container = document.getElementById(containerId);
         if (!container) return;
-
         const item = document.createElement('div');
         item.className = 'medication-item';
         item.innerHTML = `
@@ -836,19 +896,13 @@ document.addEventListener('DOMContentLoaded', function () {
             <button class="item-remove"><i class="ri-close-line"></i></button>
         `;
         item.style.animation = 'fadeIn 0.3s ease';
-
-        // Hide remove button if not editing
-        if (!isEditing) {
-            item.querySelector('.item-remove').style.display = 'none';
-        }
-
+        if (!isEditing) item.querySelector('.item-remove').style.display = 'none';
         container.appendChild(item);
     }
 
     function addContact(name, relation, phone) {
         const container = document.querySelector('.contacts-list');
         if (!container) return;
-
         const colors = ['#e53935', '#43a047', '#1e88e5', '#8e24aa', '#ff9800'];
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
         const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -856,9 +910,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const card = document.createElement('div');
         card.className = 'contact-card';
         card.innerHTML = `
-            <div class="contact-avatar" style="background: ${randomColor};">
-                ${initials}
-            </div>
+            <div class="contact-avatar" style="background: ${randomColor};">${initials}</div>
             <div class="contact-info">
                 <h4>${name}</h4>
                 <span class="contact-relation">${relation}</span>
@@ -870,133 +922,91 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
         card.style.animation = 'fadeIn 0.3s ease';
-
-        // Hide delete button if not editing
-        if (!isEditing) {
-            card.querySelector('.action-btn.delete').style.display = 'none';
-        }
-
+        if (!isEditing) card.querySelector('.action-btn.delete').style.display = 'none';
         container.appendChild(card);
         showNotification('Contact added successfully!', 'success');
     }
 
     function collectFormData() {
-    const data = {};
+        const data = {};
 
-    // Get all form inputs with name attribute - FLATTEN to root level
-    document.querySelectorAll('.form-control[name]').forEach(input => {
-        const name = input.getAttribute('name');
-        data[name] = input.value;
-    });
+        document.querySelectorAll('.form-control[name]').forEach(input => {
+            const name = input.getAttribute('name');
+            data[name] = input.value;
+        });
 
-    // Get blood type
-    const bloodTypeSelect = document.getElementById('bloodTypeSelect');
-    if (bloodTypeSelect) {
-        data.bloodType = bloodTypeSelect.value;
-    } else {
-        const bloodTypeDisplay = document.querySelector('.blood-type-value');
-        if (bloodTypeDisplay) {
-            data.bloodType = bloodTypeDisplay.textContent.trim();
-        }
-    }
+        // Disability is always Deaf/Mute
+        data.disabilityType = 'Deaf/Mute';
 
-    // Get disability type - from select/custom input
-    const disabilitySelect = document.getElementById('disabilitySelect');
-    const disabilityCustomInput = document.getElementById('disabilityCustomInput');
-    const disabilityHidden = document.getElementById('disabilityTypeHidden');
-    if (disabilitySelect && disabilitySelect.style.display !== 'none') {
-        if (disabilitySelect.value === 'Other' && disabilityCustomInput) {
-            data.disabilityType = disabilityCustomInput.value.trim();
+        const bloodTypeSelect = document.getElementById('bloodTypeSelect');
+        if (bloodTypeSelect) {
+            data.bloodType = bloodTypeSelect.value;
         } else {
-            data.disabilityType = disabilitySelect.value;
+            const bloodTypeDisplay = document.querySelector('.blood-type-value');
+            if (bloodTypeDisplay) data.bloodType = bloodTypeDisplay.textContent.trim();
         }
-    } else if (disabilityHidden) {
-        data.disabilityType = disabilityHidden.value;
-    } else {
-        data.disabilityType = '';
+
+        const smsTemplate = document.getElementById('smsTemplate');
+        if (smsTemplate) data.smsTemplate = smsTemplate.value;
+
+        data.allergies = [];
+        document.querySelectorAll('#allergiesContainer .tag span').forEach(tag => {
+            data.allergies.push(tag.textContent);
+        });
+
+        data.medications = [];
+        document.querySelectorAll('#medicationsContainer .medication-item span').forEach(item => {
+            data.medications.push(item.textContent);
+        });
+
+        data.medicalConditions = [];
+        document.querySelectorAll('#conditionsContainer .tag span').forEach(tag => {
+            data.medicalConditions.push(tag.textContent);
+        });
+
+        data.emergencyContacts = [];
+        document.querySelectorAll('.contact-card').forEach(card => {
+            data.emergencyContacts.push({
+                name:     card.querySelector('h4').textContent,
+                relation: card.querySelector('.contact-relation').textContent,
+                phone:    card.querySelector('.contact-phone').textContent,
+                initials: card.querySelector('.contact-avatar').textContent.trim(),
+                color:    card.querySelector('.contact-avatar').style.background
+            });
+        });
+
+        data.medicationReminders = [];
+        document.querySelectorAll('.reminder-card').forEach(card => {
+            // Read from the edit input/select (source of truth), fall back to display element
+            const nameInput   = card.querySelector('.reminder-name-edit');
+            const nameDisplay = card.querySelector('.reminder-name-display');
+            const freqSelect  = card.querySelector('.reminder-frequency-edit');
+            const freqDisplay = card.querySelector('.reminder-frequency-display');
+            const timeEl      = card.querySelector('.reminder-time');
+            const iconEl      = card.querySelector('.reminder-icon');
+
+            const name      = (nameInput && nameInput.value.trim())  ? nameInput.value.trim()  : (nameDisplay ? nameDisplay.textContent.trim() : '');
+            const frequency = (freqSelect && freqSelect.value)        ? freqSelect.value        : (freqDisplay ? freqDisplay.textContent.trim() : '');
+
+            data.medicationReminders.push({
+                name,
+                frequency,
+                time:  timeEl ? timeEl.textContent.replace(/[^\d:APMapm ,]/g, '').trim() : '',
+                color: iconEl ? iconEl.style.background : ''
+            });
+        });
+
+        return data;
     }
 
-    // Get SMS template
-    const smsTemplate = document.getElementById('smsTemplate');
-    if (smsTemplate) {
-        data.smsTemplate = smsTemplate.value;
-    }
-
-    // Get allergies
-    data.allergies = [];
-    document.querySelectorAll('#allergiesContainer .tag span').forEach(tag => {
-        data.allergies.push(tag.textContent);
-    });
-
-    // Get medications
-    data.medications = [];
-    document.querySelectorAll('#medicationsContainer .medication-item span').forEach(item => {
-        data.medications.push(item.textContent);
-    });
-
-    // Get medical conditions - CORRECT KEY NAME
-    data.medicalConditions = [];
-    document.querySelectorAll('#conditionsContainer .tag span').forEach(tag => {
-        data.medicalConditions.push(tag.textContent);
-    });
-
-    // Get emergency contacts - CORRECT KEY NAME
-    data.emergencyContacts = [];
-    document.querySelectorAll('.contact-card').forEach(card => {
-        const name = card.querySelector('h4').textContent;
-        const relation = card.querySelector('.contact-relation').textContent;
-        const phone = card.querySelector('.contact-phone').textContent;
-        const initials = card.querySelector('.contact-avatar').textContent.trim();
-        const color = card.querySelector('.contact-avatar').style.background;
-        
-        data.emergencyContacts.push({
-            name: name,
-            relation: relation,
-            phone: phone,
-            initials: initials,
-            color: color
-        });
-    });
-
-    // Get medication reminders
-    data.medicationReminders = [];
-    document.querySelectorAll('.reminder-card').forEach(card => {
-        const name = card.querySelector('h4').textContent;
-        const frequency = card.querySelector('.reminder-frequency').textContent;
-        const timeElement = card.querySelector('.reminder-time');
-        const time = timeElement ? timeElement.textContent.replace(/.*?(\d+:\d+\s*[AP]M.*)/i, '$1') : '';
-        const iconElement = card.querySelector('.reminder-icon');
-        const color = iconElement ? iconElement.style.background : '';
-        
-        data.medicationReminders.push({
-            name: name,
-            frequency: frequency,
-            time: time,
-            color: color
-        });
-    });
-
-    return data;
-}
     function showNotification(message, type) {
         const notification = document.createElement('div');
-        notification.className = 'notification';
-
         let icon = 'checkbox-circle';
         let color = '#4caf50';
+        if (type === 'error') { icon = 'error-warning'; color = '#f44336'; }
+        else if (type === 'info') { icon = 'information'; color = '#2196f3'; }
 
-        if (type === 'error') {
-            icon = 'error-warning';
-            color = '#f44336';
-        } else if (type === 'info') {
-            icon = 'information';
-            color = '#2196f3';
-        }
-
-        notification.innerHTML = `
-            <i class="ri-${icon}-fill"></i>
-            <span>${message}</span>
-        `;
+        notification.innerHTML = `<i class="ri-${icon}-fill"></i><span>${message}</span>`;
         notification.style.cssText = `
             position: fixed;
             top: 80px;
@@ -1009,13 +1019,11 @@ document.addEventListener('DOMContentLoaded', function () {
             align-items: center;
             gap: 10px;
             font-size: 14px;
-            z-index: 10000;
+            z-index: 100001;
             animation: slideIn 0.3s ease;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         `;
-
         document.body.appendChild(notification);
-
         setTimeout(() => {
             notification.style.animation = 'fadeOut 0.3s ease';
             setTimeout(() => notification.remove(), 300);
@@ -1029,19 +1037,19 @@ document.addEventListener('DOMContentLoaded', function () {
     style.textContent = `
         @keyframes fadeOut {
             from { opacity: 1; transform: translateX(0); }
-            to { opacity: 0; transform: translateX(20px); }
+            to   { opacity: 0; transform: translateX(20px); }
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
+            to   { opacity: 1; transform: scale(1); }
         }
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(100px); }
-            to { opacity: 1; transform: translateX(0); }
+            to   { opacity: 1; transform: translateX(0); }
         }
     `;
     document.head.appendChild(style);
 
-    // Initialize on load
+    // Initialize
     init();
 });

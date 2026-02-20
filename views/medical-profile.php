@@ -22,6 +22,26 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </button>
     </div>
 
+    <!-- Verification Notice Banner -->
+    <?php
+        $isVerified = $disabilityStatus['is_verified'] ?? false;
+        $pwdId = $personalInfo['pwdId'] ?? '';
+    ?>
+    <?php if (!$isVerified): ?>
+    <div class="verification-notice" id="verificationNotice">
+        <div class="verification-notice-icon">
+            <i class="ri-shield-check-line"></i>
+        </div>
+        <div class="verification-notice-content">
+            <strong>Account Verification Required</strong>
+            <p>Please complete your Personal Information — especially your <strong>PWD ID Number</strong> — so our admin can verify your disability status and activate your full account.</p>
+        </div>
+        <button class="verification-notice-close" onclick="document.getElementById('verificationNotice').style.display='none'">
+            <i class="ri-close-line"></i>
+        </button>
+    </div>
+    <?php endif; ?>
+
     <!-- Tab Navigation -->
     <div class="tab-navigation">
         <?php foreach ($tabs as $index => $tab): ?>
@@ -67,8 +87,10 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>PWD ID Number</label>
-                        <input type="text" name="pwdId" class="form-control" value="<?php echo $personalInfo['pwdId']; ?>">
+                        <label>PWD ID Number <span class="pwd-required-hint">* Required for verification</span></label>
+                        <input type="text" name="pwdId" class="form-control <?php echo empty($pwdId) ? 'input-highlight' : ''; ?>" 
+                               value="<?php echo $personalInfo['pwdId']; ?>" 
+                               placeholder="Enter your PWD ID to get verified">
                     </div>
                     <div class="form-group">
                         <label>Phone Number</label>
@@ -107,36 +129,11 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <div class="disability-status">
                     <div class="disability-info" style="flex:1;">
                         <span class="disability-label">Primary Disability</span>
-                        <!-- Display mode -->
-                        <span class="disability-value" id="disabilityDisplay">
-                            <?php echo htmlspecialchars($disabilityStatus['primary']); ?>
-                        </span>
-                        <!-- Edit mode (hidden by default) -->
-                        <div id="disabilityEditMode" style="display:none; margin-top:6px;">
-                            <select id="disabilitySelect" class="form-control" style="margin-bottom:6px;">
-                                <option value="" disabled selected>-- Select Disability --</option>
-                                <option value="Deaf/Mute" <?php echo $disabilityStatus['primary'] === 'Deaf/Mute' ? 'selected' : ''; ?>>Deaf/Mute</option>
-                                <option value="Blind" <?php echo $disabilityStatus['primary'] === 'Blind' ? 'selected' : ''; ?>>Blind</option>
-                                <option value="Mobility Impaired" <?php echo $disabilityStatus['primary'] === 'Mobility Impaired' ? 'selected' : ''; ?>>Mobility Impaired</option>
-                                <option value="Intellectually Disabled" <?php echo $disabilityStatus['primary'] === 'Intellectually Disabled' ? 'selected' : ''; ?>>Intellectually Disabled</option>
-                                <option value="Psychosocial Disability" <?php echo $disabilityStatus['primary'] === 'Psychosocial Disability' ? 'selected' : ''; ?>>Psychosocial Disability</option>
-                                <option value="Chronic Illness" <?php echo $disabilityStatus['primary'] === 'Chronic Illness' ? 'selected' : ''; ?>>Chronic Illness</option>
-                                <option value="Other" <?php echo (!empty($disabilityStatus['primary']) && !in_array($disabilityStatus['primary'], ['Deaf/Mute','Blind','Mobility Impaired','Intellectually Disabled','Psychosocial Disability','Chronic Illness','Not specified'])) ? 'selected' : ''; ?>>Other (specify below)</option>
-                            </select>
-                            <input type="text" id="disabilityCustomInput" name="disabilityType" class="form-control" 
-                                   placeholder="Enter your disability type..."
-                                   value="<?php echo htmlspecialchars($disabilityStatus['primary'] !== 'Not specified' ? $disabilityStatus['primary'] : ''); ?>"
-                                   style="display:none;">
-                        </div>
-                        <!-- Hidden input to carry value when not in edit mode -->
-                        <input type="hidden" id="disabilityTypeHidden" name="disabilityType" 
-                               value="<?php echo htmlspecialchars($disabilityStatus['primary']); ?>">
+                        <!-- Always display Deaf/Mute — not editable -->
+                        <span class="disability-value" id="disabilityDisplay">Deaf/Mute</span>
+                        <!-- Hidden input to carry fixed value on save -->
+                        <input type="hidden" id="disabilityTypeHidden" name="disabilityType" value="Deaf/Mute">
                     </div>
-                    <?php
-                        // Badge logic: show "Pending" if not verified, "Verified" if is_verified is true in users table
-                        // We'll use the users is_verified flag (passed via disabilityStatus)
-                        $isVerified = $disabilityStatus['is_verified'] ?? false;
-                    ?>
                     <span class="<?php echo $isVerified ? 'verified-badge' : 'pending-badge'; ?>">
                         <?php if ($isVerified): ?>
                             <i class="ri-checkbox-circle-fill"></i> VERIFIED
@@ -228,6 +225,17 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </div>
 
         <!-- Tab 2: Emergency Contacts -->
+        <?php
+            // Deduplicate contacts by phone number
+            $seenPhones = [];
+            $emergencyContacts = array_filter($emergencyContacts, function($c) use (&$seenPhones) {
+                $key = preg_replace('/\D/', '', $c['phone']);
+                if (isset($seenPhones[$key])) return false;
+                $seenPhones[$key] = true;
+                return true;
+            });
+            $emergencyContacts = array_values($emergencyContacts);
+        ?>
         <div class="tab-pane" id="emergency-contacts">
             
             <!-- Emergency Contacts List -->
@@ -293,10 +301,17 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </div>
 
         <!-- Tab 3: Medication Reminders -->
-        <!-- ENHANCED MEDICATION REMINDERS SECTION -->
-<!-- Replace lines 263-307 in views/medical-profile.php with this code -->
-
-        <!-- Tab 3: Medication Reminders -->
+        <?php
+            // Deduplicate reminders by name+frequency
+            $seenReminders = [];
+            $medicationReminders = array_filter($medicationReminders, function($r) use (&$seenReminders) {
+                $key = strtolower(trim($r['name'])) . '|' . strtolower(trim($r['frequency']));
+                if (isset($seenReminders[$key])) return false;
+                $seenReminders[$key] = true;
+                return true;
+            });
+            $medicationReminders = array_values($medicationReminders);
+        ?>
         <div class="tab-pane" id="medication-reminders">
             
             <!-- Visual Medication Reminders -->
@@ -316,14 +331,11 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                                 <i class="ri-capsule-fill"></i>
                             </div>
                             <div class="reminder-info">
-                                <!-- Medication Name -->
                                 <h4 class="reminder-name-display"><?php echo $reminder['name']; ?></h4>
                                 <input type="text" class="reminder-name-edit form-control" 
                                        value="<?php echo $reminder['name']; ?>" 
-                                       
                                        placeholder="Enter medication name">
                                 
-                                <!-- Frequency -->
                                 <span class="reminder-frequency-display reminder-frequency"><?php echo $reminder['frequency']; ?></span>
                                 <select class="reminder-frequency-edit form-control" style="display: none; margin-bottom: 8px; width: auto;">
                                     <option value="Once daily" <?php echo $reminder['frequency'] === 'Once daily' ? 'selected' : ''; ?>>Once daily</option>
@@ -365,6 +377,21 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- ================================
+     CUSTOM MODAL SYSTEM
+     ================================ -->
+<div id="customModalOverlay" class="custom-modal-overlay" style="display:none;">
+    <div class="custom-modal" id="customModal">
+        <div class="custom-modal-header">
+            <div class="custom-modal-icon" id="customModalIcon"></div>
+            <h3 id="customModalTitle"></h3>
+            <button class="custom-modal-close" id="customModalClose"><i class="ri-close-line"></i></button>
+        </div>
+        <div class="custom-modal-body" id="customModalBody"></div>
+        <div class="custom-modal-footer" id="customModalFooter"></div>
     </div>
 </div>
 

@@ -123,7 +123,7 @@ class AuthController {
         }
         
         // Validate role
-        $allowedRoles = ['pwd', 'family'];
+        $allowedRoles = ['pwd', 'family', 'admin'];
         if (!in_array($role, $allowedRoles)) {
             $role = 'pwd';
         }

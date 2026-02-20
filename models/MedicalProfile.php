@@ -33,29 +33,110 @@ class MedicalProfile {
             unset($profile['user_phone_number']);
             
             // Decode JSON fields
-            $profile['allergies'] = json_decode($profile['allergies'] ?? '[]', true);
-            $profile['medications'] = json_decode($profile['medications'] ?? '[]', true);
-            $profile['medical_conditions'] = json_decode($profile['medical_conditions'] ?? '[]', true);
-            $profile['emergency_contacts'] = json_decode($profile['emergency_contacts'] ?? '[]', true);
-            $profile['medication_reminders'] = json_decode($profile['medication_reminders'] ?? '[]', true);
+            $profile['allergies']           = json_decode($profile['allergies']           ?? '[]', true) ?? [];
+            $profile['medications']         = json_decode($profile['medications']         ?? '[]', true) ?? [];
+            $profile['medical_conditions']  = json_decode($profile['medical_conditions']  ?? '[]', true) ?? [];
+            $profile['emergency_contacts']  = json_decode($profile['emergency_contacts']  ?? '[]', true) ?? [];
+            $profile['medication_reminders']= json_decode($profile['medication_reminders']?? '[]', true) ?? [];
+
+            // ---------------------------------------------------------------
+            // Deduplicate arrays — guards against previously double-saved data
+            // ---------------------------------------------------------------
+            $profile['allergies']          = array_values(array_unique($profile['allergies']));
+            $profile['medications']        = array_values(array_unique($profile['medications']));
+            $profile['medical_conditions'] = array_values(array_unique($profile['medical_conditions']));
+
+            // Emergency contacts: deduplicate by phone number (digits only)
+            $seenPhones = [];
+            $profile['emergency_contacts'] = array_values(array_filter(
+                $profile['emergency_contacts'],
+                function($contact) use (&$seenPhones) {
+                    $key = preg_replace('/\D/', '', $contact['phone'] ?? '');
+                    if ($key === '' || isset($seenPhones[$key])) return false;
+                    $seenPhones[$key] = true;
+                    return true;
+                }
+            ));
+
+            // Medication reminders: deduplicate by name (case-insensitive)
+            $seenNames = [];
+            $profile['medication_reminders'] = array_values(array_filter(
+                $profile['medication_reminders'],
+                function($reminder) use (&$seenNames) {
+                    $key = strtolower(trim($reminder['name'] ?? ''));
+                    if ($key === '' || isset($seenNames[$key])) return false;
+                    $seenNames[$key] = true;
+                    return true;
+                }
+            ));
         }
         
         return $profile;
     }
     
     /**
+     * Deduplicate reminder/contact arrays before saving
+     * Prevents accumulation of duplicates in the database over time
+     */
+    private function deduplicateBeforeSave(array $data): array {
+        // Simple scalar arrays
+        if (isset($data['allergies']) && is_array($data['allergies'])) {
+            $data['allergies'] = array_values(array_unique(array_filter($data['allergies'])));
+        }
+        if (isset($data['medications']) && is_array($data['medications'])) {
+            $data['medications'] = array_values(array_unique(array_filter($data['medications'])));
+        }
+        if (isset($data['medical_conditions']) && is_array($data['medical_conditions'])) {
+            $data['medical_conditions'] = array_values(array_unique(array_filter($data['medical_conditions'])));
+        }
+
+        // Emergency contacts: deduplicate by phone
+        if (isset($data['emergency_contacts']) && is_array($data['emergency_contacts'])) {
+            $seenPhones = [];
+            $data['emergency_contacts'] = array_values(array_filter(
+                $data['emergency_contacts'],
+                function($contact) use (&$seenPhones) {
+                    $key = preg_replace('/\D/', '', $contact['phone'] ?? '');
+                    if ($key === '' || isset($seenPhones[$key])) return false;
+                    $seenPhones[$key] = true;
+                    return true;
+                }
+            ));
+        }
+
+        // Medication reminders: deduplicate by name (case-insensitive)
+        if (isset($data['medication_reminders']) && is_array($data['medication_reminders'])) {
+            $seenNames = [];
+            $data['medication_reminders'] = array_values(array_filter(
+                $data['medication_reminders'],
+                function($reminder) use (&$seenNames) {
+                    $key = strtolower(trim($reminder['name'] ?? ''));
+                    if ($key === '' || isset($seenNames[$key])) return false;
+                    $seenNames[$key] = true;
+                    return true;
+                }
+            ));
+        }
+
+        return $data;
+    }
+
+    /**
      * Create or update medical profile
      */
     public function saveProfile($userId, $data) {
         // Check if profile exists
         $existing = $this->getByUserId($userId);
-        
+
+        // Deduplicate arrays before encoding to prevent storing duplicates
+        $data = $this->deduplicateBeforeSave($data);
+
         // Encode JSON fields
-        $data['allergies'] = json_encode($data['allergies'] ?? []);
-        $data['medications'] = json_encode($data['medications'] ?? []);
-        $data['medical_conditions'] = json_encode($data['medical_conditions'] ?? []);
-        $data['emergency_contacts'] = json_encode($data['emergency_contacts'] ?? []);
-        $data['medication_reminders'] = json_encode($data['medication_reminders'] ?? []);
+        $data['allergies']           = json_encode($data['allergies']           ?? []);
+        $data['medications']         = json_encode($data['medications']         ?? []);
+        $data['medical_conditions']  = json_encode($data['medical_conditions']  ?? []);
+        $data['emergency_contacts']  = json_encode($data['emergency_contacts']  ?? []);
+        $data['medication_reminders']= json_encode($data['medication_reminders']?? []);
         
         if ($existing) {
             // Update existing profile
