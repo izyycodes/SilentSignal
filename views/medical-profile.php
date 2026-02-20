@@ -6,7 +6,6 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/medical-profile.css">
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/medical-profile-modal.css">
 
 <div class="page-container">
     <!-- Page Header -->
