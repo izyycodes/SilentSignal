@@ -1,12 +1,12 @@
 <?php
 // controllers/AdminController.php
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
-require_once BASE_PATH . 'vendor/autoload.php';
+require_once __DIR__ . '/../config/Database.php';
 
 class AdminController {
+
+    // Database connection
+    private $db;
 
     // Shared data for header and footer
     protected $navItems;
@@ -22,6 +22,20 @@ class AdminController {
     public function __construct()
     {
         $this->initSharedData();
+        $this->initDatabase();
+    }
+
+    /**
+     * Initialize database connection
+     */
+    private function initDatabase()
+    {
+        try {
+            $database = new Database();
+            $this->db = $database->getConnection();
+        } catch (Exception $e) {
+            error_log("Database connection failed: " . $e->getMessage());
+        }
     }
 
     /**
@@ -130,51 +144,148 @@ class AdminController {
         extract($this->getCommonViewData());
         extract($this->getSharedData());
         
-        // Mock statistics
-        $stats = [
-            'totalUsers' => 1247,
-            'userGrowth' => 12,
-            'activeAlerts' => 8,
-            'resolvedToday' => 15,
-            'disasterAlerts' => 3,
-            'activeDisasters' => 1,
-            'messageInquiries' => 42,
-            'pendingMessages' => 12
-        ];
+        // Get REAL statistics from database
+        $stats = $this->getDashboardStats();
         
-        // Mock recent activity
-        $recentActivity = [
-            [
-                'type' => 'alert',
-                'icon' => 'ri-alarm-warning-line',
-                'title' => 'New Emergency Alert',
-                'description' => 'Juan Dela Cruz triggered an emergency alert in Bacolod City',
-                'time' => '5 minutes ago'
-            ],
-            [
-                'type' => 'user',
-                'icon' => 'ri-user-add-line',
-                'title' => 'New User Registration',
-                'description' => 'Maria Santos registered as PWD user',
-                'time' => '15 minutes ago'
-            ],
-            [
-                'type' => 'disaster',
-                'icon' => 'ri-flood-line',
-                'title' => 'Disaster Alert Updated',
-                'description' => 'Flood warning updated for Negros Occidental',
-                'time' => '1 hour ago'
-            ],
-            [
-                'type' => 'message',
-                'icon' => 'ri-message-3-line',
-                'title' => 'New Message Inquiry',
-                'description' => 'User reported issue with SMS notifications',
-                'time' => '2 hours ago'
-            ]
-        ];
+        // Get REAL recent activity
+        $recentActivity = $this->getRecentActivity();
         
         require_once VIEW_PATH . 'admin-dashboard.php';
+    }
+
+    /**
+     * Get dashboard statistics from database
+     */
+    private function getDashboardStats() {
+        $stats = [
+            'totalUsers' => 0,
+            'userGrowth' => 0,
+            'activeAlerts' => 0,
+            'resolvedToday' => 0,
+            'disasterAlerts' => 0,
+            'activeDisasters' => 0,
+            'messageInquiries' => 0,
+            'pendingMessages' => 0
+        ];
+        
+        try {
+            // Total PWD users
+            $stmt = $this->db->query("SELECT COUNT(*) as count FROM users WHERE role = 'pwd'");
+            $stats['totalUsers'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            // Active emergency alerts (last 24 hours, not resolved)
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM emergency_alerts 
+                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                AND (status IS NULL OR status != 'resolved')
+            ");
+            $stats['activeAlerts'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            // Resolved today
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM emergency_alerts 
+                WHERE DATE(created_at) = CURDATE() AND status = 'resolved'
+            ");
+            $stats['resolvedToday'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            // Disaster responses today
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM disaster_alerts 
+                WHERE DATE(created_at) = CURDATE()
+            ");
+            $stats['disasterAlerts'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            // Active disasters (users needing help)
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM disaster_alerts 
+                WHERE status = 'sos' AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            ");
+            $stats['activeDisasters'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            // Message inquiries (if table exists)
+            try {
+                $stmt = $this->db->query("SELECT COUNT(*) as count FROM contact_inquiries");
+                $stats['messageInquiries'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+                
+                $stmt = $this->db->query("SELECT COUNT(*) as count FROM contact_inquiries WHERE status = 'pending'");
+                $stats['pendingMessages'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            } catch (Exception $e) {
+                // Table might not exist
+            }
+            
+        } catch (Exception $e) {
+            error_log("Dashboard stats error: " . $e->getMessage());
+        }
+        
+        return $stats;
+    }
+
+    /**
+     * Get recent activity from database
+     */
+    private function getRecentActivity() {
+        $activity = [];
+        
+        try {
+            // Get recent emergency alerts
+            $stmt = $this->db->query("
+                SELECT ea.*, u.fname, u.lname, mp.city
+                FROM emergency_alerts ea
+                LEFT JOIN users u ON ea.user_id = u.id
+                LEFT JOIN medical_profiles mp ON ea.user_id = mp.user_id
+                ORDER BY ea.created_at DESC
+                LIMIT 5
+            ");
+            $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($alerts as $alert) {
+                $activity[] = [
+                    'type' => 'alert',
+                    'icon' => 'ri-alarm-warning-line',
+                    'title' => 'Emergency Alert - ' . strtoupper($alert['alert_type'] ?? 'SOS'),
+                    'description' => ($alert['fname'] ?? 'User') . ' ' . ($alert['lname'] ?? '') . ' triggered an alert' . 
+                                   ($alert['city'] ? ' in ' . $alert['city'] : ''),
+                    'time' => $this->timeAgo($alert['created_at']),
+                    'data' => $alert
+                ];
+            }
+            
+            // Get recent disaster responses
+            $stmt = $this->db->query("
+                SELECT da.*, u.fname, u.lname
+                FROM disaster_alerts da
+                LEFT JOIN users u ON da.user_id = u.id
+                ORDER BY da.created_at DESC
+                LIMIT 5
+            ");
+            $disasters = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($disasters as $disaster) {
+                $icon = $disaster['status'] === 'safe' ? 'ri-shield-check-line' : 'ri-alarm-warning-line';
+                $activity[] = [
+                    'type' => 'disaster',
+                    'icon' => $icon,
+                    'title' => 'Disaster Response - ' . strtoupper($disaster['status'] ?? 'Unknown'),
+                    'description' => ($disaster['fname'] ?? 'User') . ' ' . ($disaster['lname'] ?? '') . 
+                                   ' responded to ' . ($disaster['alert_name'] ?? 'disaster alert'),
+                    'time' => $this->timeAgo($disaster['created_at']),
+                    'data' => $disaster
+                ];
+            }
+            
+            // Sort by time (most recent first)
+            usort($activity, function($a, $b) {
+                return strtotime($b['data']['created_at'] ?? 'now') - strtotime($a['data']['created_at'] ?? 'now');
+            });
+            
+            // Return only top 10
+            return array_slice($activity, 0, 10);
+            
+        } catch (Exception $e) {
+            error_log("Recent activity error: " . $e->getMessage());
+        }
+        
+        return $activity;
     }
 
     // ==================== USERS MANAGEMENT ====================
@@ -188,24 +299,79 @@ class AdminController {
         
         extract($this->getCommonViewData());
         extract($this->getSharedData());
-
-        require_once MODEL_PATH . 'User.php';
-        $userModel = new User();
-
-        $perPage     = 5;
-        $currentPage = max(1, (int)($_GET['page'] ?? 1));
-        $offset      = ($currentPage - 1) * $perPage;
-
-        $stats       = $userModel->getStats();
-        $users       = $userModel->getAllPaginated($perPage, $offset);
-        $totalPages  = (int)ceil($stats['total'] / $perPage);
-        $rangeStart  = $offset + 1;
-        $rangeEnd    = min($offset + $perPage, $stats['total']);
-
-        // Variables used in view: $users, $stats, $totalPages,
-        // $currentPage, $rangeStart, $rangeEnd, $perPage
+        
+        // Get REAL users from database
+        $users = $this->getAllUsers();
+        $stats = $this->getUserStats();
         
         require_once VIEW_PATH . 'admin-users.php';
+    }
+
+    /**
+     * Get all users from database
+     */
+    private function getAllUsers() {
+        $users = [];
+        
+        try {
+            $stmt = $this->db->query("
+                SELECT u.*, mp.pwd_id, mp.disability_type, mp.city, mp.street_address
+                FROM users u
+                LEFT JOIN medical_profiles mp ON u.id = mp.user_id
+                ORDER BY u.created_at DESC
+            ");
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($results as $row) {
+                $users[] = [
+                    'id' => $row['id'],
+                    'name' => $row['fname'] . ' ' . $row['lname'],
+                    'email' => $row['email'],
+                    'phone' => $row['phone_number'],
+                    'role' => $row['role'],
+                    'pwd_id' => $row['pwd_id'] ?? 'N/A',
+                    'disability' => $row['disability_type'] ?? 'N/A',
+                    'location' => ($row['city'] ?? '') . ', Philippines',
+                    'registration_date' => date('M j, Y', strtotime($row['created_at'])),
+                    'status' => $row['pwd_id'] ? 'verified' : 'pending'
+                ];
+            }
+        } catch (Exception $e) {
+            error_log("Get users error: " . $e->getMessage());
+        }
+        
+        return $users;
+    }
+
+    /**
+     * Get user statistics
+     */
+    private function getUserStats() {
+        $stats = [
+            'total' => 0,
+            'verified' => 0,
+            'pending' => 0,
+            'inactive' => 0
+        ];
+        
+        try {
+            $stmt = $this->db->query("SELECT COUNT(*) as count FROM users");
+            $stats['total'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM users u
+                INNER JOIN medical_profiles mp ON u.id = mp.user_id
+                WHERE mp.pwd_id IS NOT NULL AND mp.pwd_id != ''
+            ");
+            $stats['verified'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            $stats['pending'] = $stats['total'] - $stats['verified'];
+            
+        } catch (Exception $e) {
+            error_log("User stats error: " . $e->getMessage());
+        }
+        
+        return $stats;
     }
 
     // ==================== EMERGENCY ALERTS ====================
@@ -220,90 +386,112 @@ class AdminController {
         extract($this->getCommonViewData());
         extract($this->getSharedData());
         
-        // Mock emergency alerts
-        $alerts = [
-            [
-                'id' => 1,
-                'alert_id' => '#SOS-2789',
-                'user_name' => 'Maria Santos',
-                'user_id' => '12645',
-                'alert_type' => 'Emergency SOS',
-                'priority' => 'critical',
-                'location' => '123 Trinolan ng Magarilao Akda, Caloocan City',
-                'time' => '2 min ago',
-                'response_time' => '-',
-                'status' => 'active'
-            ],
-            [
-                'id' => 2,
-                'alert_id' => '#SHAKE-2788',
-                'user_name' => 'Jerome Buntaliada',
-                'user_id' => '12446',
-                'alert_type' => 'Shake Alert',
-                'priority' => 'high',
-                'location' => '436 Main St, Bacolod City',
-                'time' => '5 min ago',
-                'response_time' => '3 min',
-                'status' => 'responded'
-            ],
-            [
-                'id' => 3,
-                'alert_id' => '#PANIC-2787',
-                'user_name' => 'Paulo Santos',
-                'user_id' => 'PWD-2024-15547',
-                'alert_type' => 'Panic Button',
-                'priority' => 'critical',
-                'location' => '789 Juan St, Manila',
-                'time' => '7 min ago',
-                'response_time' => '2 min',
-                'status' => 'resolved'
-            ],
-            [
-                'id' => 4,
-                'alert_id' => '#SOS-2786',
-                'user_name' => 'Ana Santos',
-                'user_id' => '12458',
-                'alert_type' => 'Emergency SOS',
-                'priority' => 'high',
-                'location' => '221 Quezon Ave, Quezon City',
-                'time' => '22 min ago',
-                'response_time' => '5 min',
-                'status' => 'resolved'
-            ],
-            [
-                'id' => 5,
-                'alert_id' => '#SHAKE-2785',
-                'user_name' => 'Luis Cruz',
-                'user_id' => 'PWD-2024-123459',
-                'alert_type' => 'Shake Alert',
-                'priority' => 'medium',
-                'location' => '654 Osmena Blvd, Cebu City',
-                'time' => '30 min ago',
-                'response_time' => '8 min',
-                'status' => 'resolved'
-            ],
-            [
-                'id' => 6,
-                'alert_id' => '#SOS-2784',
-                'user_name' => 'Miguel Reyes',
-                'user_id' => 'PWD-2024-15674',
-                'alert_type' => 'Emergency SOS',
-                'priority' => 'critical',
-                'location' => '987 J. Laurel Ave, Lanao City',
-                'time' => '28 min ago',
-                'response_time' => '4 min',
-                'status' => 'resolved'
-            ]
-        ];
-        
-        $stats = [
-            'total_today' => 1267,
-            'critical' => 67,
-            'active' => 1200,
-            'resolved_today' => 67
-        ];
+        // Get REAL emergency alerts from database
+        $alerts = $this->getAllEmergencyAlerts();
+        $stats = $this->getEmergencyAlertStats();
         
         require_once VIEW_PATH . 'admin-emergency-alerts.php';
+    }
+
+    /**
+     * Get all emergency alerts from database
+     */
+    private function getAllEmergencyAlerts() {
+        $alerts = [];
+        
+        try {
+            $stmt = $this->db->query("
+                SELECT ea.*, u.fname, u.lname, u.phone_number, u.email,
+                       mp.pwd_id, mp.blood_type, mp.disability_type, mp.city,
+                       mp.allergies, mp.medications, mp.emergency_contacts
+                FROM emergency_alerts ea
+                LEFT JOIN users u ON ea.user_id = u.id
+                LEFT JOIN medical_profiles mp ON ea.user_id = mp.user_id
+                ORDER BY ea.created_at DESC
+                LIMIT 100
+            ");
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($results as $row) {
+                $alertType = $row['alert_type'] ?? 'sos';
+                $priority = 'high';
+                if ($alertType === 'sos') $priority = 'critical';
+                elseif ($alertType === 'shake') $priority = 'high';
+                elseif ($alertType === 'panic') $priority = 'critical';
+                
+                $alerts[] = [
+                    'id' => $row['id'],
+                    'alert_id' => '#' . strtoupper(substr($alertType, 0, 3)) . '-' . $row['id'],
+                    'user_name' => ($row['fname'] ?? 'Unknown') . ' ' . ($row['lname'] ?? ''),
+                    'user_id' => $row['pwd_id'] ?? $row['user_id'],
+                    'phone' => $row['phone_number'],
+                    'email' => $row['email'],
+                    'alert_type' => ucfirst($alertType) . ' Alert',
+                    'priority' => $priority,
+                    'location' => $row['city'] ?? 'Unknown Location',
+                    'latitude' => $row['latitude'],
+                    'longitude' => $row['longitude'],
+                    'time' => $this->timeAgo($row['created_at']),
+                    'created_at' => $row['created_at'],
+                    'response_time' => '-',
+                    'status' => $row['status'] ?? 'active',
+                    'message' => $row['message'],
+                    'blood_type' => $row['blood_type'],
+                    'disability_type' => $row['disability_type'],
+                    'allergies' => $row['allergies'],
+                    'medications' => $row['medications'],
+                    'emergency_contacts' => $row['emergency_contacts']
+                ];
+            }
+        } catch (Exception $e) {
+            error_log("Get emergency alerts error: " . $e->getMessage());
+        }
+        
+        return $alerts;
+    }
+
+    /**
+     * Get emergency alert statistics
+     */
+    private function getEmergencyAlertStats() {
+        $stats = [
+            'total_today' => 0,
+            'critical' => 0,
+            'active' => 0,
+            'resolved_today' => 0
+        ];
+        
+        try {
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM emergency_alerts 
+                WHERE DATE(created_at) = CURDATE()
+            ");
+            $stats['total_today'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM emergency_alerts 
+                WHERE alert_type IN ('sos', 'panic') 
+                AND (status IS NULL OR status = 'active')
+            ");
+            $stats['critical'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM emergency_alerts 
+                WHERE status IS NULL OR status = 'active'
+            ");
+            $stats['active'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM emergency_alerts 
+                WHERE status = 'resolved' AND DATE(created_at) = CURDATE()
+            ");
+            $stats['resolved_today'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+        } catch (Exception $e) {
+            error_log("Emergency alert stats error: " . $e->getMessage());
+        }
+        
+        return $stats;
     }
 
     // ==================== DISASTER ALERTS ====================
@@ -318,84 +506,129 @@ class AdminController {
         extract($this->getCommonViewData());
         extract($this->getSharedData());
         
-        // Mock disaster alerts
-        $alerts = [
-            [
-                'id' => 1,
-                'alert_id' => '#DIS-2890',
-                'disaster_type' => 'Typhoon Odette',
-                'severity' => 'extreme',
-                'location' => 'Visayas Region',
-                'affected_users' => '2,847 users',
-                'magnitude' => '185 km/h',
-                'issued_time' => '30 min ago',
-                'status' => 'active'
-            ],
-            [
-                'id' => 2,
-                'alert_id' => '#DIS-2889',
-                'disaster_type' => 'Earthquake Detected',
-                'severity' => 'severe',
-                'location' => 'Mindanao, Bukidnon Region',
-                'affected_users' => '1,523 users',
-                'magnitude' => 'Magnitude 6.2',
-                'issued_time' => '1 hour ago',
-                'status' => 'monitoring'
-            ],
-            [
-                'id' => 3,
-                'alert_id' => '#DIS-2888',
-                'disaster_type' => 'Flood Warning',
-                'severity' => 'moderate',
-                'location' => 'Metro Manila, Muntinlupa',
-                'affected_users' => '892 users',
-                'magnitude' => 'Water Level: 15m',
-                'issued_time' => '2 hours ago',
-                'status' => 'monitoring'
-            ],
-            [
-                'id' => 4,
-                'alert_id' => '#DIS-2887',
-                'disaster_type' => 'Tropical Storm Paolo',
-                'severity' => 'moderate',
-                'location' => 'Luzon, Cagayan Valley',
-                'affected_users' => '1,248 users',
-                'magnitude' => '95 km/h',
-                'issued_time' => '3 hours ago',
-                'status' => 'active'
-            ],
-            [
-                'id' => 5,
-                'alert_id' => '#DIS-2886',
-                'disaster_type' => 'Fire Alert',
-                'severity' => 'severe',
-                'location' => 'Quezon City, Commonwealth',
-                'affected_users' => '416 users',
-                'magnitude' => 'Level 3 Fire',
-                'issued_time' => '5 hours ago',
-                'status' => 'cleared'
-            ],
-            [
-                'id' => 6,
-                'alert_id' => '#DIS-2885',
-                'disaster_type' => 'Earthquake Detected',
-                'severity' => 'minor',
-                'location' => 'Batangas, Taal Region',
-                'affected_users' => '734 users',
-                'magnitude' => 'Magnitude 4.2',
-                'issued_time' => '8 hours ago',
-                'status' => 'cleared'
-            ]
-        ];
-        
-        $stats = [
-            'active_disasters' => 1267,
-            'typhoons' => 67,
-            'earthquakes' => 1200,
-            'floods' => 67
-        ];
+        // Get REAL disaster responses from database
+        $alerts = $this->getAllDisasterAlerts();
+        $stats = $this->getDisasterAlertStats();
         
         require_once VIEW_PATH . 'admin-disaster-alerts.php';
+    }
+
+    /**
+     * Get all disaster alerts/responses from database
+     */
+    private function getAllDisasterAlerts() {
+        $alerts = [];
+        
+        try {
+            $stmt = $this->db->query("
+                SELECT da.*, u.fname, u.lname, u.phone_number,
+                       mp.pwd_id, mp.city, mp.disability_type
+                FROM disaster_alerts da
+                LEFT JOIN users u ON da.user_id = u.id
+                LEFT JOIN medical_profiles mp ON da.user_id = mp.user_id
+                ORDER BY da.created_at DESC
+                LIMIT 100
+            ");
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($results as $row) {
+                $alertName = $row['alert_name'] ?? 'Weather Alert';
+                $severity = 'moderate';
+                $disasterType = 'Weather Alert';
+                
+                // Determine disaster type and severity from alert name
+                $alertLower = strtolower($alertName);
+                if (strpos($alertLower, 'typhoon') !== false) {
+                    $disasterType = 'Typhoon';
+                    $severity = 'extreme';
+                } elseif (strpos($alertLower, 'earthquake') !== false) {
+                    $disasterType = 'Earthquake';
+                    $severity = 'severe';
+                } elseif (strpos($alertLower, 'flood') !== false) {
+                    $disasterType = 'Flood';
+                    $severity = 'moderate';
+                } elseif (strpos($alertLower, 'storm') !== false) {
+                    $disasterType = 'Storm';
+                    $severity = 'severe';
+                } elseif (strpos($alertLower, 'wind') !== false) {
+                    $disasterType = 'Strong Wind';
+                    $severity = 'moderate';
+                }
+                
+                // Status mapping
+                $status = $row['status'] ?? 'unknown';
+                if ($status === 'sos') $status = 'active';
+                elseif ($status === 'safe') $status = 'cleared';
+                
+                $alerts[] = [
+                    'id' => $row['id'],
+                    'alert_id' => '#DIS-' . $row['id'],
+                    'disaster_type' => $disasterType,
+                    'alert_name' => $alertName,
+                    'severity' => $severity,
+                    'location' => $row['city'] ?? 'Philippines',
+                    'user_name' => ($row['fname'] ?? '') . ' ' . ($row['lname'] ?? ''),
+                    'user_phone' => $row['phone_number'],
+                    'affected_users' => '1 user',
+                    'magnitude' => '-',
+                    'latitude' => $row['latitude'],
+                    'longitude' => $row['longitude'],
+                    'issued_time' => $this->timeAgo($row['created_at']),
+                    'created_at' => $row['created_at'],
+                    'status' => $status,
+                    'user_status' => $row['status']
+                ];
+            }
+        } catch (Exception $e) {
+            error_log("Get disaster alerts error: " . $e->getMessage());
+        }
+        
+        return $alerts;
+    }
+
+    /**
+     * Get disaster alert statistics
+     */
+    private function getDisasterAlertStats() {
+        $stats = [
+            'active_disasters' => 0,
+            'typhoons' => 0,
+            'earthquakes' => 0,
+            'floods' => 0
+        ];
+        
+        try {
+            // Active (SOS responses)
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM disaster_alerts 
+                WHERE status = 'sos'
+            ");
+            $stats['active_disasters'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            // Count by type
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM disaster_alerts 
+                WHERE LOWER(alert_name) LIKE '%typhoon%' OR LOWER(alert_name) LIKE '%storm%'
+            ");
+            $stats['typhoons'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM disaster_alerts 
+                WHERE LOWER(alert_name) LIKE '%earthquake%'
+            ");
+            $stats['earthquakes'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as count FROM disaster_alerts 
+                WHERE LOWER(alert_name) LIKE '%flood%'
+            ");
+            $stats['floods'] = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+        } catch (Exception $e) {
+            error_log("Disaster alert stats error: " . $e->getMessage());
+        }
+        
+        return $stats;
     }
 
     // ==================== MESSAGE INQUIRIES ====================
@@ -418,7 +651,7 @@ class AdminController {
         $offset      = ($currentPage - 1) * $perPage;
 
         $stats       = $contactInquiry->getStats();
-        $messages    = $contactInquiry->getAllPaginated($perPage, $offset);
+        $messages    = $contactInquiry->getAll($perPage, $offset);
         $totalPages  = (int)ceil($stats['total'] / $perPage);
         $rangeStart  = $offset + 1;
         $rangeEnd    = min($offset + $perPage, $stats['total']);
@@ -426,203 +659,75 @@ class AdminController {
         require_once VIEW_PATH . 'admin-messages.php';
     }
 
-    // ==================== USER MANAGEMENT ACTIONS ====================
+    // ==================== API ENDPOINTS ====================
 
     /**
-     * Verify a user account
+     * API: Get alerts for real-time updates (AJAX)
      */
-    public function verifyUser() {
+    public function getAlertsAPI() {
         $this->requireAdmin();
-
-        $userId = (int)($_POST['user_id'] ?? $_GET['user_id'] ?? 0);
-        $returnPage = (int)($_POST['page'] ?? $_GET['page'] ?? 1);
-
-        if ($userId <= 0) {
-            $_SESSION['error'] = 'Invalid user ID.';
-            header('Location: ' . BASE_URL . 'index.php?action=admin-users&page=' . $returnPage);
-            exit;
-        }
-
-        require_once MODEL_PATH . 'User.php';
-        $userModel = new User();
-
-        if ($userModel->verifyUser($userId)) {
-            $_SESSION['success'] = 'User account verified successfully!';
-        } else {
-            $_SESSION['error'] = 'Failed to verify user account.';
-        }
-
-        header('Location: ' . BASE_URL . 'index.php?action=admin-users&page=' . $returnPage);
-        exit;
+        
+        header('Content-Type: application/json');
+        
+        $alerts = $this->getAllEmergencyAlerts();
+        $stats = $this->getDashboardStats();
+        
+        echo json_encode([
+            'success' => true,
+            'alerts' => array_slice($alerts, 0, 20),
+            'stats' => $stats,
+            'timestamp' => date('Y-m-d H:i:s')
+        ]);
+        exit();
     }
 
     /**
-     * Toggle user active status (activate/deactivate)
+     * API: Update alert status (AJAX)
      */
-    public function toggleUserActive() {
+    public function updateAlertStatus() {
         $this->requireAdmin();
-
-        $userId = (int)($_POST['user_id'] ?? $_GET['user_id'] ?? 0);
-        $returnPage = (int)($_POST['page'] ?? $_GET['page'] ?? 1);
-
-        if ($userId <= 0) {
-            $_SESSION['error'] = 'Invalid user ID.';
-            header('Location: ' . BASE_URL . 'index.php?action=admin-users&page=' . $returnPage);
-            exit;
+        
+        header('Content-Type: application/json');
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!$input || !isset($input['alert_id']) || !isset($input['status'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data']);
+            exit();
         }
-
-        require_once MODEL_PATH . 'User.php';
-        $userModel = new User();
-
-        if ($userModel->toggleActive($userId)) {
-            $_SESSION['success'] = 'User status updated successfully!';
-        } else {
-            $_SESSION['error'] = 'Failed to update user status.';
-        }
-
-        header('Location: ' . BASE_URL . 'index.php?action=admin-users&page=' . $returnPage);
-        exit;
-    }
-
-    // ==================== MESSAGE REPLY & STATUS ====================
-
-    /**
-     * Send reply email to message sender
-     */
-    public function sendMessageReply() {
-        $this->requireAdmin();
-
-        $messageId  = (int)($_POST['message_id'] ?? 0);
-        $replyText  = trim($_POST['reply_text'] ?? '');
-        $returnPage = (int)($_POST['page'] ?? 1);
-
-        if ($messageId <= 0 || empty($replyText)) {
-            $_SESSION['error'] = 'Invalid message ID or empty reply.';
-            header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
-            exit;
-        }
-
-        require_once MODEL_PATH . 'ContactInquiry.php';
-        $inquiryModel = new ContactInquiry();
-
-        $message = $inquiryModel->getById($messageId);
-
-        if (!$message) {
-            $_SESSION['error'] = 'Message not found.';
-            header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
-            exit;
-        }
-
-        $to      = $message['email'];
-        $subject = 'Re: ' . $message['subject'] . ' - Silent Signal Support';
-
-        $emailBody  = "Hello " . ($message['name'] ?: 'there') . ",\n\n";
-        $emailBody .= "Thank you for contacting Silent Signal. Here is our response to your inquiry:\n\n";
-        $emailBody .= $replyText . "\n\n";
-        $emailBody .= "---\n";
-        $emailBody .= "Original Message:\n";
-        $emailBody .= $message['message'] . "\n\n";
-        $emailBody .= "Best regards,\n";
-        $emailBody .= "Silent Signal Support Team\n";
-        $emailBody .= CONTACT_EMAIL;
-
-        $emailSent = false;
-
+        
         try {
-            $mail = new PHPMailer(true);
-
-            $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';
-            $mail->SMTPAuth   = true;
-            $mail->Username   = 'ssilentsignal@gmail.com'; 
-            $mail->Password   = 'rnfa bxze eyix tmjw';      
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = 587;
-
-            $mail->setFrom(CONTACT_EMAIL, 'Silent Signal Support');
-            $mail->addAddress($to, $message['name'] ?: '');
-
-            $mail->Subject = $subject;
-            $mail->Body    = $emailBody;
-
-            $mail->send();
-            $emailSent = true;
-
+            $stmt = $this->db->prepare("
+                UPDATE emergency_alerts 
+                SET status = ?, updated_at = NOW() 
+                WHERE id = ?
+            ");
+            $stmt->execute([$input['status'], $input['alert_id']]);
+            
+            echo json_encode(['success' => true, 'message' => 'Status updated']);
         } catch (Exception $e) {
-            error_log("Mailer Error for message ID {$messageId}: " . $mail->ErrorInfo);
-            $emailSent = false;
+            echo json_encode(['success' => false, 'message' => 'Failed to update']);
         }
-
-        if ($emailSent) {
-            $adminUserId = $_SESSION['user_id'];
-            $inquiryModel->saveReply($messageId, $adminUserId, $replyText);
-            $_SESSION['success'] = 'Reply sent successfully to ' . $to;
-        } else {
-            $_SESSION['error'] = 'Failed to send email. Please check your SMTP configuration.';
-        }
-
-        header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
-        exit;
+        exit();
     }
+
+    // ==================== HELPER FUNCTIONS ====================
 
     /**
-     * Mark message as resolved
+     * Convert timestamp to "time ago" format
      */
-    public function resolveMessage() {
-        $this->requireAdmin();
-
-        $messageId  = (int)($_POST['message_id'] ?? $_GET['message_id'] ?? 0);
-        $returnPage = (int)($_POST['page'] ?? $_GET['page'] ?? 1);
-
-        if ($messageId <= 0) {
-            $_SESSION['error'] = 'Invalid message ID.';
-            header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
-            exit;
-        }
-
-        require_once MODEL_PATH . 'ContactInquiry.php';
-        $inquiryModel = new ContactInquiry();
-
-        if ($inquiryModel->updateStatus($messageId, 'resolved')) {
-            $_SESSION['success'] = 'Message marked as resolved.';
-        } else {
-            $_SESSION['error'] = 'Failed to update message status.';
-        }
-
-        header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
-        exit;
+    private function timeAgo($timestamp) {
+        if (!$timestamp) return 'Unknown';
+        
+        $time = strtotime($timestamp);
+        $diff = time() - $time;
+        
+        if ($diff < 60) return 'Just now';
+        if ($diff < 3600) return floor($diff / 60) . ' min ago';
+        if ($diff < 86400) return floor($diff / 3600) . ' hours ago';
+        if ($diff < 604800) return floor($diff / 86400) . ' days ago';
+        
+        return date('M j, Y', $time);
     }
-
-    /**
-     * Update message status (in_review, replied, resolved)
-     */
-    public function updateMessageStatus() {
-        $this->requireAdmin();
-
-        $messageId  = (int)($_POST['message_id'] ?? 0);
-        $newStatus  = trim($_POST['status'] ?? '');
-        $returnPage = (int)($_POST['page'] ?? 1);
-
-        $validStatuses = ['pending', 'in_review', 'replied', 'resolved'];
-
-        if ($messageId <= 0 || !in_array($newStatus, $validStatuses)) {
-            $_SESSION['error'] = 'Invalid message ID or status.';
-            header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
-            exit;
-        }
-
-        require_once MODEL_PATH . 'ContactInquiry.php';
-        $inquiryModel = new ContactInquiry();
-
-        if ($inquiryModel->updateStatus($messageId, $newStatus)) {
-            $_SESSION['success'] = 'Message status updated to ' . ucfirst(str_replace('_', ' ', $newStatus));
-        } else {
-            $_SESSION['error'] = 'Failed to update message status.';
-        }
-
-        header('Location: ' . BASE_URL . 'index.php?action=admin-messages&page=' . $returnPage);
-        exit;
-    }
-
 }
 ?>
