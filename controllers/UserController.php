@@ -111,6 +111,42 @@ class UserController {
         // Shared header/footer data
         extract($this->getSharedData());
         
+        // Load medical profile for SOS functionality
+        $medicalProfileModel = new MedicalProfile();
+        $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
+        
+        // Build user data for SOS SMS
+        $userData = [
+            'name' => ($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? ''),
+            'phone' => $profile['phone'] ?? '',
+            'pwdId' => $profile['pwd_id'] ?? '',
+            'address' => ($profile['street_address'] ?? '') . ', ' . ($profile['city'] ?? '') . ', ' . ($profile['province'] ?? ''),
+            'bloodType' => $profile['blood_type'] ?? '',
+            'allergies' => is_array($profile['allergies'] ?? null) ? implode(', ', $profile['allergies']) : '',
+            'medications' => is_array($profile['medications'] ?? null) ? implode(', ', $profile['medications']) : '',
+            'conditions' => is_array($profile['medical_conditions'] ?? null) ? implode(', ', $profile['medical_conditions']) : '',
+        ];
+        
+        // If name is empty, use session name
+        if (trim($userData['name']) === '') {
+            $userData['name'] = $_SESSION['user_name'] ?? 'User';
+        }
+        
+        // Get emergency contacts from profile
+        $emergencyContacts = $profile['emergency_contacts'] ?? [];
+        
+        // Add colors and initials to contacts
+        $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+        foreach ($emergencyContacts as $i => &$contact) {
+            if (!isset($contact['color'])) {
+                $contact['color'] = $colors[$i % count($colors)];
+            }
+            if (!isset($contact['initials'])) {
+                $nameParts = explode(' ', $contact['name'] ?? '');
+                $contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
+            }
+        }
+        
         // User status data
         $userStatus = [
             'status' => 'safe',
@@ -297,6 +333,39 @@ class UserController {
         
         // Shared header/footer data
         extract($this->getSharedData());
+        
+        // Load medical profile for user data
+        $medicalProfileModel = new MedicalProfile();
+        $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
+        
+        // Build user data for SMS
+        $userData = [
+            'name' => ($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? ''),
+            'phone' => $profile['phone'] ?? '',
+            'bloodType' => $profile['blood_type'] ?? '',
+            'allergies' => is_array($profile['allergies'] ?? null) ? implode(', ', $profile['allergies']) : '',
+            'medications' => is_array($profile['medications'] ?? null) ? implode(', ', $profile['medications']) : '',
+        ];
+        
+        // If name is empty, use session name
+        if (trim($userData['name']) === '') {
+            $userData['name'] = $_SESSION['user_name'] ?? 'Silent Signal User';
+        }
+        
+        // Get emergency contacts from profile
+        $emergencyContacts = $profile['emergency_contacts'] ?? [];
+        
+        // Add colors and initials to contacts
+        $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+        foreach ($emergencyContacts as $i => &$contact) {
+            if (!isset($contact['color'])) {
+                $contact['color'] = $colors[$i % count($colors)];
+            }
+            if (!isset($contact['initials'])) {
+                $nameParts = explode(' ', $contact['name'] ?? '');
+                $contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
+            }
+        }
         
         // Active disaster alerts (would come from API/database)
         $disasterAlerts = [
@@ -545,6 +614,9 @@ class UserController {
         exit();
     }
 
+    /**
+     * AJAX: Get location history (family check-in)
+     */
     public function getLocationHistory() {
         $this->requireLogin();
         header('Content-Type: application/json');
@@ -618,9 +690,15 @@ class UserController {
             'pwdId' => $profile['pwd_id'] ?? '',
         ];
 
+        // Also expose as $userData for backwards-compatibility with views
+        $userData = [
+            'name' => $userInfo['name'],
+            'phone' => $userInfo['phone'],
+        ];
+
         // Emergency contacts from profile
         $emergencyContacts = $profile['emergency_contacts'] ?? [];
-        $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+        $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0', '#00bcd4', '#ff9800'];
         foreach ($emergencyContacts as $i => &$contact) {
             if (!isset($contact['color'])) $contact['color'] = $colors[$i % count($colors)];
             if (!isset($contact['initials'])) {
@@ -843,7 +921,7 @@ class UserController {
                 $contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
             }
         }
-        unset($contact); // break the reference so $contact no longer points to last element
+        unset($contact);
 
         // SMS Configuration (build from profile data)
         $smsConfig = [
@@ -866,7 +944,7 @@ class UserController {
                 $reminder['color'] = $colors[$i % count($colors)];
             }
         }
-        unset($reminder); // break the reference so $reminder no longer points to last element
+        unset($reminder);
 
         // Reminder Features (static)
         $reminderFeatures = [
@@ -885,10 +963,8 @@ class UserController {
     public function saveMedicalProfile() {
         $this->requireLogin();
         
-        // Set JSON header
         header('Content-Type: application/json');
         
-        // Get POST data
         $input = json_decode(file_get_contents('php://input'), true);
         
         if (!$input) {
@@ -899,7 +975,6 @@ class UserController {
         try {
             $medicalProfile = new MedicalProfile();
             
-            // Prepare data for saving
             $profileData = [
                 'first_name' => $input['firstName'] ?? '',
                 'last_name' => $input['lastName'] ?? '',
@@ -976,6 +1051,87 @@ class UserController {
         } catch (Exception $e) {
             error_log("Log Emergency Alert Error: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Failed to log alert.']);
+        }
+        
+        exit();
+    }
+
+    /**
+     * Log Disaster Response (AJAX endpoint)
+     */
+    public function logDisasterResponse() {
+        $this->requireLogin();
+        
+        header('Content-Type: application/json');
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!$input) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data.']);
+            exit();
+        }
+        
+        try {
+            require_once __DIR__ . '/../config/Database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            $stmt = $db->prepare("
+                INSERT INTO disaster_alerts (user_id, alert_name, status, latitude, longitude, created_at)
+                VALUES (?, ?, ?, ?, ?, NOW())
+            ");
+            
+            $stmt->execute([
+                $_SESSION['user_id'],
+                $input['alert_name'] ?? 'Unknown Alert',
+                $input['status'] ?? 'unknown',
+                $input['location']['lat'] ?? null,
+                $input['location']['lng'] ?? null
+            ]);
+            
+            echo json_encode(['success' => true, 'message' => 'Response logged.']);
+        } catch (Exception $e) {
+            error_log("Log Disaster Response Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to log response.']);
+        }
+        
+        exit();
+    }
+
+    /**
+     * Update Safety Status (AJAX endpoint)
+     */
+    public function updateSafetyStatus() {
+        $this->requireLogin();
+        
+        header('Content-Type: application/json');
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!$input) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data.']);
+            exit();
+        }
+        
+        try {
+            require_once __DIR__ . '/../config/Database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            $stmt = $db->prepare("
+                INSERT INTO pwd_status_updates (user_id, status, created_at)
+                VALUES (?, ?, NOW())
+            ");
+            
+            $stmt->execute([
+                $_SESSION['user_id'],
+                $input['status'] ?? 'unknown'
+            ]);
+            
+            echo json_encode(['success' => true, 'message' => 'Status updated.']);
+        } catch (Exception $e) {
+            error_log("Update Safety Status Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to update status.']);
         }
         
         exit();

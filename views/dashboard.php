@@ -5,10 +5,42 @@
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
+<meta name="base-url" content="<?php echo BASE_URL; ?>">
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/dashboard.css">
+
+<!-- Hidden User Data for SOS -->
+<div id="userData" 
+    data-name="<?php echo htmlspecialchars($userData['name'] ?? ''); ?>"
+    data-phone="<?php echo htmlspecialchars($userData['phone'] ?? ''); ?>"
+    data-pwd-id="<?php echo htmlspecialchars($userData['pwdId'] ?? ''); ?>"
+    data-address="<?php echo htmlspecialchars($userData['address'] ?? ''); ?>"
+    data-blood-type="<?php echo htmlspecialchars($userData['bloodType'] ?? ''); ?>"
+    data-allergies="<?php echo htmlspecialchars($userData['allergies'] ?? ''); ?>"
+    data-medications="<?php echo htmlspecialchars($userData['medications'] ?? ''); ?>"
+    data-conditions="<?php echo htmlspecialchars($userData['conditions'] ?? ''); ?>"
+    style="display: none;">
+</div>
+
+<!-- Hidden Emergency Contacts Data -->
+<div id="emergencyContactsData" 
+    data-contacts='<?php echo json_encode($emergencyContacts ?? []); ?>'
+    style="display: none;">
+</div>
 
 <div class="dashboard-container">
     
+    <!-- Quick SOS Section -->
+    <div class="quick-sos-section">
+        <div class="sos-info">
+            <h2>Emergency SOS</h2>
+            <p>Tap the button or hold anywhere for 3 seconds to send an emergency alert</p>
+        </div>
+        <button class="quick-sos-btn" id="quickSOSBtn">
+            <i class="ri-alarm-warning-fill"></i>
+            <span>SOS</span>
+        </button>
+    </div>
+
     <!-- Status Banner -->
     <div class="status-banner status-<?php echo $userStatus['status']; ?>">
         <div class="status-content">
@@ -108,6 +140,29 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 
 </div>
 
+<!-- SOS Confirmation Modal -->
+<div class="modal" id="sosConfirmModal">
+    <div class="modal-content">
+        <div class="modal-icon">
+            <i class="ri-alarm-warning-fill"></i>
+        </div>
+        <h2>Send Emergency Alert?</h2>
+        <p>This will send an SOS message to all your emergency contacts with your location.</p>
+        <div class="countdown">
+            Auto-sending in <span id="sosCountdown">10</span> seconds...
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-danger" id="confirmSOSBtn">
+                <i class="ri-send-plane-fill"></i> Send Now
+            </button>
+            <button class="btn btn-secondary" id="cancelSOSBtn">
+                <i class="ri-close-line"></i> Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
+<script src="<?php echo BASE_URL; ?>assets/js/dashboard.js"></script>
 </body>
 </html>
