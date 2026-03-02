@@ -164,7 +164,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <i class="ri-account-circle-line"></i>
                         <?php echo htmlspecialchars($member['relationship_type'] ?? 'Emergency Contact'); ?>
                         <?php if (!empty($member['phone_number'])): ?>
-                        &nbsp;&bull;&nbsp;<i class="ri-phone-line"></i> <?php echo htmlspecialchars($member['phone_number']); ?>
+                        <i class="ri-phone-line"></i> <?php echo htmlspecialchars($member['phone_number']); ?>
                         <?php endif; ?>
                     </div>
                 </div>
