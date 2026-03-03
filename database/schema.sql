@@ -374,7 +374,7 @@ INSERT INTO `family_emergency_responses` (`id`,`alert_id`,`family_member_id`,`re
 (2,4,26,'acknowledged','2026-02-18 12:12:08',NULL,NULL,NULL,'2026-02-18 14:07:08','2026-02-18 14:07:08');
 
 -- =============================================================================
--- DATA: medical_profiles
+-- DATA: medical_profiles-Hi
 -- =============================================================================
 INSERT INTO `medical_profiles` (`id`,`user_id`,`first_name`,`last_name`,`date_of_birth`,`gender`,`pwd_id`,`phone`,`email`,`street_address`,`city`,`province`,`zip_code`,`disability_type`,`blood_type`,`allergies`,`medications`,`medical_conditions`,`emergency_contacts`,`sms_template`,`medication_reminders`,`created_at`,`updated_at`) VALUES
 (2,9,'Aizhelle','de la Cruz',NULL,'Female','','09949771317','aizhellegwynneth@gmail.com','Montinola Street','Victorias City','Negros Occidental','6120','Deaf/Mute','O+','[\"seafood\"]','[\"biogesic\"]','[\"social anxiety\"]','[{\"name\":\"Wynn de la Cruz\",\"relation\":\"Father\",\"phone\":\"09162360648\",\"initials\":\"WD\",\"color\":\"rgb(229, 57, 53)\"}]','EMERGENCY ALERT - USER IS DEAF/MUTE - TEXT ONLY','[{\"name\":\"Biogesic\",\"frequency\":\"Once daily\",\"time\":\"8:00 AM, 8:00 PM\",\"color\":\"rgb(76, 175, 80)\"}]','2026-02-08 11:57:52','2026-02-18 10:00:36'),
