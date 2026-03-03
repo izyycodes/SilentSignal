@@ -41,11 +41,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /**
-     * showInputModal — replaces prompt()
-     * fields: [{ name, label, type='text', placeholder, value, options (for select) }]
-     * Returns a Promise that resolves with { fieldName: value, ... } or null if cancelled.
-     */
     function showInputModal({ title, icon = 'ri-edit-line', iconClass = 'icon-teal', description = '', fields = [] }) {
         return new Promise((resolve) => {
             modalIcon.className = 'custom-modal-icon ' + iconClass;
@@ -83,11 +78,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             openModal();
 
-            // Focus first input
             const firstInput = modalBody.querySelector('input, select');
             if (firstInput) setTimeout(() => firstInput.focus(), 100);
 
-            // Allow Enter to submit
             modalBody.addEventListener('keydown', function handler(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -113,10 +106,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /**
-     * showConfirmModal — replaces confirm()
-     * Returns a Promise that resolves with true (confirmed) or false (cancelled).
-     */
     function showConfirmModal({ title, message, icon = 'ri-alert-line', iconClass = 'icon-red', confirmLabel = 'Confirm', confirmClass = 'modal-btn-danger', warning = '' }) {
         return new Promise((resolve) => {
             modalIcon.className = 'custom-modal-icon ' + iconClass;
@@ -147,9 +136,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /**
-     * showAlertModal — replaces alert()
-     */
     function showAlertModal({ title, message, icon = 'ri-information-line', iconClass = 'icon-blue', buttonLabel = 'OK' }) {
         return new Promise((resolve) => {
             modalIcon.className = 'custom-modal-icon ' + iconClass;
@@ -268,6 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.form-control').forEach(input => {
             input.readOnly = readonly;
             if (readonly) {
+                input.style.background = '#f5f5f5';
                 input.style.cursor = 'not-allowed';
             } else {
                 input.style.background = '';
@@ -275,23 +262,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Disability is always readonly — no edit mode toggle needed
-        // The hidden input always carries "Deaf/Mute"
-
-        // Blood type select
         const bloodTypeSelect = document.getElementById('bloodTypeSelect');
         if (bloodTypeSelect) {
             bloodTypeSelect.disabled = readonly;
         }
 
-        // SMS alert textarea
         const smsTemplate = document.getElementById('smsTemplate');
         if (smsTemplate) {
             smsTemplate.readOnly = readonly;
             smsTemplate.style.background = readonly ? '#f5f5f5' : '';
         }
 
-        // Hide/show action buttons
         document.querySelectorAll('.tag-remove, .item-remove, .action-btn.delete, .btn-add').forEach(btn => {
             btn.style.display = readonly ? 'none' : 'flex';
         });
@@ -306,8 +287,6 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.style.display = readonly ? 'none' : 'inline-flex';
         });
 
-        // Toggle medication reminder editing
-        // IMPORTANT: when switching TO readonly, sync input values → display elements first
         document.querySelectorAll('.reminder-card').forEach(card => {
             const nameDisplay = card.querySelector('.reminder-name-display');
             const nameEdit    = card.querySelector('.reminder-name-edit');
@@ -316,7 +295,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const deleteBtn   = card.querySelector('.btn-delete-reminder');
 
             if (nameDisplay && nameEdit) {
-                // Sync input → h4 before switching to readonly
                 if (readonly && nameEdit.value.trim()) {
                     nameDisplay.textContent = nameEdit.value.trim();
                 }
@@ -325,12 +303,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!readonly) {
                     nameEdit.readOnly     = false;
                     nameEdit.style.cursor = 'text';
-                    // Sync h4 → input when entering edit mode
                     nameEdit.value = nameDisplay.textContent.trim();
                 }
             }
             if (freqDisplay && freqEdit) {
-                // Sync select → span before switching to readonly
                 if (readonly && freqEdit.value) {
                     freqDisplay.textContent = freqEdit.value;
                 }
@@ -338,7 +314,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 freqEdit.style.display    = readonly ? 'none'         : 'inline-block';
                 freqEdit.disabled         = readonly;
                 if (!readonly) {
-                    // Sync span → select when entering edit mode
                     freqEdit.value = freqDisplay.textContent.trim();
                 }
             }
@@ -347,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================
-    // ADD REMINDER — uses modal
+    // ADD REMINDER
     // ================================
     const addReminderBtn = document.getElementById('addReminderBtn');
     if (addReminderBtn) {
@@ -376,14 +351,13 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (!result || !result.name) return;
-
             addMedicationReminder(result.name, result.frequency, '8:00 AM');
             hasUnsavedChanges = true;
         });
     }
 
     // ================================
-    // DELETE REMINDER — uses modal
+    // DELETE REMINDER
     // ================================
     document.addEventListener('click', async function (e) {
         if (e.target.closest('.btn-delete-reminder')) {
@@ -603,19 +577,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================
-    // MEDICATION REMINDER TIME PICKER — modal
+    // MEDICATION REMINDER TIME PICKER
     // ================================
     document.addEventListener('click', async function (e) {
         if (e.target.closest('.btn-set-time')) {
             const reminderCard = e.target.closest('.reminder-card');
             const timeSpan = reminderCard.querySelector('.reminder-time');
 
-            // Parse current times
             const timeMatch = timeSpan.textContent.match(/(\d+:\d+\s*[AP]M)/gi);
             const defaultTime1 = timeMatch && timeMatch[0] ? convertTo24Hour(timeMatch[0]) : '08:00';
             const defaultTime2 = timeMatch && timeMatch[1] ? convertTo24Hour(timeMatch[1]) : '20:00';
 
-            // Build a custom time picker modal
             modalIcon.className = 'custom-modal-icon icon-blue';
             modalIcon.innerHTML = '<i class="ri-time-line"></i>';
             modalTitle.textContent = 'Set Reminder Times';
@@ -684,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================
-    // ADD ALLERGY — modal
+    // ADD ALLERGY
     // ================================
     const addAllergyBtn = document.getElementById('addAllergyBtn');
     if (addAllergyBtn) {
@@ -705,7 +677,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================
-    // ADD MEDICATION — modal
+    // ADD MEDICATION
     // ================================
     const addMedicationBtn = document.getElementById('addMedicationBtn');
     if (addMedicationBtn) {
@@ -726,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================
-    // ADD MEDICAL CONDITION — modal
+    // ADD MEDICAL CONDITION
     // ================================
     const addConditionBtn = document.getElementById('addConditionBtn');
     if (addConditionBtn) {
@@ -747,7 +719,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================
-    // ADD CONTACT — modal
+    // ADD CONTACT
     // ================================
     const addContactBtn = document.getElementById('addContactBtn');
     if (addContactBtn) {
@@ -758,8 +730,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 iconClass: 'icon-teal',
                 description: 'This contact will be alerted in case of an emergency.',
                 fields: [
-                    { name: 'name',     label: 'Full Name',   placeholder: 'e.g. Maria Santos', value: '' },
-                    { name: 'relation', label: 'Relation',    placeholder: 'e.g. Mother, Spouse, Friend', value: '' },
+                    { name: 'name',     label: 'Full Name',    placeholder: 'e.g. Maria Santos', value: '' },
+                    { name: 'relation', label: 'Relation',     placeholder: 'e.g. Mother, Spouse, Friend', value: '' },
                     { name: 'phone',    label: 'Phone Number', placeholder: 'e.g. 0912 345 6789', value: '' }
                 ]
             });
@@ -778,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================
-    // TAG / ITEM / CONTACT REMOVAL — modal confirms
+    // TAG / ITEM / CONTACT REMOVAL
     // ================================
     document.addEventListener('click', async function (e) {
         if (e.target.closest('.tag-remove')) {
@@ -817,7 +789,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        if (e.target.closest('.action-btn.delete')) {
+        // ── FIX: scope delete to #emergency-contacts tab only ──
+        if (e.target.closest('#emergency-contacts .action-btn.delete')) {
             const card = e.target.closest('.contact-card');
             const name = card?.querySelector('h4')?.textContent || 'this contact';
             const confirmed = await showConfirmModal({
@@ -900,8 +873,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function addContact(name, relation, phone) {
-        const container = document.querySelector('.contacts-list');
+        // ── FIX: scope to #emergency-contacts tab only ──
+        const container = document.querySelector('#emergency-contacts .contacts-list');
         if (!container) return;
+
         const colors = ['#e53935', '#43a047', '#1e88e5', '#8e24aa', '#ff9800'];
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
         const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -934,7 +909,6 @@ document.addEventListener('DOMContentLoaded', function () {
             data[name] = input.value;
         });
 
-        // Disability is always Deaf/Mute
         data.disabilityType = 'Deaf/Mute';
 
         const bloodTypeSelect = document.getElementById('bloodTypeSelect');
@@ -963,20 +937,27 @@ document.addEventListener('DOMContentLoaded', function () {
             data.medicalConditions.push(tag.textContent);
         });
 
+        // ── FIX: scope to #emergency-contacts tab to prevent duplication ──
         data.emergencyContacts = [];
-        document.querySelectorAll('.contact-card').forEach(card => {
-            data.emergencyContacts.push({
-                name:     card.querySelector('h4').textContent,
-                relation: card.querySelector('.contact-relation').textContent,
-                phone:    card.querySelector('.contact-phone').textContent,
-                initials: card.querySelector('.contact-avatar').textContent.trim(),
-                color:    card.querySelector('.contact-avatar').style.background
-            });
+        document.querySelectorAll('#emergency-contacts .contact-card').forEach(card => {
+            const nameEl     = card.querySelector('h4');
+            const relationEl = card.querySelector('.contact-relation');
+            const phoneEl    = card.querySelector('.contact-phone');
+            const avatarEl   = card.querySelector('.contact-avatar');
+
+            if (nameEl && relationEl && phoneEl) {
+                data.emergencyContacts.push({
+                    name:     nameEl.textContent.trim(),
+                    relation: relationEl.textContent.trim(),
+                    phone:    phoneEl.textContent.trim(),
+                    initials: avatarEl ? avatarEl.textContent.trim() : '',
+                    color:    avatarEl ? avatarEl.style.background : ''
+                });
+            }
         });
 
         data.medicationReminders = [];
         document.querySelectorAll('.reminder-card').forEach(card => {
-            // Read from the edit input/select (source of truth), fall back to display element
             const nameInput   = card.querySelector('.reminder-name-edit');
             const nameDisplay = card.querySelector('.reminder-name-display');
             const freqSelect  = card.querySelector('.reminder-frequency-edit');
