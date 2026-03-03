@@ -297,6 +297,34 @@ class UserController {
         
         // Shared header/footer data
         extract($this->getSharedData());
+
+        // Load medical profile for user data
+        $medicalProfileModel = new MedicalProfile();
+        $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
+
+        // Build user data for SMS
+        $userData = [
+            'name'      => trim(($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? '')) ?: ($_SESSION['user_name'] ?? 'Silent Signal User'),
+            'phone'     => $profile['phone'] ?? '',
+            'bloodType' => $profile['blood_type'] ?? '',
+            'pwdId'     => $profile['pwd_id'] ?? '',
+            'allergies' => is_array($profile['allergies'] ?? null) ? implode(', ', $profile['allergies']) : '',
+            'medications' => is_array($profile['medications'] ?? null) ? implode(', ', $profile['medications']) : '',
+        ];
+
+        // Get emergency contacts from profile
+        $emergencyContacts = $profile['emergency_contacts'] ?? [];
+
+        // Add colors and initials
+        $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+        foreach ($emergencyContacts as $i => &$contact) {
+            if (!isset($contact['color'])) $contact['color'] = $colors[$i % count($colors)];
+            if (!isset($contact['initials'])) {
+                $nameParts = explode(' ', $contact['name'] ?? '');
+                $contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
+            }
+        }
+        unset($contact);
         
         // Active disaster alerts (would come from API/database)
         $disasterAlerts = [
@@ -978,6 +1006,109 @@ class UserController {
             echo json_encode(['success' => false, 'message' => 'Failed to log alert.']);
         }
         
+        exit();
+    }
+
+    /**
+     * Log Disaster Response (AJAX endpoint)
+     */
+    public function logDisasterResponse() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        if (!$input) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data.']);
+            exit();
+        }
+
+        try {
+            require_once __DIR__ . '/../config/Database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            // Log the disaster response
+            $stmt = $db->prepare("
+                INSERT INTO disaster_alerts (user_id, alert_name, status, latitude, longitude, created_at)
+                VALUES (?, ?, ?, ?, ?, NOW())
+            ");
+            $stmt->execute([
+                $_SESSION['user_id'],
+                $input['alert_name'] ?? 'Disaster Response',
+                $input['status'] ?? 'unknown',
+                $input['latitude'] ?? null,
+                $input['longitude'] ?? null
+            ]);
+
+            // Also update pwd_status_updates so family dashboard reflects it
+            $mappedStatus = match($input['status'] ?? '') {
+                'safe'              => 'safe',
+                'help', 'auto-sos' => 'needs_assistance',
+                default             => 'unknown'
+            };
+
+            $stmt2 = $db->prepare("
+                INSERT INTO pwd_status_updates (user_id, status, latitude, longitude, message, created_at)
+                VALUES (?, ?, ?, ?, ?, NOW())
+            ");
+            $stmt2->execute([
+                $_SESSION['user_id'],
+                $mappedStatus,
+                $input['latitude'] ?? null,
+                $input['longitude'] ?? null,
+                match($mappedStatus) {
+                    'safe'             => 'Responded safe during disaster alert.',
+                    'needs_assistance' => 'Needs help — disaster alert triggered.',
+                    default            => 'Disaster response logged.'
+                }
+            ]);
+
+            echo json_encode(['success' => true, 'message' => 'Response logged.']);
+        } catch (Exception $e) {
+            error_log("Log Disaster Response Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to log response.']);
+        }
+
+        exit();
+    }
+
+    /**
+     * Update Safety Status (AJAX endpoint)
+     */
+    public function updateSafetyStatus() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        if (!$input) {
+            echo json_encode(['success' => false, 'message' => 'Invalid data.']);
+            exit();
+        }
+
+        try {
+            require_once __DIR__ . '/../config/Database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            $stmt = $db->prepare("
+                INSERT INTO pwd_status_updates (user_id, status, latitude, longitude, created_at)
+                VALUES (?, ?, ?, ?, NOW())
+            ");
+            $stmt->execute([
+                $_SESSION['user_id'],
+                $input['status'] ?? 'unknown',
+                $input['latitude'] ?? null,
+                $input['longitude'] ?? null
+            ]);
+
+            echo json_encode(['success' => true, 'message' => 'Status updated.']);
+        } catch (Exception $e) {
+            error_log("Update Safety Status Error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to update status.']);
+        }
+
         exit();
     }
 }
