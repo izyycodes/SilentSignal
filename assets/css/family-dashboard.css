@@ -465,6 +465,7 @@
 .alert-timeline-item {
     display: flex;
     gap: 15px;
+    flex-wrap: wrap;
     padding: 15px;
     background: #fafbfc;
     border-radius: 12px;
