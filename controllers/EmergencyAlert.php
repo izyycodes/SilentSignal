@@ -212,7 +212,7 @@ class EmergencyAlert {
     }
 
     /**
-     * Get all alerts for CSV export (no pagination)hi
+     * Get all alerts for CSV export (no pagination)
      */
     public function getAllForExport() {
         $query = "

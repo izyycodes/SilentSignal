@@ -242,7 +242,7 @@ class AdminController {
     }
 
     /**
-     * Helper: format timestamp as relative time
+     * Helper: format timestamp as relative timehoy
      */
     private function timeAgo($datetime) {
         if (!$datetime) return 'just now';
@@ -680,6 +680,7 @@ class AdminController {
         exit;
     }
 
+<<<<<<< HEAD
     // ==================== EXPORT METHODS ====================
 
     /**
@@ -810,6 +811,8 @@ class AdminController {
         $this->exportCSV('silent_signal_disaster_alerts_' . date('Ymd_His') . '.csv', $headers, $rows);
     }
 
+=======
+>>>>>>> bbfb3edaa215da401d457c5b783e63668fbd4c69
     public function helpCenter()
     {
         $pageTitle = "Help Center - Silent Signal";
