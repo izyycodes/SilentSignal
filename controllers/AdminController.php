@@ -242,7 +242,7 @@ class AdminController {
     }
 
     /**
-     * Helper: format timestamp as relative time
+     * Helper: format timestamp as relative timehoy
      */
     private function timeAgo($datetime) {
         if (!$datetime) return 'just now';
