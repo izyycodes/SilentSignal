@@ -46,10 +46,7 @@ switch ($action) {
         $controller->logout();
         break;
 
-    // ==========================================
-    // USER MODULES
-    // ==========================================
-    
+    // User Modules    
     case 'dashboard':
         require_once CONTROLLER_PATH . 'UserController.php';
         $controller = new UserController();
@@ -86,48 +83,21 @@ switch ($action) {
         $controller->medicalProfile();
         break;
 
-    // ==========================================
-    // USER AJAX ENDPOINTS
-    // ==========================================
-
     case 'save-medical-profile':
         require_once CONTROLLER_PATH . 'UserController.php';
         $controller = new UserController();
         $controller->saveMedicalProfile();
         break;
 
-    case 'log-emergency-alert':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->logEmergencyAlert();
-        break;
 
-    case 'log-disaster-response':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->logDisasterResponse();
-        break;
-
-    case 'update-safety-status':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->updateSafetyStatus();
-        break;
-
-    // ==========================================
-    // FAMILY MODULE
-    // ==========================================
-    
+    // Family Module    
     case 'family-dashboard':
         require_once CONTROLLER_PATH . 'FamilyController.php';
         $controller = new FamilyController();
         $controller->familyDashboard();
         break;
 
-    // ==========================================
-    // ADMIN MODULE
-    // ==========================================
-    
+    // Admin Module    
     case 'admin-dashboard':
         require_once CONTROLLER_PATH . 'AdminController.php';
         $controller = new AdminController();
@@ -158,25 +128,35 @@ switch ($action) {
         $controller->messages();
         break;
 
-    // ==========================================
-    // ADMIN AJAX ENDPOINTS
-    // ==========================================
-
-    case 'admin-alerts-api':
+    case 'admin-verify-user':
         require_once CONTROLLER_PATH . 'AdminController.php';
         $controller = new AdminController();
-        $controller->getAlertsAPI();
+        $controller->verifyUser();
         break;
 
-    case 'admin-update-alert':
+    case 'admin-toggle-active':
         require_once CONTROLLER_PATH . 'AdminController.php';
         $controller = new AdminController();
-        $controller->updateAlertStatus();
+        $controller->toggleUserActive();
         break;
 
-    // ==========================================
-    // DEFAULT
-    // ==========================================
+    case 'admin-send-reply':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->sendMessageReply();
+        break;
+
+    case 'admin-resolve-message':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->resolveMessage();
+        break;
+
+    case 'admin-update-message-status':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->updateMessageStatus();
+        break;
 
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';
