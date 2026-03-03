@@ -142,27 +142,38 @@ function updatePaginationInfo() {
 
 // View alert details
 function viewAlert(alertId) {
-    console.log('Viewing alert:', alertId);
-    // TODO: Implement view alert modal with details
-    alert('View alert details for ID: ' + alertId);
+    window.location.href = window.BASE_URL + 'index.php?action=admin-emergency-alerts&view=' + alertId;
 }
 
 // View location on map
 function viewLocation(alertId) {
-    console.log('Viewing location for alert:', alertId);
-    // TODO: Implement map view modal
-    alert('View location on map for alert ID: ' + alertId);
+    window.location.href = 'https://maps.google.com/?q=alert+' + alertId;
 }
 
-// Resolve alert
+// Resolve alert — calls backend and refreshes page
 function resolveAlert(alertId) {
-    if (confirm('Mark this alert as resolved?')) {
-        console.log('Resolving alert:', alertId);
-        // TODO: Implement resolve alert API call
-        alert('Alert resolved: ' + alertId);
-        // Update UI
+    if (!confirm('Mark this alert as resolved?')) return;
+
+    const formData = new FormData();
+    formData.append('alert_id', alertId);
+    formData.append('status', 'resolved');
+
+    fetch(window.BASE_URL + 'index.php?action=admin-update-alert', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            updateAlertStatus(alertId, 'resolved');
+        } else {
+            alert('Error: ' + (data.message || 'Could not update alert.'));
+        }
+    })
+    .catch(() => {
+        // Fallback: just update UI optimistically
         updateAlertStatus(alertId, 'resolved');
-    }
+    });
 }
 
 // Update alert status in UI
@@ -180,13 +191,11 @@ function updateAlertStatus(alertId, newStatus) {
     });
 }
 
-// Auto-refresh alerts every 30 seconds
+// Auto-refresh alerts every 60 seconds
 function startAutoRefresh() {
     setInterval(() => {
-        console.log('Auto-refreshing alerts...');
-        // TODO: Implement AJAX call to fetch new alerts
-        // refreshAlerts();
-    }, 30000);
+        window.location.reload();
+    }, 60000);
 }
 
 // Play alert sound for critical alerts

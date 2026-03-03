@@ -78,7 +78,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <option value="responded">Responded</option>
                 <option value="resolved">Resolved</option>
             </select>
-            <button class="btn-primary">
+            <button class="btn-primary" onclick="window.location.href='<?php echo BASE_URL; ?>index.php?action=admin-export-emergency-alerts'">
                 <i class="ri-download-line"></i> Export Report
             </button>
         </div>
@@ -175,16 +175,45 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     <!-- Pagination -->
     <div class="pagination">
         <div class="pagination-info">
-            Showing 1-10 of 67 emergency alerts
+            Showing <strong><?php echo $rangeStart; ?>–<?php echo $rangeEnd; ?></strong> of <strong><?php echo number_format($totalCount); ?></strong> emergency alerts
         </div>
         <div class="pagination-controls">
-            <button class="page-btn" disabled>Previous</button>
-            <button class="page-number active">1</button>
-            <button class="page-number">2</button>
-            <button class="page-number">3</button>
-            <span>...</span>
-            <button class="page-number">7</button>
-            <button class="page-btn">Next</button>
+
+            <?php if ($currentPage > 1): ?>
+                <a href="<?php echo BASE_URL; ?>index.php?action=admin-emergency-alerts&page=<?php echo $currentPage - 1; ?>" class="page-btn">Previous</a>
+            <?php else: ?>
+                <button class="page-btn" disabled>Previous</button>
+            <?php endif; ?>
+
+            <?php
+                $startPage = max(1, $currentPage - 2);
+                $endPage   = min($totalPages, $startPage + 4);
+                $startPage = max(1, $endPage - 4);
+
+                if ($startPage > 1): ?>
+                    <a href="<?php echo BASE_URL; ?>index.php?action=admin-emergency-alerts&page=1" class="page-number">1</a>
+                    <?php if ($startPage > 2): ?><span class="page-ellipsis">...</span><?php endif; ?>
+                <?php endif;
+
+                for ($i = $startPage; $i <= $endPage; $i++): ?>
+                    <?php if ($i === $currentPage): ?>
+                        <span class="page-number active"><?php echo $i; ?></span>
+                    <?php else: ?>
+                        <a href="<?php echo BASE_URL; ?>index.php?action=admin-emergency-alerts&page=<?php echo $i; ?>" class="page-number"><?php echo $i; ?></a>
+                    <?php endif; ?>
+                <?php endfor;
+
+                if ($endPage < $totalPages): ?>
+                    <?php if ($endPage < $totalPages - 1): ?><span class="page-ellipsis">...</span><?php endif; ?>
+                    <a href="<?php echo BASE_URL; ?>index.php?action=admin-emergency-alerts&page=<?php echo $totalPages; ?>" class="page-number"><?php echo $totalPages; ?></a>
+                <?php endif; ?>
+
+            <?php if ($currentPage < $totalPages): ?>
+                <a href="<?php echo BASE_URL; ?>index.php?action=admin-emergency-alerts&page=<?php echo $currentPage + 1; ?>" class="page-btn">Next</a>
+            <?php else: ?>
+                <button class="page-btn" disabled>Next</button>
+            <?php endif; ?>
+
         </div>
     </div>
 </div>
@@ -193,4 +222,5 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 require_once VIEW_PATH . 'includes/dashboard-footer.php';
 ?>
 
+<script>window.BASE_URL = '<?php echo BASE_URL; ?>';</script>
 <script src="<?php echo BASE_URL; ?>assets/js/admin-emergency-alerts.js"></script>

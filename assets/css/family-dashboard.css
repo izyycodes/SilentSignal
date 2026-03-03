@@ -853,7 +853,9 @@
 [data-theme="dark"] .member-name { color: var(--text-primary); }
 [data-theme="dark"] .last-seen { color: var(--text-muted); }
 
-[data-theme="dark"] .alert-timeline-item, [data-theme="dark"] .fab-menu-item{  
+[data-theme="dark"] .alert-timeline-item, 
+[data-theme="dark"] .fab-menu-item, 
+[data-theme="dark"] .modal-header {  
     background: var(--bg-card-alt); 
     border-color: var(--border-light); 
 }
@@ -865,7 +867,7 @@
     background: var(--bg-card);
     border-color: var(--border-light);
 }
-[data-theme="dark"] .modal-header h3 { color: var(--text-primary); }
+[data-theme="dark"] .modal-header h3, [data-theme="dark"] .profile-row strong { color: var(--text-primary); }
 [data-theme="dark"] .modal-body { color: var(--text-secondary); }
 
 [data-theme="dark"] .detail-label { color: var(--text-muted); }

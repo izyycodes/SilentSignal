@@ -271,6 +271,30 @@ switch ($action) {
         $controller->getPwdLiveStatus();
         break;
 
+    case 'admin-export-users':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->exportUsers();
+        break;
+
+    case 'admin-export-emergency-alerts':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->exportEmergencyAlerts();
+        break;
+
+    case 'admin-export-messages':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->exportMessages();
+        break;
+
+    case 'admin-export-disaster-alerts':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->exportDisasterAlerts();
+        break;
+
     case 'admin-alerts-api':
         require_once CONTROLLER_PATH . 'AdminController.php';
         $controller = new AdminController();
