@@ -239,7 +239,25 @@ switch ($action) {
         $controller = new FamilyController();
         $controller->refreshDashboard();
         break;
+    
+     case 'get-pwd-live-status':
+        require_once CONTROLLER_PATH . 'FamilyController.php';
+        $controller = new FamilyController();
+        $controller->getPwdLiveStatus();
+        break;
 
+    case 'admin-alerts-api':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->getAlertsAPI();
+        break;
+
+    case 'admin-update-alert':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->updateAlertStatus();
+        break;
+            
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';
         $controller = new HomeController();
