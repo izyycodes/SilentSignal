@@ -92,7 +92,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <option value="family">Family</option>
                 <option value="admin">Admin</option>
             </select>
-            <button class="btn-primary">
+            <button class="btn-primary" onclick="window.location.href='<?php echo BASE_URL; ?>index.php?action=admin-export-users'">
                 <i class="ri-download-line"></i> Export Data
             </button>
         </div>

@@ -102,7 +102,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <option value="replied">Replied</option>
                 <option value="resolved">Resolved</option>
             </select>
-            <button class="btn-primary">
+            <button class="btn-primary" onclick="window.location.href='<?php echo BASE_URL; ?>index.php?action=admin-export-messages'">
                 <i class="ri-download-line"></i> Export
             </button>
         </div>
