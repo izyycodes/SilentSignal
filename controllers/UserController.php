@@ -131,7 +131,7 @@ class UserController {
                 'features' => [
                     ['icon' => 'ri-flashlight-line', 'text' => 'Instant SOS transmission'],
                     ['icon' => 'ri-map-pin-line', 'text' => 'GPS location sharing'],
-                    ['icon' => 'ri-vibrate-line', 'text' => 'Multi-sensory confirmation'],
+                    ['icon' => 'ri-pulse-line', 'text' => 'Multi-sensory confirmation'],
                 ],
             ],
             [
@@ -281,7 +281,7 @@ class UserController {
         
         // Confirmation options
         $confirmationOptions = [
-            ['icon' => 'ri-vibrate-line', 'title' => 'Vibration Pattern', 'desc' => 'Strong pulse feedback'],
+            ['icon' => 'ri-pulse-line', 'title' => 'Vibration Pattern', 'desc' => 'Strong pulse feedback'],
             ['icon' => 'ri-flashlight-line', 'title' => 'Color Flash', 'desc' => 'Full screen visual alert'],
         ];
         

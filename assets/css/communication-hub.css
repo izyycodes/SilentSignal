@@ -43,7 +43,7 @@ button {
 .page-header-content h1 {
     font-size: 20px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -126,7 +126,7 @@ button {
 .card-header h2 {
     font-size: 16px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -150,7 +150,7 @@ button {
     align-items: center;
     justify-content: center;
     padding: 16px 10px;
-    background: #f8f9fa;
+    background: var(--bg-card-alt);
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -241,7 +241,7 @@ button {
 .msg-title {
     font-size: 14px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin-bottom: 6px;
 }
 
@@ -293,7 +293,7 @@ button {
 
 /* SMS Preview */
 .sms-preview-box {
-    background: #f8f9fa;
+    background: var(--bg-card-alt);
     border: 2px dashed #d0d0d0;
     border-radius: 14px;
     padding: 20px 18px;
@@ -412,7 +412,7 @@ button {
 }
 
 .action-btn.secondary {
-    background: #f8f9fa;
+    background: var(--bg-card-alt);
     color: #7b1fa2;
     border: 2px solid #e0e0e0;
 }
@@ -479,7 +479,7 @@ button {
 
 /* FSL Downloads */
 .fsl-item {
-    background: #f8f9fa;
+    background: var(--bg-card-alt);
     border-radius: 14px;
     padding: 18px;
     margin-bottom: 15px;
@@ -505,7 +505,7 @@ button {
 .fsl-title {
     font-size: 14px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin-bottom: 5px;
 }
 
@@ -675,7 +675,7 @@ button {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #f9f9f9;
+    background: var(--bg-section-alt);
     border: 1px solid #eee;
     border-radius: 12px;
     padding: 8px 12px;
@@ -754,3 +754,59 @@ button {
 /* Card icon red variant */
 .card-icon.red { background: #ffebee; }
 .card-icon.red i { color: #e53935; }
+
+
+/* ================================
+   DARK MODE OVERRIDES
+   ================================ */
+
+[data-theme="dark"] .card, [data-theme="dark"] .page-header  {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .card-header {
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .card-header h2,
+[data-theme="dark"] .card-header h3 { color: var(--text-primary); }
+[data-theme="dark"] .card-sub { color: var(--text-muted); }
+
+[data-theme="dark"] .cat-pill {
+    background: var(--bg-card-alt);
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .cat-pill span {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .msg-card {
+    background: var(--bg-card-alt);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .msg-title { color: var(--text-primary); }
+[data-theme="dark"] .msg-desc { color: var(--text-muted); }
+
+[data-theme="dark"] .sms-preview-box {
+    background: var(--bg-card-alt);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .sms-title { color: var(--text-primary); }
+[data-theme="dark"] .sms-desc,
+[data-theme="dark"] .sms-user-info,
+[data-theme="dark"] .sms-from-row { color: var(--text-muted); }
+[data-theme="dark"] .sms-placeholder { color: var(--text-muted); }
+
+[data-theme="dark"] .contacts-list { border-color: var(--border-light); }
+[data-theme="dark"] .contact-name { color: var(--text-primary); }
+[data-theme="dark"] .contact-phone,
+[data-theme="dark"] .contact-rel { color: var(--text-muted); }
+[data-theme="dark"] .no-contacts-notice { color: var(--text-muted); }
+
+[data-theme="dark"] .fsl-item {
+    background: var(--bg-card-alt);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .fsl-title { color: var(--text-primary); }
+[data-theme="dark"] .fsl-desc { color: var(--text-muted); }

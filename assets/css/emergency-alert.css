@@ -248,7 +248,7 @@
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: #f8f9fa;
+    background: var(--bg-card-alt);
     border-radius: 10px;
 }
 
@@ -368,7 +368,7 @@
     align-items: center;
     gap: 12px;
     padding: 15px;
-    background: #f8f9fa;
+    background: var(--bg-card-alt);
     border-radius: 10px;
 }
 
@@ -688,3 +688,41 @@
         padding: 15px;
     }
 }
+
+/* ================================
+   DARK MODE OVERRIDES
+   ================================ */
+
+[data-theme="dark"] .info-card,
+[data-theme="dark"] .feature-card,
+[data-theme="dark"] .location-card,
+[data-theme="dark"] .sms-preview {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .card-header h2,
+[data-theme="dark"] .card-header h3 { color: var(--text-primary); }
+[data-theme="dark"] .card-description { color: var(--text-muted); }
+
+[data-theme="dark"] .location-address { color: var(--text-primary); }
+[data-theme="dark"] .location-coords { color: var(--text-muted); }
+
+[data-theme="dark"] .contact-item { border-color: var(--border-light); }
+[data-theme="dark"] .contact-name { color: var(--text-primary); }
+[data-theme="dark"] .contact-phone { color: var(--text-muted); }
+
+[data-theme="dark"] .modal-content {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .modal-content h2,
+[data-theme="dark"] .modal-content h3 { color: var(--text-primary); }
+
+[data-theme="dark"] .confirmation-item, [data-theme="dark"] .confirmation-item h4 { color: var(--text-secondary); }
+
+[data-theme="dark"] .sms-header,
+[data-theme="dark"] .sms-footer { border-color: var(--border-light); }
+[data-theme="dark"] .sms-bubble { background: var(--bg-card-alt); color: var(--text-secondary); }
+
+[data-theme="dark"] .empty-state h3 { color: var(--text-primary); }
+[data-theme="dark"] .empty-state p { color: var(--text-muted); }

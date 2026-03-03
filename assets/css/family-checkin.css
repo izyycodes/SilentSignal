@@ -42,7 +42,7 @@ button {
 .page-header-content h1 {
     font-size: 20px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -61,7 +61,7 @@ button {
 .family-label {
     font-size: 13px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
 }
 
 .family-sub {
@@ -119,7 +119,7 @@ button {
 .card-header h2 {
     font-size: 16px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -141,7 +141,7 @@ button {
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s;
-    background: #f5f7fa;
+    background: var(--bg-page);
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -198,7 +198,7 @@ button {
 .status-label {
     font-size: 14px;
     font-weight: 700;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin-top: 5px;
 }
 
@@ -257,7 +257,7 @@ button {
 .gps-location-address {
     font-size: 14px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     line-height: 1.4;
     margin-bottom: 5px;
 }
@@ -358,7 +358,7 @@ button {
 .media-label {
     font-size: 14px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
 }
 
 /* Family Status List */
@@ -414,7 +414,7 @@ button {
 .family-info .name {
     font-size: 14px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin-bottom: 3px;
 }
 
@@ -725,3 +725,44 @@ button:focus-visible,
     margin: 4px 0 12px;
     line-height: 1.4;
 }
+
+
+/* ================================
+   DARK MODE OVERRIDES
+   ================================ */
+
+[data-theme="dark"] .card, [data-theme="dark"] .page-header {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .card-header h2,
+[data-theme="dark"] .card-header h3 { color: var(--text-primary); }
+[data-theme="dark"] .card-sub { color: var(--text-muted); }
+
+[data-theme="dark"] .family-item { border-color: var(--border-light); }
+[data-theme="dark"] .family-label { color: var(--text-muted); }
+[data-theme="dark"] .name { color: var(--text-primary); }
+[data-theme="dark"] .family-sub,
+[data-theme="dark"] .family-time { color: var(--text-muted); }
+
+[data-theme="dark"] .gps-location, [data-theme="dark"] .media-btn, [data-theme="dark"] .family-item {
+    background: var(--bg-card-alt);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .gps-location-label { color: var(--text-muted); }
+[data-theme="dark"] .gps-location-address { color: var(--text-primary); }
+
+[data-theme="dark"] .breadcrumb-item { border-color: var(--border-light); }
+[data-theme="dark"] .breadcrumb-msg, [data-theme="dark"] .breadcrumb-status { color: var(--text-primary); }
+[data-theme="dark"] .breadcrumb-sub,
+[data-theme="dark"] .breadcrumb-time { color: var(--text-muted); }
+
+[data-theme="dark"] .status-grid .status-btn {
+    background: var(--bg-card-alt);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .status-label { color: var(--text-secondary); }
+[data-theme="dark"] .status-desc { color: var(--text-muted); }
+[data-theme="dark"] .status-last-updated { color: var(--text-muted); }
+
+[data-theme="dark"] .empty-family { color: var(--text-muted); }

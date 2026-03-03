@@ -122,7 +122,7 @@
     flex: 1;
     font-size: 17px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -229,7 +229,7 @@
 .quick-icon {
     width: 45px;
     height: 45px;
-    background: #f5f7fa;
+    background: var(--bg-page);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -272,7 +272,7 @@
 .section-title h3 {
     font-size: 16px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -287,13 +287,13 @@
     align-items: center;
     gap: 15px;
     padding: 15px;
-    background: #f8f9fa;
+    background: var(--bg-card-alt);
     border-radius: 12px;
     transition: all 0.3s;
 }
 
 .activity-item:hover {
-    background: #f0f4f8;
+    background: var(--bg-section-alt);
 }
 
 .activity-icon {
@@ -313,7 +313,7 @@
 .activity-content h4 {
     font-size: 14px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0 0 3px 0;
 }
 
@@ -441,4 +441,50 @@
         padding: 5px 10px;
         font-size: 9px;
     }
+}
+
+/* ================================
+   DARK MODE OVERRIDES
+   ================================ */
+
+[data-theme="dark"] .dashboard-container {
+    background: var(--bg-page);
+}
+
+[data-theme="dark"] .status-title {
+    color: var(--text-primary);
+}
+
+
+[data-theme="dark"] .modules-grid .module-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .module-header h3 {
+    color: var(--text-primary);
+}
+[data-theme="dark"] .module-description {
+    color: var(--text-muted);
+}
+[data-theme="dark"] .module-features li {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .section-header .section-title {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .recent-activity {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .activity-item {
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .activity-title {
+    color: var(--text-primary);
+}
+[data-theme="dark"] .activity-desc,
+[data-theme="dark"] .activity-time {
+    color: var(--text-muted);
 }

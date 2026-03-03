@@ -19,10 +19,22 @@
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
     <script src="https://kit.fontawesome.com/c835d6c14b.js" crossorigin="anonymous"></script>
 
+    <!-- Theme (must load before other stylesheets to provide variables) -->
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css">
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/home.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/home-header.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/home-footer.css">
+
+    <!-- Anti-flash: apply saved theme before first paint -->
+    <script>
+        (function(){
+            var t = localStorage.getItem('ss-theme');
+            if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
 </head>
 
 <body>
@@ -81,7 +93,23 @@
                             <a href="<?php echo BASE_URL; ?>index.php?action=auth" class="btn btn-secondary">Login</a>
                             <a href="<?php echo BASE_URL; ?>index.php?action=auth&mode=signup" class="btn btn-primary">Sign Up</a>
                         <?php endif; ?>
+
+                        <!-- Theme Toggle (desktop: icon button; mobile: shown as full button below) -->
+                        <button class="theme-toggle-btn" aria-label="Toggle dark/light mode">
+                            <i class="ri-sun-line icon-sun"></i>
+                            <i class="ri-moon-line icon-moon"></i>
+                        </button>
                     </div>
+
+                    <!-- Mobile-only dark/light mode button (full width, inside drawer) -->
+                    <button class="theme-toggle-mobile" aria-label="Toggle dark/light mode">
+                        <span class="theme-toggle-mobile-light">
+                            <i class="ri-moon-line"></i> Switch to Dark Mode
+                        </span>
+                        <span class="theme-toggle-mobile-dark">
+                            <i class="ri-sun-line"></i> Switch to Light Mode
+                        </span>
+                    </button>
                 </div>
             </nav>
         </div>

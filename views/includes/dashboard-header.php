@@ -32,8 +32,20 @@ $isPWD = ($userRole === 'pwd');
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
     <script src="https://kit.fontawesome.com/c835d6c14b.js" crossorigin="anonymous"></script>
     
+    <!-- Theme (must load before other stylesheets to provide variables) -->
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css">
+
     <!-- Shared Dashboard Styles -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/dashboard-shared.css">
+
+    <!-- Anti-flash: apply saved theme before first paint -->
+    <script>
+        (function(){
+            var t = localStorage.getItem('ss-theme');
+            if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
 </head>
 <body>
     
@@ -63,6 +75,12 @@ $isPWD = ($userRole === 'pwd');
             <?php endforeach; ?>
         </nav>
         
+        <!-- Theme Toggle (desktop only, hidden on mobile) -->
+        <button class="theme-toggle-btn dashboard-theme-toggle" aria-label="Toggle dark/light mode">
+            <i class="ri-sun-line icon-sun"></i>
+            <i class="ri-moon-line icon-moon"></i>
+        </button>
+
         <!-- User Menu (Desktop) -->
         <div class="header-user">
             <div class="user-dropdown" id="userDropdown">
@@ -159,6 +177,16 @@ $isPWD = ($userRole === 'pwd');
     </div>
     
     <div class="mobile-nav-footer">
+        <!-- Mobile Dark/Light Mode Toggle -->
+        <button class="theme-toggle-mobile" aria-label="Toggle dark/light mode">
+            <span class="theme-toggle-mobile-light">
+                <i class="ri-moon-line"></i> Switch to Dark Mode
+            </span>
+            <span class="theme-toggle-mobile-dark">
+                <i class="ri-sun-line"></i> Switch to Light Mode
+            </span>
+        </button>
+
         <a href="<?php echo BASE_URL; ?>index.php?action=logout" class="mobile-logout-btn">
             <i class="ri-logout-box-r-line"></i>
             <span>Logout</span>

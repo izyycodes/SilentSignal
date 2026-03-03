@@ -7,7 +7,8 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    color: #333;
+    color: var(--text-secondary);
+    background: var(--bg-page);
     line-height: 1.6;
 }
 
@@ -19,7 +20,7 @@ body {
 
 /* Header Styles */
 .header {
-    background-color: #1A4D7F;
+    background-color: var(--header-bg);
     padding: 15px 0;
     position: fixed;
     width: 100%;
@@ -49,7 +50,7 @@ body {
 }
 
 .logo-text {
-    color: white;
+    color: var(--header-text);
     font-size: 20px;
     font-weight: 600;
 }
@@ -58,7 +59,7 @@ body {
 .nav-container {
     display: flex;
     align-items: center;
-    gap: 30px;
+    gap: 20px;
 }
 
 /* Navigation Menu */
@@ -71,7 +72,7 @@ body {
 }
 
 .nav-link {
-    color: white;
+    color: var(--header-text);
     text-decoration: none;
     font-weight: 400;
     transition: color 0.3s;
@@ -86,6 +87,7 @@ body {
 .nav-buttons {
     display: flex;
     gap: 15px;
+    align-items: center;
 }
 
 .btn {
@@ -111,13 +113,13 @@ body {
 
 .btn-secondary {
     background-color: transparent;
-    color: white;
-    border: 2px solid white;
+    color: var(--header-text);
+    border: 2px solid var(--header-text);
 }
 
 .btn-secondary:hover {
-    background-color: white;
-    color: #1A4D7F;
+    background-color: var(--header-text);
+    color: var(--brand-primary);
 }
 
 /* Hamburger Menu Button */
@@ -138,7 +140,7 @@ body {
     display: block;
     width: 100%;
     height: 3px;
-    background-color: white;
+    background-color: var(--header-text);
     border-radius: 2px;
     transition: all 0.3s ease;
 }
@@ -192,9 +194,9 @@ body {
     }
 }
 
-/* ==================== */
-/* RESPONSIVE - MOBILE  */
-/* ==================== */
+/* ======================== */
+/* RESPONSIVE - MOBILE      */
+/* ======================== */
 @media screen and (max-width: 800px) {
     .container {
         padding: 0 20px;
@@ -222,13 +224,13 @@ body {
         right: -100%;
         width: 280px;
         height: 100vh;
-        background-color: #1A4D7F;
+        background-color: var(--mobile-nav-bg);
         flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
         padding: 100px 30px 30px;
         gap: 30px;
-        transition: right 0.3s ease;
+        transition: right 0.3s ease, background-color 0.3s ease;
         box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
         z-index: 999;
     }
@@ -264,6 +266,11 @@ body {
         text-align: center;
         padding: 12px 25px;
     }
+
+    /* Hide the small icon-only toggle inside nav-buttons on mobile */
+    .nav-buttons .theme-toggle-btn {
+        display: none;
+    }
 }
 
 /* ======================== */
@@ -286,5 +293,46 @@ body {
     
     .nav-container.active {
         right: 0;
+    }
+}
+
+/* ─── MOBILE THEME TOGGLE BUTTON (full-width, inside drawer) ─── */
+.theme-toggle-mobile {
+    display: none; /* hidden on desktop */
+    width: 100%;
+    padding: 13px 20px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+.theme-toggle-mobile:hover {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.theme-toggle-mobile span {
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Show only the correct label based on current theme */
+.theme-toggle-mobile-light { display: flex; }
+.theme-toggle-mobile-dark  { display: none; }
+
+[data-theme="dark"] .theme-toggle-mobile-light { display: none; }
+[data-theme="dark"] .theme-toggle-mobile-dark  { display: flex; }
+
+/* Show the mobile button only inside the drawer */
+@media screen and (max-width: 800px) {
+    .theme-toggle-mobile {
+        display: block;
     }
 }

@@ -14,7 +14,7 @@
 .header-content h1 {
     font-size: 1.75rem;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
@@ -90,7 +90,7 @@
 .stat-value {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #1a1a2e;
+    color: var(--text-primary);
 }
 
 /* Section Header */
@@ -106,7 +106,7 @@
 .section-header h2 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -457,3 +457,65 @@
         gap: 1rem;
     }
 }
+
+/* ================================
+   DARK MODE OVERRIDES
+   ================================ */
+
+[data-theme="dark"] .dashboard-container { background: var(--bg-page); }
+
+[data-theme="dark"] .stats-grid .stat-card, [data-theme="dark"] .pagination {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .stat-label { color: var(--text-muted); }
+[data-theme="dark"] .stat-value { color: var(--text-primary); }
+
+[data-theme="dark"] .section-header { border-color: var(--border-light); }
+[data-theme="dark"] .section-header h2 { color: var(--text-primary); }
+
+[data-theme="dark"] .search-box {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .search-box input {
+    background: transparent;
+    color: var(--text-secondary);
+}
+[data-theme="dark"] .search-box input::placeholder { color: var(--text-placeholder); }
+[data-theme="dark"] .search-box i { color: var(--text-muted); }
+
+[data-theme="dark"] .filter-select {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .table-container {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .data-table th {
+    background: var(--bg-card-alt);
+    color: var(--text-muted);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .data-table td { border-color: var(--border-light); color: var(--text-secondary); }
+[data-theme="dark"] .data-table tr:hover { background: var(--bg-card-alt); }
+
+[data-theme="dark"] .user-name { color: var(--text-primary); }
+[data-theme="dark"] .user-email,
+[data-theme="dark"] .user-id { color: var(--text-muted); }
+[data-theme="dark"] .org,
+[data-theme="dark"] .time-info,
+[data-theme="dark"] .location-info,
+[data-theme="dark"] .alert-id,
+[data-theme="dark"] .message-preview { color: var(--text-muted); }
+
+[data-theme="dark"] .pagination-info { color: var(--text-muted); }
+[data-theme="dark"] .page-btn {
+    background: var(--bg-card-alt);
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+}
+[data-theme="dark"] .page-number.active { background: var(--brand-primary); color: white; }

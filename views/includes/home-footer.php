@@ -44,6 +44,7 @@
         </div>
     </footer>
 
+    <script src="<?php echo BASE_URL; ?>assets/js/theme.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/home.js"></script>
 </body>
 </html>

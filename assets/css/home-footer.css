@@ -1,24 +1,5 @@
-/* Reset and Base Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Poppins', sans-serif;
-    color: #333;
-    line-height: 1.6;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 30px;
-}
-
 .footer {
-    background-color: #1A4D7F;
+    background-color: var(--footer-bg);
     color: white;
     padding: 60px 0 20px;
 }
@@ -41,7 +22,7 @@ body {
     font-size: 14px;
     line-height: 1.8;
     margin-bottom: 25px;
-    opacity: 0.9;
+    color: var(--footer-text);
 }
 
 .footer .social-icons {
@@ -58,7 +39,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s;
+    transition: transform 0.3s, background 0.3s;
     color: #fff;
     text-decoration: none;
 }
@@ -82,25 +63,27 @@ body {
 }
 
 .footer-links a {
-    color: white;
+    color: var(--footer-text);
     text-decoration: none;
     font-size: 14px;
-    opacity: 0.9;
-    transition: opacity 0.3s;
+    transition: color 0.3s;
 }
 
 .footer-links a:hover {
-    opacity: 1;
+    color: white;
     text-decoration: underline;
 }
 
 .footer-info {
     display: flex;
     gap: 10px;
+    color: var(--footer-text);
+    font-size: 14px;
 }
 
 .footer-info i {
     color: #73C2E8;
+    flex-shrink: 0;
 }
 
 .footer-bottom {
@@ -111,7 +94,7 @@ body {
 
 .footer-bottom p {
     font-size: 13px;
-    opacity: 0.8;
+    color: var(--footer-text);
 }
 
 @media screen and (max-width: 968px) {
@@ -127,4 +110,3 @@ body {
         gap: 30px;
     }
 }
-

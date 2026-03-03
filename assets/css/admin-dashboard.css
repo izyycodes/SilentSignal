@@ -45,7 +45,7 @@
     height: 40px;
     border-radius: 10px;
     border: 1px solid #e2e8f0;
-    background: #ffffff;
+    background: var(--bg-card);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -104,7 +104,7 @@
 }
 
 .stat-card {
-    background: #ffffff;
+    background: var(--bg-card);
     border-radius: 16px;
     padding: 28px;
     display: flex;
@@ -256,7 +256,7 @@
 }
 
 .action-card {
-    background: #ffffff;
+    background: var(--bg-card);
     border-radius: 16px;
     padding: 28px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -351,7 +351,7 @@
 
 /* Dashboard Section */
 .dashboard-section {
-    background: #ffffff;
+    background: var(--bg-card);
     border-radius: 16px;
     padding: 28px;
     margin-bottom: 24px;
@@ -616,3 +616,42 @@
         margin-top: 8px;
     }
 }
+
+/* ================================
+   DARK MODE OVERRIDES
+   ================================ */
+
+[data-theme="dark"] .dashboard-container { background: var(--bg-page); }
+
+[data-theme="dark"] .stats-grid .stat-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .stat-label { color: var(--text-muted); }
+[data-theme="dark"] .stat-value { color: var(--text-primary); }
+
+[data-theme="dark"] .section-header h2 { color: var(--text-primary); }
+
+[data-theme="dark"] .action-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .action-card h3, [data-theme="dark"] .quick-actions-section h2 { color: var(--text-primary); }
+[data-theme="dark"] .action-card p { color: var(--text-muted); }
+
+[data-theme="dark"] .health-card {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .activity-item:hover {
+    background: var(--bg-card-alt);
+}
+
+[data-theme="dark"] .health-label { color: var(--text-muted); }
+[data-theme="dark"] .health-value { color: var(--text-primary); }
+
+[data-theme="dark"] .activity-item { border-color: var(--border-light); }
+[data-theme="dark"] .activity-title { color: var(--text-primary); }
+[data-theme="dark"] .activity-desc,
+[data-theme="dark"] .activity-time { color: var(--text-muted); }

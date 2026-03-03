@@ -44,7 +44,7 @@ button {
 .page-header-content h1 {
     font-size: 20px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -246,7 +246,7 @@ button {
 .alert-info h3 {
     font-size: 16px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -296,7 +296,7 @@ button {
 }
 
 .alert-stat {
-    background: #f8f9fa;
+    background: var(--bg-card-alt);
     padding: 15px;
     border-radius: 10px;
     flex: 1;
@@ -312,7 +312,7 @@ button {
 .stat-value {
     font-size: 24px;
     font-weight: 700;
-    color: #1a1a2e;
+    color: var(--text-primary);
 }
 
 .stat-value.danger {
@@ -370,7 +370,7 @@ button {
 .card-header h2 {
     font-size: 16px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0;
     flex: 1;
 }
@@ -406,7 +406,7 @@ button {
     align-items: center;
     gap: 15px;
     padding: 18px;
-    background: #f8f9fa;
+    background: var(--bg-card-alt);
     border-radius: 12px;
 }
 
@@ -432,7 +432,7 @@ button {
 .weather-value {
     font-size: 18px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
 }
 
 /* Auto SOS Info */
@@ -534,7 +534,7 @@ button {
     align-items: center;
     gap: 15px;
     padding: 15px;
-    background: #f8f9fa;
+    background: var(--bg-card-alt);
     border-radius: 12px;
 }
 
@@ -559,7 +559,7 @@ button {
 .history-content h4 {
     font-size: 14px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -670,4 +670,156 @@ button {
         text-align: center;
         margin-top: 10px;
     }
+}
+
+/* ================================
+   DARK MODE OVERRIDES
+   ================================ */
+
+/* Cards & Panels */
+[data-theme="dark"] .card,
+[data-theme="dark"] .alert-card,
+[data-theme="dark"] .safety-prompt-card,
+[data-theme="dark"] .visual-flash-card,
+[data-theme="dark"] .auto-sos-info {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .alert-card.typhoon {
+    border-left-color: #f44336;
+}
+
+[data-theme="dark"] .alert-card.earthquake {
+    border-left-color: #ff9800;
+}
+
+[data-theme="dark"] .alert-card.flood {
+    border-left-color: #2196f3;
+}
+
+/* Tables */
+[data-theme="dark"] table,
+[data-theme="dark"] .table {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] th,
+[data-theme="dark"] thead th,
+[data-theme="dark"] thead tr {
+    background: var(--bg-card-alt);
+    color: var(--text-muted);
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] td,
+[data-theme="dark"] tr {
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] tr:hover,
+[data-theme="dark"] tbody tr:hover {
+    background: var(--bg-card-alt);
+}
+
+/* Form Elements */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .input-field {
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    border-color: var(--border-input);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--text-placeholder);
+}
+
+[data-theme="dark"] label,
+[data-theme="dark"] .form-label,
+[data-theme="dark"] .label {
+    color: var(--text-secondary);
+}
+
+/* Headings */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: var(--text-primary);
+}
+
+/* Text */
+[data-theme="dark"] p,
+[data-theme="dark"] .alert-description,
+[data-theme="dark"] .card-description,
+[data-theme="dark"] .weather-label,
+[data-theme="dark"] .stat-label,
+[data-theme="dark"] .alert-source,
+[data-theme="dark"] .history-content p {
+    color: var(--text-secondary);
+}
+
+/* Section Backgrounds */
+[data-theme="dark"] .page-header,
+[data-theme="dark"] .auto-sos-info {
+    background: var(--bg-section-alt);
+}
+
+/* Dividers */
+[data-theme="dark"] .divider,
+[data-theme="dark"] hr {
+    border-color: var(--border-light);
+}
+
+/* Modals */
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .modal-body,
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .modal-overlay,
+[data-theme="dark"] .modal-backdrop {
+    background: rgba(0,0,0,0.7);
+}
+
+/* Sidebar */
+[data-theme="dark"] .sidebar {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+/* Stat Elements */
+[data-theme="dark"] .stat-value,
+[data-theme="dark"] .stat-label {
+    border-color: var(--border-light);
+}
+
+[data-theme="dark"] .alert-stat, [data-theme="dark"] .flash-demo-screen {
+    background: var(--bg-card-alt);
+}
+
+/* Muted & Utility Text */
+[data-theme="dark"] .text-muted,
+[data-theme="dark"] .alert-meta,
+[data-theme="dark"] .alert-source,
+[data-theme="dark"] .weather-label,
+[data-theme="dark"] .stat-label {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .text-dark,
+[data-theme="dark"] .text-body, 
+[data-theme="dark"] .auto-sos-list li{
+    color: var(--text-secondary) !important;
 }
