@@ -54,9 +54,9 @@ class AdminController {
 
         // Footer support links
         $this->footerSupport = [
-            ['label' => 'Help Center', 'href' => '#'],
-            ['label' => 'Safety Guide', 'href' => '#'],
-            ['label' => 'FSL Resources', 'href' => '#'],
+            ['label' => 'Help Center', 'href' => 'help-center'],
+            ['label' => 'Safety Guide', 'href' => 'safety-guide'],
+            ['label' => 'FSL Resources', 'href' => 'fsl-resources'],
             ['label' => 'Contact Us', 'action' => 'home', 'anchor' => '#contact'],
         ];
 
@@ -624,5 +624,22 @@ class AdminController {
         exit;
     }
 
+    public function helpCenter()
+    {
+        $pageTitle = "Help Center - Silent Signal";
+        require_once VIEW_PATH . 'help-center.php';
+    }
+
+    public function safetyGuide()
+    {
+        $pageTitle = "Safety Guide - Silent Signal";
+        require_once VIEW_PATH . 'safety-guide.php';
+    }
+
+    public function fslResources()
+    {
+        $pageTitle = "FSL Resources - Silent Signal";
+        require_once VIEW_PATH . 'fsl-resources.php';
+    }
 }
 ?>

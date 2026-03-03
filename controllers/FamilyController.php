@@ -36,9 +36,9 @@ class FamilyController {
         ];
 
         $this->footerSupport = [
-            ['label' => 'Help Center',  'href' => '#'],
-            ['label' => 'Safety Guide', 'href' => '#'],
-            ['label' => 'FSL Resources','href' => '#'],
+            ['label' => 'Help Center', 'href' => 'help-center'],
+            ['label' => 'Safety Guide', 'href' => 'safety-guide'],
+            ['label' => 'FSL Resources', 'href' => 'fsl-resources'],
             ['label' => 'Contact Us',   'action' => 'home', 'anchor' => '#contact'],
         ];
 
@@ -250,7 +250,7 @@ class FamilyController {
         ];
 
         // Pass PWD list to JS for "send message" / "view profile" buttons
-        $pwdMembersJson = json_encode(array_map(fn($p) => ['id'=>$p['id'],'name'=>$p['name']], $pwdMembers));
+        $pwdMembersJson = json_encode(array_map(fn($p) => ['id'=>$p['id'],'name'=>$p['name'],'phone'=>$p['phone']], $pwdMembers));
 
         require_once VIEW_PATH . 'family-dashboard.php';
     }
@@ -437,5 +437,23 @@ class FamilyController {
             echo json_encode(['success' => false, 'message' => 'Server error.']);
         }
         exit();
+    }
+
+    public function helpCenter()
+    {
+        $pageTitle = "Help Center - Silent Signal";
+        require_once VIEW_PATH . 'help-center.php';
+    }
+
+    public function safetyGuide()
+    {
+        $pageTitle = "Safety Guide - Silent Signal";
+        require_once VIEW_PATH . 'safety-guide.php';
+    }
+
+    public function fslResources()
+    {
+        $pageTitle = "FSL Resources - Silent Signal";
+        require_once VIEW_PATH . 'fsl-resources.php';
     }
 }
