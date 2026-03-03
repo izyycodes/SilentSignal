@@ -829,7 +829,7 @@
 [data-theme="dark"] .stat-value { color: var(--text-primary); }
 
 [data-theme="dark"] .pwd-name { color: var(--text-primary); }
-[data-theme="dark"] .pwd-relationship { color: var(--text-muted); }
+[data-theme="dark"] .pwd-relationship, [data-theme="dark"] .status-badge, [data-theme="dark"] .status-time { color: var(--text-secondary); }
 [data-theme="dark"] .pwd-status-info { color: var(--text-muted); }
 
 [data-theme="dark"] .family-members-table { border-color: var(--border-light); }
@@ -849,7 +849,10 @@
 [data-theme="dark"] .member-name { color: var(--text-primary); }
 [data-theme="dark"] .last-seen { color: var(--text-muted); }
 
-[data-theme="dark"] .alert-timeline-item { border-color: var(--border-light); }
+[data-theme="dark"] .alert-timeline-item, [data-theme="dark"] .fab-menu-item{  
+    background: var(--bg-card-alt); 
+    border-color: var(--border-light); 
+}
 [data-theme="dark"] .alert-timeline-header h4 { color: var(--text-primary); }
 [data-theme="dark"] .alert-description,
 [data-theme="dark"] .alert-meta { color: var(--text-muted); }
