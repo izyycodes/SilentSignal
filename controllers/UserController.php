@@ -968,7 +968,7 @@ class UserController {
     }
     
     /**
-     * Log Emergency Alert (AJAX endpoint)
+     * Log Emergency Alert (AJAX endpoint)hoy
      */
     public function logEmergencyAlert() {
         $this->requireLogin();
