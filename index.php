@@ -7,7 +7,7 @@ require_once 'config/config.php';
 $action = $_GET['action'] ?? 'home';
 $isHome = ($action === 'home');
 
-switch ($action) {	
+switch ($action) {
     // Landing Page
     case 'home':
         require_once CONTROLLER_PATH . 'HomeController.php';
@@ -21,19 +21,44 @@ switch ($action) {
         $controller->submitContact();
         break;
 
+    // Support Pages — route to the correct controller based on role
+    case 'help-center':
+    case 'safety-guide':
+    case 'fsl-resources':
+        $role = $_SESSION['user_role'] ?? 'guest';
+
+        if ($role === 'admin') {
+            require_once CONTROLLER_PATH . 'AdminController.php';
+            $controller = new AdminController();
+        } elseif ($role === 'family') {
+            require_once CONTROLLER_PATH . 'FamilyController.php';
+            $controller = new FamilyController();
+        } elseif ($role === 'pwd') {
+            require_once CONTROLLER_PATH . 'UserController.php';
+            $controller = new UserController();
+        } else {
+            require_once CONTROLLER_PATH . 'HomeController.php';
+            $controller = new HomeController();
+        }
+
+        if ($action === 'help-center')    $controller->helpCenter();
+        elseif ($action === 'safety-guide')  $controller->safetyGuide();
+        elseif ($action === 'fsl-resources') $controller->fslResources();
+        break;
+
     // Combined Auth Page (Login & Signup)
     case 'auth':
         require_once CONTROLLER_PATH . 'AuthController.php';
         $controller = new AuthController();
         $controller->showAuth();
         break;
-        
+
     case 'process_login':
         require_once CONTROLLER_PATH . 'AuthController.php';
         $controller = new AuthController();
         $controller->processLogin();
         break;
-        
+
     case 'process_signup':
         require_once CONTROLLER_PATH . 'AuthController.php';
         $controller = new AuthController();
@@ -157,7 +182,7 @@ switch ($action) {
         $controller = new AdminController();
         $controller->updateMessageStatus();
         break;
-        
+
     // ── USER AJAX ENDPOINTS ──
 
     case 'send-hub-sms':
@@ -239,8 +264,8 @@ switch ($action) {
         $controller = new FamilyController();
         $controller->refreshDashboard();
         break;
-    
-     case 'get-pwd-live-status':
+
+    case 'get-pwd-live-status':
         require_once CONTROLLER_PATH . 'FamilyController.php';
         $controller = new FamilyController();
         $controller->getPwdLiveStatus();
@@ -257,11 +282,10 @@ switch ($action) {
         $controller = new AdminController();
         $controller->updateAlertStatus();
         break;
-            
+
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';
         $controller = new HomeController();
         $controller->index();
         break;
 }
-?>

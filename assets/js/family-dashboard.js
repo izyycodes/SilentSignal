@@ -45,12 +45,22 @@ function viewLocation(lat, lng, name) {
     window.open('https://www.google.com/maps?q=' + lat + ',' + lng, '_blank');
 }
 
-// ── Send Message (goes to communication hub) ──
+// ── Send Message (opens SMS app) ──
 function sendMessage(pwdId, name) {
-    showToast('💬 Opening communication hub for ' + name + '…', '#1976d2');
-    setTimeout(() => {
-        window.location.href = BASE_URL + 'index.php?action=communication-hub&pwd_id=' + pwdId;
-    }, 500);
+    // Get the PWD's phone number from pwdMembersData
+    const pwd = pwdMembersData.find(p => p.id == pwdId);
+    const phone = pwd?.phone || pwd?.phone_number || '';
+
+    if (!phone) {
+        showToast('⚠️ No phone number available for ' + name, '#d84315');
+        return;
+    }
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const sep   = isIOS ? '&' : '?';
+    const body  = encodeURIComponent('Hi ' + name + ', just checking in on you. Are you safe?');
+
+    window.location.href = 'sms:' + phone + sep + 'body=' + body;
 }
 
 // ── View PWD Profile (AJAX modal) ──

@@ -106,44 +106,6 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         <?php endforeach; ?>
     </div>
 
-    <!-- Emergency Contacts -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-icon green"><i class="ri-contacts-line"></i></div>
-            <h2>Emergency Contacts</h2>
-            <a href="<?php echo BASE_URL; ?>index.php?action=medical-profile" class="btn btn-small">
-                <i class="ri-edit-line"></i> Edit
-            </a>
-        </div>
-        
-        <?php if (empty($emergencyContacts)): ?>
-            <div class="empty-state">
-                <i class="ri-user-add-line"></i>
-                <p>No emergency contacts added yet.</p>
-                <a href="<?php echo BASE_URL; ?>index.php?action=medical-profile" class="btn btn-primary">
-                    Add Contacts
-                </a>
-            </div>
-        <?php else: ?>
-            <div class="contacts-list">
-                <?php foreach ($emergencyContacts as $contact): ?>
-                    <div class="contact-item" data-phone="<?php echo htmlspecialchars($contact['phone']); ?>">
-                        <div class="contact-avatar" style="background: <?php echo $contact['color'] ?? '#4caf50'; ?>;">
-                            <?php echo $contact['initials'] ?? strtoupper(substr($contact['name'], 0, 1)); ?>
-                        </div>
-                        <div class="contact-details">
-                            <span class="contact-name"><?php echo htmlspecialchars($contact['name']); ?></span>
-                            <span class="contact-phone"><?php echo htmlspecialchars($contact['phone']); ?></span>
-                        </div>
-                        <div class="contact-badge <?php echo isset($contact['isEmergency']) && $contact['isEmergency'] ? 'emergency' : ''; ?>">
-                            <?php echo $contact['relation'] ?? 'Contact'; ?>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-    </div>
-
     <!-- SMS Preview -->
     <div class="card">
         <div class="card-header">

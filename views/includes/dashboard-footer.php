@@ -47,7 +47,7 @@
                 <ul>
                     <?php foreach ($footerSupport as $link): ?>
                         <li>
-                            <a href="<?php echo isset($link['action']) ? BASE_URL . 'index.php?action=' . $link['action'] . ($link['anchor'] ?? '') : $link['href']; ?>">
+                            <a href="<?php echo isset($link['action']) ? BASE_URL . 'index.php?action=' . $link['action'] . ($link['anchor'] ?? '') : BASE_URL . 'index.php?action=' . $link['href']; ?>">
                                 <?php echo $link['label']; ?>
                             </a>
                         </li>

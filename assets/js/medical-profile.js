@@ -254,7 +254,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.form-control').forEach(input => {
             input.readOnly = readonly;
             if (readonly) {
-                input.style.background = '#f5f5f5';
                 input.style.cursor = 'not-allowed';
             } else {
                 input.style.background = '';
