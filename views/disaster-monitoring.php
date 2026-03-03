@@ -7,6 +7,18 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/disaster-monitoring.css">
 
+<!-- Pass data to JavaScript -->
+<script>
+const BASE_URL = <?php echo json_encode(BASE_URL); ?>;
+const emergencyContactsData = <?php echo json_encode($emergencyContacts ?? []); ?>;
+const userInfoData = {
+    name: <?php echo json_encode($userData['name'] ?? ''); ?>,
+    phone: <?php echo json_encode($userData['phone'] ?? ''); ?>,
+    bloodType: <?php echo json_encode($userData['bloodType'] ?? ''); ?>,
+    pwdId: <?php echo json_encode($userData['pwdId'] ?? $userData['pwd_id'] ?? ''); ?>
+};
+</script>
+
 <div class="page-container">
     <!-- Page Header -->
     <div class="page-header">

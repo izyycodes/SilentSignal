@@ -209,33 +209,73 @@ document.addEventListener('DOMContentLoaded', function() {
     // SEND RESPONSE TO SERVER
     // ================================
     function sendSafetyResponse(status) {
-        // Get GPS location
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    const data = {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                // Log to server with keepalive
+                fetch(BASE_URL + 'index.php?action=log-disaster-response', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    keepalive: true,
+                    body: JSON.stringify({
                         status: status,
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
+                        latitude: lat,
+                        longitude: lng,
                         timestamp: new Date().toISOString(),
                         alert_type: 'disaster_response'
-                    };
-                    
-                    console.log('Safety Response:', data);
-                    
-                    // In real app: send to server
-                    // fetch('/api/safety-response', {
-                    //     method: 'POST',
-                    //     body: JSON.stringify(data)
-                    // });
-                },
-                function(error) {
-                    console.error('GPS Error:', error);
-                    // Send response without precise location
+                    })
+                }).catch(() => {});
+
+                // If help needed, open SMS to emergency contacts
+                if (status === 'help' || status === 'auto-sos') {
+                    const contacts = typeof emergencyContactsData !== 'undefined' ? emergencyContactsData : [];
+                    const phones = contacts
+                        .map(c => (c.phone || '').replace(/\s/g, ''))
+                        .filter(Boolean)
+                        .join(',');
+
+                    if (phones) {
+                        const label = status === 'auto-sos' ? 'AUTO-SOS' : 'SOS';
+                        const userName = typeof userInfoData !== 'undefined' ? userInfoData.name : 'Silent Signal User';
+                        const pwdId = typeof userInfoData !== 'undefined' ? userInfoData.pwdId : '';
+
+                        let smsBody = `🚨 ${label} - DISASTER EMERGENCY 🚨\n`;
+                        smsBody += `From: ${userName}`;
+                        if (pwdId) smsBody += ` (PWD ID: ${pwdId})`;
+                        smsBody += `\n`;
+                        if (status === 'auto-sos') smsBody += `⚠️ No response detected — auto alert triggered.\n`;
+                        smsBody += `\nLocation: https://maps.google.com/?q=${lat},${lng}`;
+                        smsBody += `\n\nThis person is DEAF/MUTE - Please respond via TEXT only.`;
+
+                        setTimeout(() => {
+                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                            const sep = isIOS ? '&' : '?';
+                            window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
+                        }, 300);
+                    }
                 }
-            );
-        }
+            },
+            function(error) {
+                // Send without GPS if unavailable
+                fetch(BASE_URL + 'index.php?action=log-disaster-response', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    keepalive: true,
+                    body: JSON.stringify({
+                        status: status,
+                        latitude: null,
+                        longitude: null,
+                        timestamp: new Date().toISOString(),
+                        alert_type: 'disaster_response'
+                    })
+                }).catch(() => {});
+            }
+        );
     }
+}
     
     // ================================
     // ADDITIONAL STYLES
