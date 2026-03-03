@@ -703,6 +703,9 @@
         align-items: center;
         gap: 8px;
     }
+    .alert-timeline-item {
+        overflow-x: auto;
+    }
 }
 /* ── Additional styles for fully dynamic Family Dashboard ── */
 
