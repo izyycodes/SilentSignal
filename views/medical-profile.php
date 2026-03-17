@@ -44,17 +44,18 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             </div>
         <?php endif; ?>
 
-        <!-- Tab Navigation -->
-        <div class="tab-navigation">
-            <?php foreach ($tabs as $index => $tab): ?>
-                <button class="tab-btn <?php echo $index === 0 ? 'active' : ''; ?>" data-tab="<?php echo $tab['id']; ?>">
-                    <i class="<?php echo $tab['icon']; ?>"></i>
-                    <span><?php echo $tab['label']; ?></span>
-                </button>
-            <?php endforeach; ?>
-        </div>
-    </div><!-- end .sticky-med-header -->
-
+    </div>
+    
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+        <?php foreach ($tabs as $index => $tab): ?>
+            <button class="tab-btn <?php echo $index === 0 ? 'active' : ''; ?>" data-tab="<?php echo $tab['id']; ?>">
+                <i class="<?php echo $tab['icon']; ?>"></i>
+                <span><?php echo $tab['label']; ?></span>
+            </button>
+        <?php endforeach; ?>
+    </div>
+    
     <!-- Tab Content -->
     <div class="tab-content">
 

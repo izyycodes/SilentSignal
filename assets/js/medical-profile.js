@@ -13,12 +13,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // CUSTOM MODAL SYSTEM
     // ================================
     const modalOverlay = document.getElementById('customModalOverlay');
-    const modal        = document.getElementById('customModal');
-    const modalIcon    = document.getElementById('customModalIcon');
-    const modalTitle   = document.getElementById('customModalTitle');
-    const modalBody    = document.getElementById('customModalBody');
-    const modalFooter  = document.getElementById('customModalFooter');
-    const modalClose   = document.getElementById('customModalClose');
+    const modal = document.getElementById('customModal');
+    const modalIcon = document.getElementById('customModalIcon');
+    const modalTitle = document.getElementById('customModalTitle');
+    const modalBody = document.getElementById('customModalBody');
+    const modalFooter = document.getElementById('customModalFooter');
+    const modalClose = document.getElementById('customModalClose');
 
     function openModal() {
         modalOverlay.style.display = 'flex';
@@ -220,7 +220,9 @@ document.addEventListener('DOMContentLoaded', function () {
         cancelBtn.className = 'btn btn-cancel';
         cancelBtn.id = 'cancelChangesBtn';
         cancelBtn.innerHTML = '<i class="ri-close-line"></i> Cancel';
-        cancelBtn.style.cssText = 'margin-left: 10px; background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); color: #fff;';
+        cancelBtn.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+        cancelBtn.style.color = '#fff';
+        cancelBtn.style.marginLeft = '10px';
         saveBtn.parentNode.insertBefore(cancelBtn, saveBtn.nextSibling);
 
         cancelBtn.addEventListener('click', async function () {
@@ -318,19 +320,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.querySelectorAll('.reminder-card').forEach(card => {
             const nameDisplay = card.querySelector('.reminder-name-display');
-            const nameEdit    = card.querySelector('.reminder-name-edit');
+            const nameEdit = card.querySelector('.reminder-name-edit');
             const freqDisplay = card.querySelector('.reminder-frequency-display');
-            const freqEdit    = card.querySelector('.reminder-frequency-edit');
-            const deleteBtn   = card.querySelector('.btn-delete-reminder');
+            const freqEdit = card.querySelector('.reminder-frequency-edit');
+            const deleteBtn = card.querySelector('.btn-delete-reminder');
 
             if (nameDisplay && nameEdit) {
                 if (readonly && nameEdit.value.trim()) {
                     nameDisplay.textContent = nameEdit.value.trim();
                 }
                 nameDisplay.style.display = readonly ? 'block' : 'none';
-                nameEdit.style.display    = readonly ? 'none'  : 'block';
+                nameEdit.style.display = readonly ? 'none' : 'block';
                 if (!readonly) {
-                    nameEdit.readOnly     = false;
+                    nameEdit.readOnly = false;
                     nameEdit.style.cursor = 'text';
                     nameEdit.value = nameDisplay.textContent.trim();
                 }
@@ -340,8 +342,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     freqDisplay.textContent = freqEdit.value;
                 }
                 freqDisplay.style.display = readonly ? 'inline-block' : 'none';
-                freqEdit.style.display    = readonly ? 'none'         : 'inline-block';
-                freqEdit.disabled         = readonly;
+                freqEdit.style.display = readonly ? 'none' : 'inline-block';
+                freqEdit.disabled = readonly;
                 if (!readonly) {
                     freqEdit.value = freqDisplay.textContent.trim();
                 }
@@ -367,13 +369,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         name: 'frequency', label: 'Frequency', type: 'select',
                         value: 'Once daily',
                         options: [
-                            { value: 'Once daily',        label: 'Once daily' },
-                            { value: 'Twice daily',       label: 'Twice daily' },
+                            { value: 'Once daily', label: 'Once daily' },
+                            { value: 'Twice daily', label: 'Twice daily' },
                             { value: 'Three times daily', label: 'Three times daily' },
-                            { value: 'Every 4 hours',     label: 'Every 4 hours' },
-                            { value: 'Every 6 hours',     label: 'Every 6 hours' },
-                            { value: 'Every 8 hours',     label: 'Every 8 hours' },
-                            { value: 'As needed',         label: 'As needed' }
+                            { value: 'Every 4 hours', label: 'Every 4 hours' },
+                            { value: 'Every 6 hours', label: 'Every 6 hours' },
+                            { value: 'Every 8 hours', label: 'Every 8 hours' },
+                            { value: 'As needed', label: 'As needed' }
                         ]
                     }
                 ]
@@ -436,13 +438,13 @@ document.addEventListener('DOMContentLoaded', function () {
                        placeholder="Enter medication name">
                 <span class="reminder-frequency-display reminder-frequency" style="display: none;">${frequency}</span>
                 <select class="reminder-frequency-edit form-control" style="margin-bottom: 8px; width: auto;">
-                    <option value="Once daily"        ${frequency === 'Once daily'        ? 'selected' : ''}>Once daily</option>
-                    <option value="Twice daily"       ${frequency === 'Twice daily'       ? 'selected' : ''}>Twice daily</option>
+                    <option value="Once daily"        ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option>
+                    <option value="Twice daily"       ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option>
                     <option value="Three times daily" ${frequency === 'Three times daily' ? 'selected' : ''}>Three times daily</option>
-                    <option value="Every 4 hours"     ${frequency === 'Every 4 hours'     ? 'selected' : ''}>Every 4 hours</option>
-                    <option value="Every 6 hours"     ${frequency === 'Every 6 hours'     ? 'selected' : ''}>Every 6 hours</option>
-                    <option value="Every 8 hours"     ${frequency === 'Every 8 hours'     ? 'selected' : ''}>Every 8 hours</option>
-                    <option value="As needed"         ${frequency === 'As needed'         ? 'selected' : ''}>As needed</option>
+                    <option value="Every 4 hours"     ${frequency === 'Every 4 hours' ? 'selected' : ''}>Every 4 hours</option>
+                    <option value="Every 6 hours"     ${frequency === 'Every 6 hours' ? 'selected' : ''}>Every 6 hours</option>
+                    <option value="Every 8 hours"     ${frequency === 'Every 8 hours' ? 'selected' : ''}>Every 8 hours</option>
+                    <option value="As needed"         ${frequency === 'As needed' ? 'selected' : ''}>As needed</option>
                 </select>
                 <span class="reminder-time"><i class="ri-time-line"></i> ${time}</span>
             </div>
@@ -463,53 +465,53 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================================
     // Rules: required, maxLength, pattern (regex), patternHint (shown to user)
     const FIELD_RULES = {
-        pwdId:         {
-            label:       'PWD ID Number',
-            required:    false,
-            maxLength:   30,
-            pattern:     null,
+        pwdId: {
+            label: 'PWD ID Number',
+            required: false,
+            maxLength: 30,
+            pattern: null,
             patternHint: null
         },
-        phone:         {
-            label:       'Phone Number',
-            required:    true,
-            maxLength:   11,
-            pattern:     /^(09\d{9}|\+639\d{9})$/,
+        phone: {
+            label: 'Phone Number',
+            required: true,
+            maxLength: 11,
+            pattern: /^(09\d{9}|\+639\d{9})$/,
             patternHint: 'Must be an 11-digit Philippine mobile number starting with 09 (e.g. 09171234567).'
         },
-        email:         {
-            label:       'Email Address',
-            required:    true,
-            maxLength:   100,
-            pattern:     /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
+        email: {
+            label: 'Email Address',
+            required: true,
+            maxLength: 100,
+            pattern: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
             patternHint: 'Must be a valid email address (e.g. juan@example.com).'
         },
         streetAddress: {
-            label:       'Street Address',
-            required:    false,
-            maxLength:   100,
-            pattern:     null,
+            label: 'Street Address',
+            required: false,
+            maxLength: 100,
+            pattern: null,
             patternHint: null
         },
-        city:          {
-            label:       'City',
-            required:    false,
-            maxLength:   50,
-            pattern:     null,
+        city: {
+            label: 'City',
+            required: false,
+            maxLength: 50,
+            pattern: null,
             patternHint: null
         },
-        province:      {
-            label:       'Province',
-            required:    false,
-            maxLength:   50,
-            pattern:     null,
+        province: {
+            label: 'Province',
+            required: false,
+            maxLength: 50,
+            pattern: null,
             patternHint: null
         },
-        zipCode:       {
-            label:       'Zip Code',
-            required:    false,
-            maxLength:   4,
-            pattern:     /^\d{4}$/,
+        zipCode: {
+            label: 'Zip Code',
+            required: false,
+            maxLength: 4,
+            pattern: /^\d{4}$/,
             patternHint: 'Must be a 4-digit Philippine zip code (e.g. 6100).'
         },
     };
@@ -545,7 +547,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Enforce hard cap — block typing beyond maxLength
         input.addEventListener('keydown', (e) => {
-            const allowedKeys = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab','Home','End'];
+            const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Home', 'End'];
             if (input.value.length >= maxLength && !allowedKeys.includes(e.key) && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
             }
@@ -703,38 +705,38 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                originalFormData = formData;
-                hasUnsavedChanges = false;
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    originalFormData = formData;
+                    hasUnsavedChanges = false;
 
-                const disabilityDisplay = document.getElementById('disabilityDisplay');
-                if (disabilityDisplay) disabilityDisplay.textContent = 'Deaf/Mute';
+                    const disabilityDisplay = document.getElementById('disabilityDisplay');
+                    if (disabilityDisplay) disabilityDisplay.textContent = 'Deaf/Mute';
 
-                saveBtn.innerHTML = '<i class="ri-check-line"></i> Saved!';
-                showNotification('Changes saved successfully!', 'success');
+                    saveBtn.innerHTML = '<i class="ri-check-line"></i> Saved!';
+                    showNotification('Changes saved successfully!', 'success');
+
+                    setTimeout(() => {
+                        saveBtn.disabled = false;
+                        disableEditMode();
+                    }, 1500);
+                } else {
+                    throw new Error(data.message || 'Failed to save');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                saveBtn.innerHTML = '<i class="ri-error-warning-line"></i> Save Failed';
+                saveBtn.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+                showNotification('Failed to save changes: ' + error.message, 'error');
 
                 setTimeout(() => {
+                    saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
+                    saveBtn.style.background = '';
                     saveBtn.disabled = false;
-                    disableEditMode();
-                }, 1500);
-            } else {
-                throw new Error(data.message || 'Failed to save');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            saveBtn.innerHTML = '<i class="ri-error-warning-line"></i> Save Failed';
-            saveBtn.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
-            showNotification('Failed to save changes: ' + error.message, 'error');
-
-            setTimeout(() => {
-                saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
-                saveBtn.style.background = '';
-                saveBtn.disabled = false;
-            }, 3000);
-        });
+                }, 3000);
+            });
     }
 
     function resetForm() {
@@ -1034,13 +1036,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // — Live character counters —
             function setupCounter(inputId, counterId, max) {
-                const input   = document.getElementById(inputId);
+                const input = document.getElementById(inputId);
                 const counter = document.getElementById(counterId);
                 if (!input || !counter) return;
                 input.addEventListener('input', () => {
                     const len = input.value.length;
                     counter.textContent = `${len} / ${max}`;
-                    counter.style.color      = len >= max * 0.85 ? (len >= max ? '#f44336' : '#ff9800') : '#999';
+                    counter.style.color = len >= max * 0.85 ? (len >= max ? '#f44336' : '#ff9800') : '#999';
                     counter.style.fontWeight = len >= max * 0.85 ? '600' : 'normal';
                 });
             }
@@ -1049,23 +1051,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // — Inline field error helper —
             function setFieldError(errorId, inputId, message) {
-                const errEl  = document.getElementById(errorId);
-                const input  = document.getElementById(inputId);
+                const errEl = document.getElementById(errorId);
+                const input = document.getElementById(inputId);
                 if (!errEl || !input) return;
                 if (message) {
-                    errEl.textContent    = message;
-                    errEl.style.display  = 'block';
+                    errEl.textContent = message;
+                    errEl.style.display = 'block';
                     input.style.borderColor = '#f44336';
-                    input.style.boxShadow   = '0 0 0 3px rgba(244,67,54,0.18)';
+                    input.style.boxShadow = '0 0 0 3px rgba(244,67,54,0.18)';
                 } else {
-                    errEl.style.display  = 'none';
+                    errEl.style.display = 'none';
                     input.style.borderColor = '';
-                    input.style.boxShadow   = '';
+                    input.style.boxShadow = '';
                 }
             }
 
             // — Clear error on input —
-            [['ec_name','ec_name_error'],['ec_relation','ec_relation_error'],['ec_phone','ec_phone_error']].forEach(([inputId, errorId]) => {
+            [['ec_name', 'ec_name_error'], ['ec_relation', 'ec_relation_error'], ['ec_phone', 'ec_phone_error']].forEach(([inputId, errorId]) => {
                 document.getElementById(inputId)?.addEventListener('input', () => setFieldError(errorId, inputId, ''));
             });
 
@@ -1097,10 +1099,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             document.getElementById('ec_confirm').addEventListener('click', () => {
-                const name     = document.getElementById('ec_name').value.trim();
+                const name = document.getElementById('ec_name').value.trim();
                 const relation = document.getElementById('ec_relation').value.trim();
-                const phone    = document.getElementById('ec_phone').value.trim();
-                let hasError   = false;
+                const phone = document.getElementById('ec_phone').value.trim();
+                let hasError = false;
 
                 // Validate name
                 if (!name) {
@@ -1345,38 +1347,38 @@ document.addEventListener('DOMContentLoaded', function () {
         // ── FIX: scope to #emergency-contacts tab to prevent duplication ──
         data.emergencyContacts = [];
         document.querySelectorAll('#emergency-contacts .contact-card').forEach(card => {
-            const nameEl     = card.querySelector('h4');
+            const nameEl = card.querySelector('h4');
             const relationEl = card.querySelector('.contact-relation');
-            const phoneEl    = card.querySelector('.contact-phone');
-            const avatarEl   = card.querySelector('.contact-avatar');
+            const phoneEl = card.querySelector('.contact-phone');
+            const avatarEl = card.querySelector('.contact-avatar');
 
             if (nameEl && relationEl && phoneEl) {
                 data.emergencyContacts.push({
-                    name:     nameEl.textContent.trim(),
+                    name: nameEl.textContent.trim(),
                     relation: relationEl.textContent.trim(),
-                    phone:    phoneEl.textContent.trim(),
+                    phone: phoneEl.textContent.trim(),
                     initials: avatarEl ? avatarEl.textContent.trim() : '',
-                    color:    avatarEl ? avatarEl.style.background : ''
+                    color: avatarEl ? avatarEl.style.background : ''
                 });
             }
         });
 
         data.medicationReminders = [];
         document.querySelectorAll('.reminder-card').forEach(card => {
-            const nameInput   = card.querySelector('.reminder-name-edit');
+            const nameInput = card.querySelector('.reminder-name-edit');
             const nameDisplay = card.querySelector('.reminder-name-display');
-            const freqSelect  = card.querySelector('.reminder-frequency-edit');
+            const freqSelect = card.querySelector('.reminder-frequency-edit');
             const freqDisplay = card.querySelector('.reminder-frequency-display');
-            const timeEl      = card.querySelector('.reminder-time');
-            const iconEl      = card.querySelector('.reminder-icon');
+            const timeEl = card.querySelector('.reminder-time');
+            const iconEl = card.querySelector('.reminder-icon');
 
-            const name      = (nameInput && nameInput.value.trim())  ? nameInput.value.trim()  : (nameDisplay ? nameDisplay.textContent.trim() : '');
-            const frequency = (freqSelect && freqSelect.value)        ? freqSelect.value        : (freqDisplay ? freqDisplay.textContent.trim() : '');
+            const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : (nameDisplay ? nameDisplay.textContent.trim() : '');
+            const frequency = (freqSelect && freqSelect.value) ? freqSelect.value : (freqDisplay ? freqDisplay.textContent.trim() : '');
 
             data.medicationReminders.push({
                 name,
                 frequency,
-                time:  timeEl ? timeEl.textContent.replace(/[^\d:APMapm ,]/g, '').trim() : '',
+                time: timeEl ? timeEl.textContent.replace(/[^\d:APMapm ,]/g, '').trim() : '',
                 color: iconEl ? iconEl.style.background : ''
             });
         });
