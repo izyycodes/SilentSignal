@@ -23,28 +23,27 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <i class="ri-edit-line"></i> Edit Profile
             </button>
         </div>
-
-        <!-- Verification Notice Banner -->
-        <?php
-        $isVerified = $disabilityStatus['is_verified'] ?? false;
-        $pwdId = $personalInfo['pwdId'] ?? '';
-        ?>
-        <?php if (!$isVerified): ?>
-            <div class="verification-notice" id="verificationNotice">
-                <div class="verification-notice-icon">
-                    <i class="ri-shield-check-line"></i>
-                </div>
-                <div class="verification-notice-content">
-                    <strong>Account Verification Required</strong>
-                    <p>Please complete your Personal Information — especially your <strong>PWD ID Number</strong> — so our admin can verify your disability status and activate your full account.</p>
-                </div>
-                <button class="verification-notice-close" onclick="document.getElementById('verificationNotice').style.display='none'">
-                    <i class="ri-close-line"></i>
-                </button>
-            </div>
-        <?php endif; ?>
-
     </div>
+
+    <!-- Verification Notice Banner -->
+    <?php
+    $isVerified = $disabilityStatus['is_verified'] ?? false;
+    $pwdId = $personalInfo['pwdId'] ?? '';
+    ?>
+    <?php if (!$isVerified): ?>
+        <div class="verification-notice" id="verificationNotice">
+            <div class="verification-notice-icon">
+                <i class="ri-shield-check-line"></i>
+            </div>
+            <div class="verification-notice-content">
+                <strong>Account Verification Required</strong>
+                <p>Please complete your Personal Information — especially your <strong>PWD ID Number</strong> — so our admin can verify your disability status and activate your full account.</p>
+            </div>
+            <button class="verification-notice-close" onclick="document.getElementById('verificationNotice').style.display='none'">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+    <?php endif; ?>
     
     <!-- Tab Navigation -->
     <div class="tab-navigation">
@@ -55,7 +54,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             </button>
         <?php endforeach; ?>
     </div>
-    
+
     <!-- Tab Content -->
     <div class="tab-content">
 
