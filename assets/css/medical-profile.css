@@ -37,16 +37,28 @@ button {
 }
 
 /* ================================
+   STICKY HEADER + TABS WRAPPER
+   ================================ */
+.sticky-med-header {
+    position: sticky;
+    top: 65px;
+    z-index: 100;
+    background: var(--bg-page, #f5f7fa);
+    padding: 12px 0 0;
+    margin-bottom: 0;
+}
+
+/* ================================
    TAB NAVIGATION
    ================================ */
 .tab-navigation {
     display: flex;
     gap: 10px;
-    margin-bottom: 25px;
+    margin-bottom: 0;
     background: white;
     padding: 10px;
     border-radius: 16px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 
 .tab-btn {
@@ -80,11 +92,10 @@ button {
     color: white;
 }
 
-/* ================================
-   TAB CONTENT
-   ================================ */
+/* Spacer so content doesn't hide under sticky bar */
 .tab-content {
     position: relative;
+    padding-top: 20px;
 }
 
 .tab-pane {
@@ -1039,6 +1050,59 @@ button {
     gap: 14px;
 }
 
+/* ================================
+   TAB NAV BUTTONS (Back / Next)
+   ================================ */
+.tab-nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.tab-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Poppins', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tab-nav-btn.btn-back {
+    background: #f0f0f0;
+    color: #555;
+}
+
+.tab-nav-btn.btn-back:hover {
+    background: #e0e0e0;
+}
+
+.tab-nav-btn.btn-next {
+    background: linear-gradient(135deg, #1A4D7F 0%, #2d6a9f 100%);
+    color: white;
+    box-shadow: 0 4px 14px rgba(26, 77, 127, 0.3);
+    margin-left: auto;
+}
+
+.tab-nav-btn.btn-next:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(26, 77, 127, 0.4);
+}
+
+.tab-nav-btn:active {
+    transform: scale(0.97);
+}
+
 @media (max-width: 480px) {
     .custom-modal {
         border-radius: 16px;
@@ -1206,3 +1270,16 @@ button {
 [data-theme="dark"] .modal-field label { color: var(--text-secondary); }
 [data-theme="dark"] .modal-divider { border-color: var(--border-light); }
 [data-theme="dark"] .modal-warning-box { border-color: var(--border-light); }
+
+[data-theme="dark"] .sticky-med-header {
+    background: var(--bg-page);
+}
+
+[data-theme="dark"] .tab-nav-btn.btn-back {
+    background: var(--bg-card-alt);
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .tab-nav-row {
+    border-color: var(--border-light);
+}

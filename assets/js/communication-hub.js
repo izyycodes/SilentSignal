@@ -291,6 +291,23 @@ function logHubMedia(type) {
 // ── FSL Downloads ──
 function renderFSL() {
     const list = document.getElementById('fslList');
+    list.innerHTML = '';
+
+    // ── Download All button (prepended before individual items) ──
+    const dlAllWrap = document.createElement('div');
+    dlAllWrap.innerHTML = `
+<div class="dl-all-progress-wrap" id="dlAllProgressWrap">
+  <div class="dl-all-progress-bar">
+    <div class="dl-all-progress-fill" id="dlAllProgressFill" style="width:0%"></div>
+  </div>
+  <div class="dl-all-progress-label" id="dlAllProgressLabel">Downloading...</div>
+</div>
+<button class="dl-all-btn" id="dlAllBtn" onclick="downloadAllFSL()">
+  <i class="ri-download-cloud-2-line"></i> Download All Resources
+</button>`;
+    list.appendChild(dlAllWrap);
+
+    // ── Individual items ──
     FSL_ITEMS.forEach((item, idx) => {
         const wrap = document.createElement('div');
         wrap.className = 'fsl-item';
@@ -313,7 +330,7 @@ function renderFSL() {
     });
 }
 
-function startDownload(idx) {
+function startDownload(idx, onDone) {
     const btn   = document.getElementById('dlBtn'   + idx);
     const wrap  = document.getElementById('dlProg'  + idx);
     const fill  = document.getElementById('dlFill'  + idx);
@@ -337,6 +354,7 @@ function startDownload(idx) {
             label.className     = 'dl-progress-label done';
             btn.innerHTML       = '<i class="ri-check-line"></i> Downloaded';
             btn.disabled        = false;
+            if (onDone) onDone(); 
             showToast('📄 ' + FSL_ITEMS[idx].title + ' downloaded!', '#2e7d32');
 
             // Offer actual file download if it exists
@@ -362,6 +380,46 @@ function startDownload(idx) {
         fill.style.width  = pct + '%';
         label.textContent = 'Downloading… ' + pct + '%';
     }, 130);
+}
+
+async function downloadAllFSL() {
+    const btn         = document.getElementById('dlAllBtn');
+    const progressWrap = document.getElementById('dlAllProgressWrap');
+    const fill        = document.getElementById('dlAllProgressFill');
+    const label       = document.getElementById('dlAllProgressLabel');
+    const total       = FSL_ITEMS.length;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line"></i> Downloading...';
+    progressWrap.classList.add('visible');
+
+    for (let i = 0; i < total; i++) {
+        fill.style.width  = Math.round((i / total) * 100) + '%';
+        label.textContent = `Downloading ${i + 1} of ${total}: ${FSL_ITEMS[i].title}`;
+
+        // Wait for individual download to finish
+        await new Promise(resolve => startDownload(i, resolve));
+    }
+
+    // All done
+    fill.style.width  = '100%';
+    label.textContent = `✓ All ${total} resources downloaded!`;
+    label.classList.add('done');
+    btn.innerHTML     = '<i class="ri-checkbox-circle-line"></i> All Downloaded';
+    btn.style.background    = 'linear-gradient(135deg, #2e7d32, #388e3c)';
+    btn.style.boxShadow     = '0 4px 14px rgba(46, 125, 50, 0.3)';
+    showToast(`📄 All ${total} FSL resources downloaded!`, '#2e7d32');
+
+    setTimeout(() => {
+        btn.disabled          = false;
+        btn.innerHTML         = '<i class="ri-download-cloud-2-line"></i> Download All Resources';
+        btn.style.background  = '';
+        btn.style.boxShadow   = '';
+        progressWrap.classList.remove('visible');
+        fill.style.width      = '0%';
+        label.classList.remove('done');
+        label.textContent     = 'Downloading...';
+    }, 4000);
 }
 
 // ── Toast ──

@@ -39,16 +39,20 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </div>
     </div>
 
-    <!-- Quick Info Cards -->
-    <div class="info-cards">
-        <?php foreach ($infoCards as $card): ?>
-            <div class="info-card">
-                <i class="<?php echo $card['icon']; ?>"></i>
-                <span><?php echo $card['label']; ?></span>
+    <!-- Main SOS Button -->
+    <div class="sos-section">
+        <button class="sos-button" id="sosButton">
+            <div class="sos-button-inner">
+                <i class="ri-alarm-warning-fill"></i>
+                <span>SOS</span>
             </div>
-        <?php endforeach; ?>
+            <div class="sos-pulse"></div>
+            <div class="sos-pulse delay"></div>
+        </button>
+        <p class="sos-hint">Tap to send emergency alert</p>
+        <p class="sos-hint-small">Long press (3 sec) or tap 5 times rapidly</p>
     </div>
-
+    
     <!-- GPS Location Status -->
     <div class="card location-card">
         <div class="card-header">
@@ -70,20 +74,17 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             </a>
         </div>
     </div>
-
-    <!-- Main SOS Button -->
-    <div class="sos-section">
-        <button class="sos-button" id="sosButton">
-            <div class="sos-button-inner">
-                <i class="ri-alarm-warning-fill"></i>
-                <span>SOS</span>
+    
+    <!-- Quick Info Cards -->
+    <div class="info-cards">
+        <?php foreach ($infoCards as $card): ?>
+            <div class="info-card">
+                <i class="<?php echo $card['icon']; ?>"></i>
+                <span><?php echo $card['label']; ?></span>
             </div>
-            <div class="sos-pulse"></div>
-            <div class="sos-pulse delay"></div>
-        </button>
-        <p class="sos-hint">Tap to send emergency alert</p>
-        <p class="sos-hint-small">Long press (3 sec) or tap 5 times rapidly</p>
+        <?php endforeach; ?>
     </div>
+
 
     <!-- Feature Cards -->
     <div class="feature-cards">

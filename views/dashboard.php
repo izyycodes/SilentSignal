@@ -8,16 +8,21 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/dashboard.css">
 
 <div class="dashboard-container">
-    
-    <!-- Status Banner -->
-    <div class="status-banner status-<?php echo $userStatus['status']; ?>">
-        <div class="status-content">
-            <span class="status-label">Your Current Status</span>
-            <h2 class="status-title"><?php echo $userStatus['label']; ?></h2>
-            <span class="status-time">Last Updated: <?php echo $userStatus['lastUpdated']; ?></span>
-        </div>
-        <div class="status-icon">
-            <i class="ri-heart-pulse-line"></i>
+
+    <!-- SOS Banner -->
+    <div class="sos-banner" id="sosBanner">
+        <div class="sos-banner-content">
+            <div class="sos-banner-text">
+                <span class="sos-banner-label">Emergency SOS</span>
+                <h2 class="sos-banner-title">Need Help?</h2>
+                <span class="sos-banner-sub">Tap the button to alert your emergency contacts instantly.</span>
+            </div>
+            <button class="sos-trigger-btn" id="sosTriggerBtn" onclick="dashboardSOS()">
+                <div class="sos-pulse-ring"></div>
+                <div class="sos-pulse-ring sos-pulse-ring-2"></div>
+                <i class="ri-alarm-warning-fill"></i>
+                <span>SOS</span>
+            </button>
         </div>
     </div>
 
@@ -32,9 +37,9 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <h3><?php echo $module['title']; ?></h3>
                     <i class="ri-arrow-right-s-line module-arrow"></i>
                 </div>
-                
+
                 <p class="module-description"><?php echo $module['description']; ?></p>
-                
+
                 <?php if (isset($module['features'])): ?>
                     <ul class="module-features">
                         <?php foreach ($module['features'] as $feature): ?>
@@ -45,14 +50,14 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <?php endforeach; ?>
                     </ul>
                 <?php endif; ?>
-                
+
                 <?php if (isset($module['alertBadge'])): ?>
                     <div class="module-alert-badge">
                         <span class="alert-label"><?php echo $module['alertBadge']['label']; ?></span>
                         <span class="alert-count"><?php echo $module['alertBadge']['count']; ?></span>
                     </div>
                 <?php endif; ?>
-                
+
                 <?php if (isset($module['familyStatus'])): ?>
                     <div class="module-family">
                         <div class="family-avatars">
@@ -65,7 +70,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <span class="family-count"><?php echo $module['safeCount']; ?></span>
                     </div>
                 <?php endif; ?>
-                
+
                 <?php if (isset($module['quickIcons'])): ?>
                     <div class="module-quick-icons">
                         <?php foreach ($module['quickIcons'] as $icon): ?>
@@ -87,7 +92,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <h3>Recent Activity</h3>
             </div>
         </div>
-        
+
         <div class="activity-list">
             <?php foreach ($recentActivity as $activity): ?>
                 <div class="activity-item">
@@ -109,5 +114,15 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 </div>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
+
+<!-- Pass user/contact data to JS -->
+<script>
+const DASH_BASE_URL = <?php echo json_encode(BASE_URL); ?>;
+const DASH_USER     = <?php echo json_encode($dashUserData); ?>;
+const DASH_CONTACTS = <?php echo json_encode($dashContacts); ?>;
+</script>
+
 </body>
+
+
 </html>

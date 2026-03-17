@@ -212,6 +212,10 @@ document.addEventListener('DOMContentLoaded', function () {
         saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
         saveBtn.style.background = 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)';
 
+        // Attach character counters and blur validators once edit mode starts
+        attachCharCounters();
+        attachBlurValidators();
+
         const cancelBtn = document.createElement('button');
         cancelBtn.className = 'btn btn-cancel';
         cancelBtn.id = 'cancelChangesBtn';
@@ -250,8 +254,34 @@ document.addEventListener('DOMContentLoaded', function () {
         if (cancelBtn) cancelBtn.remove();
     }
 
+    // Fields that are permanently locked and cannot be changed
+    const LOCKED_FIELDS = ['firstName', 'lastName'];
+
     function setFormReadonly(readonly) {
         document.querySelectorAll('.form-control').forEach(input => {
+            const fieldName = input.getAttribute('name');
+
+            // Permanently locked fields are always read-only
+            if (LOCKED_FIELDS.includes(fieldName)) {
+                input.readOnly = true;
+                input.style.cursor = 'not-allowed';
+                input.style.background = '#f0f0f0';
+                input.title = 'Name cannot be changed. Contact support if needed.';
+                // Add lock icon to parent label if not already added
+                const formGroup = input.closest('.form-group');
+                if (formGroup && !formGroup.querySelector('.lock-badge')) {
+                    const label = formGroup.querySelector('label');
+                    if (label) {
+                        const badge = document.createElement('span');
+                        badge.className = 'lock-badge';
+                        badge.innerHTML = ' <i class="ri-lock-line" title="This field cannot be changed"></i>';
+                        badge.style.cssText = 'color: #999; font-size: 0.85em; margin-left: 4px;';
+                        label.appendChild(badge);
+                    }
+                }
+                return;
+            }
+
             input.readOnly = readonly;
             if (readonly) {
                 input.style.cursor = 'not-allowed';
@@ -429,9 +459,240 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================
+    // VALIDATION
+    // ================================
+    // Rules: required, maxLength, pattern (regex), patternHint (shown to user)
+    const FIELD_RULES = {
+        pwdId:         {
+            label:       'PWD ID Number',
+            required:    false,
+            maxLength:   30,
+            pattern:     null,
+            patternHint: null
+        },
+        phone:         {
+            label:       'Phone Number',
+            required:    true,
+            maxLength:   11,
+            pattern:     /^(09\d{9}|\+639\d{9})$/,
+            patternHint: 'Must be an 11-digit Philippine mobile number starting with 09 (e.g. 09171234567).'
+        },
+        email:         {
+            label:       'Email Address',
+            required:    true,
+            maxLength:   100,
+            pattern:     /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
+            patternHint: 'Must be a valid email address (e.g. juan@example.com).'
+        },
+        streetAddress: {
+            label:       'Street Address',
+            required:    false,
+            maxLength:   100,
+            pattern:     null,
+            patternHint: null
+        },
+        city:          {
+            label:       'City',
+            required:    false,
+            maxLength:   50,
+            pattern:     null,
+            patternHint: null
+        },
+        province:      {
+            label:       'Province',
+            required:    false,
+            maxLength:   50,
+            pattern:     null,
+            patternHint: null
+        },
+        zipCode:       {
+            label:       'Zip Code',
+            required:    false,
+            maxLength:   4,
+            pattern:     /^\d{4}$/,
+            patternHint: 'Must be a 4-digit Philippine zip code (e.g. 6100).'
+        },
+    };
+
+    // ================================
+    // CHARACTER COUNTER HELPERS
+    // ================================
+    function attachCharCounter(input, maxLength) {
+        // Avoid duplicate counters
+        const formGroup = input.closest('.form-group') || input.parentElement;
+        if (formGroup.querySelector('.char-counter')) return;
+
+        const counter = document.createElement('span');
+        counter.className = 'char-counter';
+        counter.style.cssText = 'font-size:0.72rem; color:#999; float:right; margin-top:3px; display:block;';
+        counter.textContent = `${input.value.length} / ${maxLength}`;
+        formGroup.appendChild(counter);
+
+        input.addEventListener('input', () => {
+            const len = input.value.length;
+            counter.textContent = `${len} / ${maxLength}`;
+            if (len > maxLength) {
+                counter.style.color = '#f44336';
+                counter.style.fontWeight = '600';
+            } else if (len >= maxLength * 0.85) {
+                counter.style.color = '#ff9800';
+                counter.style.fontWeight = '600';
+            } else {
+                counter.style.color = '#999';
+                counter.style.fontWeight = 'normal';
+            }
+        });
+
+        // Enforce hard cap — block typing beyond maxLength
+        input.addEventListener('keydown', (e) => {
+            const allowedKeys = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab','Home','End'];
+            if (input.value.length >= maxLength && !allowedKeys.includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+            }
+        });
+    }
+
+    function attachCharCounters() {
+        for (const [fieldName, rules] of Object.entries(FIELD_RULES)) {
+            if (!rules.maxLength) continue;
+            const input = document.querySelector(`.form-control[name="${fieldName}"]`);
+            if (input) attachCharCounter(input, rules.maxLength);
+        }
+        // Also attach to reminder name inputs
+        document.querySelectorAll('.reminder-name-edit').forEach(input => {
+            attachCharCounter(input, 80);
+        });
+    }
+
+    function attachBlurValidators() {
+        for (const [fieldName, rules] of Object.entries(FIELD_RULES)) {
+            if (!rules.pattern && !rules.required) continue;
+            const input = document.querySelector(`.form-control[name="${fieldName}"]`);
+            if (!input || input._blurAttached) continue;
+            input._blurAttached = true;
+
+            input.addEventListener('blur', () => {
+                if (!isEditing) return;
+                const value = input.value.trim();
+
+                // Clear previous inline error for this field
+                const formGroup = input.closest('.form-group') || input.parentElement;
+                formGroup?.querySelector('.field-error-msg')?.remove();
+                input.style.borderColor = '';
+                input.style.boxShadow = '';
+
+                if (rules.required && value === '') {
+                    highlightField(input, 'This field is required.');
+                    return;
+                }
+                if (value && rules.pattern && !rules.pattern.test(value)) {
+                    highlightField(input, rules.patternHint);
+                }
+            });
+
+            // Clear error as soon as user starts correcting
+            input.addEventListener('input', () => {
+                if (!isEditing) return;
+                const value = input.value.trim();
+                if (!rules.pattern || (value && rules.pattern.test(value))) {
+                    const formGroup = input.closest('.form-group') || input.parentElement;
+                    formGroup?.querySelector('.field-error-msg')?.remove();
+                    input.style.borderColor = '';
+                    input.style.boxShadow = '';
+                }
+            });
+        }
+    }
+
+    // ================================
+    // VALIDATION
+    // ================================
+    function validateForm() {
+        const errors = [];
+
+        // Clear all previous error states
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.style.borderColor = '';
+            input.style.boxShadow = '';
+            const formGroup = input.closest('.form-group') || input.parentElement;
+            formGroup?.querySelector('.field-error-msg')?.remove();
+        });
+
+        for (const [fieldName, rules] of Object.entries(FIELD_RULES)) {
+            const input = document.querySelector(`.form-control[name="${fieldName}"]`);
+            if (!input) continue;
+
+            const value = input.value.trim();
+
+            // 1. Required check
+            if (rules.required && value === '') {
+                errors.push(`<strong>${rules.label}</strong> is required and cannot be empty.`);
+                highlightField(input, `This field is required.`);
+                continue; // Skip further checks for this field
+            }
+
+            // Skip pattern/length checks if field is optional and empty
+            if (!rules.required && value === '') continue;
+
+            // 2. Max length
+            if (rules.maxLength > 0 && value.length > rules.maxLength) {
+                errors.push(`<strong>${rules.label}</strong> exceeds the maximum of ${rules.maxLength} characters.`);
+                highlightField(input, `Max ${rules.maxLength} characters allowed.`);
+                continue;
+            }
+
+            // 3. Pattern check
+            if (rules.pattern && !rules.pattern.test(value)) {
+                errors.push(`<strong>${rules.label}</strong>: ${rules.patternHint}`);
+                highlightField(input, rules.patternHint);
+            }
+        }
+
+        // Validate reminder name inputs
+        document.querySelectorAll('.reminder-name-edit').forEach((input, i) => {
+            const value = input.value.trim();
+            if (value === '') {
+                errors.push(`<strong>Medication Reminder #${i + 1}</strong> name cannot be empty.`);
+                highlightField(input, 'Medication name is required.');
+            } else if (value.length > 80) {
+                errors.push(`<strong>Medication Reminder #${i + 1}</strong> name is too long (max 80 characters).`);
+                highlightField(input, 'Max 80 characters allowed.');
+            }
+        });
+
+        return errors;
+    }
+
+    function highlightField(input, message) {
+        input.style.borderColor = '#f44336';
+        input.style.boxShadow = '0 0 0 3px rgba(244,67,54,0.18)';
+        const formGroup = input.closest('.form-group') || input.parentElement;
+        if (formGroup) {
+            const errMsg = document.createElement('span');
+            errMsg.className = 'field-error-msg';
+            errMsg.textContent = message;
+            errMsg.style.cssText = 'color: #f44336; font-size: 0.78rem; margin-top: 4px; display: block;';
+            formGroup.appendChild(errMsg);
+        }
+    }
+
+    // ================================
     // SAVE CHANGES
     // ================================
     function saveChanges() {
+        const errors = validateForm();
+
+        if (errors.length > 0) {
+            showAlertModal({
+                title: 'Please Fix the Following',
+                message: errors.map(e => `<div style="margin-bottom:6px;">⚠ ${e}</div>`).join(''),
+                icon: 'ri-error-warning-line',
+                iconClass: 'icon-orange',
+                buttonLabel: 'OK'
+            });
+            return;
+        }
+
         const formData = collectFormData();
 
         saveBtn.innerHTML = '<i class="ri-loader-4-line"></i> Saving...';
@@ -493,6 +754,15 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('input', function (e) {
         if (isEditing && e.target.matches('.form-control, #bloodTypeSelect, #smsTemplate, .reminder-name-edit, .reminder-frequency-edit')) {
             hasUnsavedChanges = true;
+
+            // Clear error highlight on the field being edited
+            if (e.target.style.borderColor === 'rgb(244, 67, 54)') {
+                e.target.style.borderColor = '';
+                e.target.style.boxShadow = '';
+                const formGroup = e.target.closest('.form-group') || e.target.parentElement;
+                const errMsg = formGroup?.querySelector('.field-error-msg');
+                if (errMsg) errMsg.remove();
+            }
         }
     });
 
@@ -720,30 +990,166 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================================
     // ADD CONTACT
     // ================================
+    const PHONE_PATTERN = /^(09\d{9}|\+639\d{9})$/;
+
+    function showContactModal() {
+        return new Promise((resolve) => {
+            modalIcon.className = 'custom-modal-icon icon-teal';
+            modalIcon.innerHTML = '<i class="ri-user-add-line"></i>';
+            modalTitle.textContent = 'Add Emergency Contact';
+
+            modalBody.innerHTML = `
+                <p class="modal-description">This contact will be alerted in case of an emergency.</p>
+                <hr class="modal-divider">
+
+                <div class="modal-field">
+                    <label for="ec_name">Full Name <span style="color:#f44336;">*</span></label>
+                    <input type="text" id="ec_name" class="form-control" placeholder="e.g. Maria Santos" maxlength="80" autocomplete="off">
+                    <span class="ec-counter" id="ec_name_counter" style="font-size:0.72rem;color:#999;float:right;margin-top:3px;display:block;">0 / 80</span>
+                    <span class="ec-error" id="ec_name_error" style="color:#f44336;font-size:0.78rem;margin-top:2px;display:none;"></span>
+                </div>
+
+                <div class="modal-field">
+                    <label for="ec_relation">Relation <span style="color:#f44336;">*</span></label>
+                    <input type="text" id="ec_relation" class="form-control" placeholder="e.g. Mother, Spouse, Friend" maxlength="50" autocomplete="off">
+                    <span class="ec-counter" id="ec_relation_counter" style="font-size:0.72rem;color:#999;float:right;margin-top:3px;display:block;">0 / 50</span>
+                    <span class="ec-error" id="ec_relation_error" style="color:#f44336;font-size:0.78rem;margin-top:2px;display:none;"></span>
+                </div>
+
+                <div class="modal-field">
+                    <label for="ec_phone">Phone Number <span style="color:#f44336;">*</span></label>
+                    <input type="tel" id="ec_phone" class="form-control" placeholder="e.g. 09171234567" maxlength="13" autocomplete="off">
+                    <span style="font-size:0.7rem;color:#999;display:block;margin-top:3px;">Format: 09XXXXXXXXX (11 digits) or +639XXXXXXXXX</span>
+                    <span class="ec-error" id="ec_phone_error" style="color:#f44336;font-size:0.78rem;margin-top:2px;display:none;"></span>
+                </div>
+            `;
+
+            modalFooter.innerHTML = `
+                <button class="modal-btn modal-btn-secondary" id="ec_cancel"><i class="ri-close-line"></i> Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="ec_confirm"><i class="ri-user-add-line"></i> Add Contact</button>
+            `;
+
+            openModal();
+            setTimeout(() => document.getElementById('ec_name')?.focus(), 100);
+
+            // — Live character counters —
+            function setupCounter(inputId, counterId, max) {
+                const input   = document.getElementById(inputId);
+                const counter = document.getElementById(counterId);
+                if (!input || !counter) return;
+                input.addEventListener('input', () => {
+                    const len = input.value.length;
+                    counter.textContent = `${len} / ${max}`;
+                    counter.style.color      = len >= max * 0.85 ? (len >= max ? '#f44336' : '#ff9800') : '#999';
+                    counter.style.fontWeight = len >= max * 0.85 ? '600' : 'normal';
+                });
+            }
+            setupCounter('ec_name', 'ec_name_counter', 80);
+            setupCounter('ec_relation', 'ec_relation_counter', 50);
+
+            // — Inline field error helper —
+            function setFieldError(errorId, inputId, message) {
+                const errEl  = document.getElementById(errorId);
+                const input  = document.getElementById(inputId);
+                if (!errEl || !input) return;
+                if (message) {
+                    errEl.textContent    = message;
+                    errEl.style.display  = 'block';
+                    input.style.borderColor = '#f44336';
+                    input.style.boxShadow   = '0 0 0 3px rgba(244,67,54,0.18)';
+                } else {
+                    errEl.style.display  = 'none';
+                    input.style.borderColor = '';
+                    input.style.boxShadow   = '';
+                }
+            }
+
+            // — Clear error on input —
+            [['ec_name','ec_name_error'],['ec_relation','ec_relation_error'],['ec_phone','ec_phone_error']].forEach(([inputId, errorId]) => {
+                document.getElementById(inputId)?.addEventListener('input', () => setFieldError(errorId, inputId, ''));
+            });
+
+            // — Phone: allow only digits and leading + —
+            document.getElementById('ec_phone')?.addEventListener('keypress', (e) => {
+                if (!/[\d+]/.test(e.key)) e.preventDefault();
+            });
+
+            // — Blur validation for phone —
+            document.getElementById('ec_phone')?.addEventListener('blur', () => {
+                const val = document.getElementById('ec_phone').value.trim();
+                if (val && !PHONE_PATTERN.test(val)) {
+                    setFieldError('ec_phone_error', 'ec_phone', 'Must be 09XXXXXXXXX (11 digits) or +639XXXXXXXXX.');
+                }
+            });
+
+            // — Enter key submits —
+            modalBody.addEventListener('keydown', function handler(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('ec_confirm')?.click();
+                    modalBody.removeEventListener('keydown', handler);
+                }
+            });
+
+            document.getElementById('ec_cancel').addEventListener('click', () => {
+                closeModal();
+                resolve(null);
+            });
+
+            document.getElementById('ec_confirm').addEventListener('click', () => {
+                const name     = document.getElementById('ec_name').value.trim();
+                const relation = document.getElementById('ec_relation').value.trim();
+                const phone    = document.getElementById('ec_phone').value.trim();
+                let hasError   = false;
+
+                // Validate name
+                if (!name) {
+                    setFieldError('ec_name_error', 'ec_name', 'Full name is required.');
+                    hasError = true;
+                } else if (name.length > 80) {
+                    setFieldError('ec_name_error', 'ec_name', 'Name cannot exceed 80 characters.');
+                    hasError = true;
+                } else {
+                    setFieldError('ec_name_error', 'ec_name', '');
+                }
+
+                // Validate relation
+                if (!relation) {
+                    setFieldError('ec_relation_error', 'ec_relation', 'Relation is required.');
+                    hasError = true;
+                } else if (relation.length > 50) {
+                    setFieldError('ec_relation_error', 'ec_relation', 'Relation cannot exceed 50 characters.');
+                    hasError = true;
+                } else {
+                    setFieldError('ec_relation_error', 'ec_relation', '');
+                }
+
+                // Validate phone
+                if (!phone) {
+                    setFieldError('ec_phone_error', 'ec_phone', 'Phone number is required.');
+                    hasError = true;
+                } else if (!PHONE_PATTERN.test(phone)) {
+                    setFieldError('ec_phone_error', 'ec_phone', 'Must be 09XXXXXXXXX (11 digits) or +639XXXXXXXXX.');
+                    hasError = true;
+                } else {
+                    setFieldError('ec_phone_error', 'ec_phone', '');
+                }
+
+                if (hasError) return; // Keep modal open
+
+                closeModal();
+                resolve({ name, relation, phone });
+            });
+        });
+    }
+
     const addContactBtn = document.getElementById('addContactBtn');
     if (addContactBtn) {
         addContactBtn.addEventListener('click', async function () {
-            const result = await showInputModal({
-                title: 'Add Emergency Contact',
-                icon: 'ri-user-add-line',
-                iconClass: 'icon-teal',
-                description: 'This contact will be alerted in case of an emergency.',
-                fields: [
-                    { name: 'name',     label: 'Full Name',    placeholder: 'e.g. Maria Santos', value: '' },
-                    { name: 'relation', label: 'Relation',     placeholder: 'e.g. Mother, Spouse, Friend', value: '' },
-                    { name: 'phone',    label: 'Phone Number', placeholder: 'e.g. 0912 345 6789', value: '' }
-                ]
-            });
-            if (result && result.name && result.relation && result.phone) {
+            const result = await showContactModal();
+            if (result) {
                 addContact(result.name, result.relation, result.phone);
                 hasUnsavedChanges = true;
-            } else if (result) {
-                showAlertModal({
-                    title: 'Incomplete Details',
-                    message: 'Please fill in all fields: name, relation, and phone number.',
-                    icon: 'ri-alert-line',
-                    iconClass: 'icon-orange'
-                });
             }
         });
     }
@@ -1032,3 +1438,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize
     init();
 });
+
+// Tab switcher used by Back / Next buttons
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabId);
+    });
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.toggle('active', pane.id === tabId);
+    });
+    // Scroll to just below the sticky header
+    const stickyBar = document.querySelector('.sticky-med-header');
+    const offset = stickyBar ? stickyBar.offsetHeight + 65 + 10 : 100;
+    window.scrollTo({ top: offset, behavior: 'smooth' });
+}

@@ -7,70 +7,255 @@
 }
 
 /* ================================
-   STATUS BANNER
+   SOS BANNER
    ================================ */
-.status-banner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 30px 35px;
+.sos-banner {
+    background: linear-gradient(135deg, #7b0000 0%, #c62828 60%, #e53935 100%);
     border-radius: 20px;
+    padding: 28px 30px;
     margin-bottom: 25px;
     position: relative;
     overflow: hidden;
 }
 
-.status-banner.status-safe {
-    background: linear-gradient(135deg, #1A4D7F 0%, #2d6a9f 100%);
+.sos-banner::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
 }
 
-.status-banner.status-danger {
-    background: linear-gradient(135deg, #c62828 0%, #e53935 100%);
+.sos-banner::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: -20px;
+    width: 220px; height: 220px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
 }
 
-.status-banner.status-unknown {
-    background: linear-gradient(135deg, #5d4037 0%, #795548 100%);
-}
-
-.status-content {
-    color: white;
+.sos-banner-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
     position: relative;
     z-index: 1;
 }
 
-.status-label {
-    font-size: 13px;
-    opacity: 0.85;
-    display: block;
-    margin-bottom: 5px;
+.sos-banner-text {
+    color: white;
 }
 
-.status-title {
-    font-size: 36px;
+.sos-banner-label {
+    font-size: 11px;
     font-weight: 700;
-    margin: 0 0 8px 0;
-}
-
-.status-time {
-    font-size: 13px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
     opacity: 0.75;
+    display: block;
+    margin-bottom: 6px;
 }
 
-.status-icon {
-    width: 80px;
-    height: 80px;
-    background: rgba(255, 255, 255, 0.15);
+.sos-banner-title {
+    font-size: 30px;
+    font-weight: 800;
+    margin: 0 0 6px 0;
+    line-height: 1;
+}
+
+.sos-banner-sub {
+    font-size: 13px;
+    opacity: 0.8;
+    line-height: 1.4;
+}
+
+/* SOS Button */
+.sos-trigger-btn {
+    position: relative;
+    width: 90px;
+    height: 90px;
     border-radius: 50%;
+    border: none;
+    background: white;
+    color: #c62828;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+}
+
+.sos-trigger-btn i {
+    font-size: 30px;
+    line-height: 1;
+}
+
+.sos-trigger-btn span {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.sos-trigger-btn:active {
+    transform: scale(0.92);
+}
+
+/* Pulse rings */
+.sos-pulse-ring {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.5);
+    animation: sosPulse 1.8s ease-out infinite;
+    pointer-events: none;
+}
+
+.sos-pulse-ring-2 {
+    inset: -16px;
+    animation-delay: 0.6s;
+}
+
+@keyframes sosPulse {
+    0%   { transform: scale(0.85); opacity: 0.8; }
+    100% { transform: scale(1.2);  opacity: 0;   }
+}
+
+/* Sending state */
+.sos-trigger-btn.sending {
+    background: #ffc107;
+    color: #7b0000;
+    animation: sosBtnFlash 0.5s ease infinite alternate;
+}
+
+.sos-trigger-btn.sent {
+    background: #2e7d32;
+    color: white;
+}
+
+@keyframes sosBtnFlash {
+    from { transform: scale(1);    box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
+    to   { transform: scale(1.06); box-shadow: 0 8px 30px rgba(255,193,7,0.5); }
+}
+
+/* SOS confirm overlay */
+.sos-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 9000;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    z-index: 1;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
 }
 
-.status-icon i {
-    font-size: 40px;
-    color: #ffc107;
+.sos-confirm-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.sos-confirm-box {
+    background: white;
+    border-radius: 20px;
+    padding: 30px 25px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.25s;
+}
+
+.sos-confirm-overlay.active .sos-confirm-box {
+    transform: scale(1);
+}
+
+.sos-confirm-icon {
+    width: 70px; height: 70px;
+    background: #ffebee;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 36px;
+    color: #c62828;
+}
+
+.sos-confirm-box h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #c62828;
+    margin: 0 0 8px;
+}
+
+.sos-confirm-box p {
+    font-size: 13px;
+    color: #666;
+    margin: 0 0 22px;
+    line-height: 1.5;
+}
+
+.sos-confirm-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.sos-confirm-btns button {
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s;
+}
+
+.sos-confirm-btns .btn-cancel {
+    background: #f5f5f5;
+    color: #555;
+}
+
+.sos-confirm-btns .btn-send {
+    background: linear-gradient(135deg, #c62828, #e53935);
+    color: white;
+    box-shadow: 0 4px 12px rgba(198,40,40,0.3);
+}
+
+.sos-confirm-btns button:active { transform: scale(0.96); }
+
+/* Dashboard SOS toast */
+.dash-toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #333;
+    color: white;
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    white-space: nowrap;
+}
+
+.dash-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
 /* ================================
@@ -441,7 +626,17 @@
         padding: 5px 10px;
         font-size: 9px;
     }
+
+    .sos-banner {
+        padding: 22px 20px;
+        border-radius: 16px;
+    }
+    .sos-banner-title { font-size: 24px; }
+    .sos-banner-sub   { font-size: 12px; }
+    .sos-trigger-btn  { width: 76px; height: 76px; }
+    .sos-trigger-btn i { font-size: 26px; }
 }
+
 
 /* ================================
    DARK MODE OVERRIDES
@@ -487,4 +682,14 @@
 [data-theme="dark"] .activity-desc,
 [data-theme="dark"] .activity-time {
     color: var(--text-muted);
+}
+
+[data-theme="dark"] .sos-confirm-box {
+    background: var(--bg-card);
+}
+[data-theme="dark"] .sos-confirm-box h3 { color: #ef9a9a; }
+[data-theme="dark"] .sos-confirm-box p  { color: var(--text-muted); }
+[data-theme="dark"] .sos-confirm-btns .btn-cancel {
+    background: var(--bg-card-alt);
+    color: var(--text-primary);
 }

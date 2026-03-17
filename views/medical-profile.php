@@ -8,63 +8,66 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/medical-profile.css">
 
 <div class="page-container">
-    <!-- Page Header -->
-    <div class="page-header medical-header">
-        <div class="page-header-icon" style="background: linear-gradient(135deg, #26a69a 0%, #00897b 100%);">
-            <i class="ri-heart-pulse-fill"></i>
+    <!-- Sticky Header + Tabs -->
+    <div class="sticky-med-header">
+        <!-- Page Header -->
+        <div class="page-header medical-header">
+            <div class="page-header-icon" style="background: linear-gradient(135deg, #26a69a 0%, #00897b 100%);">
+                <i class="ri-heart-pulse-fill"></i>
+            </div>
+            <div class="page-header-content">
+                <h1>Medical Profile & Pre-Registration</h1>
+                <p>Manage your medical information for emergencies</p>
+            </div>
+            <button class="btn btn-save" id="saveChangesBtn">
+                <i class="ri-edit-line"></i> Edit Profile
+            </button>
         </div>
-        <div class="page-header-content">
-            <h1>Medical Profile & Pre-Registration</h1>
-            <p>Manage your medical information for emergencies</p>
-        </div>
-        <button class="btn btn-save" id="saveChangesBtn">
-            <i class="ri-edit-line"></i> Edit Profile
-        </button>
-    </div>
 
-    <!-- Verification Notice Banner -->
-    <?php
+        <!-- Verification Notice Banner -->
+        <?php
         $isVerified = $disabilityStatus['is_verified'] ?? false;
         $pwdId = $personalInfo['pwdId'] ?? '';
-    ?>
-    <?php if (!$isVerified): ?>
-    <div class="verification-notice" id="verificationNotice">
-        <div class="verification-notice-icon">
-            <i class="ri-shield-check-line"></i>
-        </div>
-        <div class="verification-notice-content">
-            <strong>Account Verification Required</strong>
-            <p>Please complete your Personal Information — especially your <strong>PWD ID Number</strong> — so our admin can verify your disability status and activate your full account.</p>
-        </div>
-        <button class="verification-notice-close" onclick="document.getElementById('verificationNotice').style.display='none'">
-            <i class="ri-close-line"></i>
-        </button>
-    </div>
-    <?php endif; ?>
+        ?>
+        <?php if (!$isVerified): ?>
+            <div class="verification-notice" id="verificationNotice">
+                <div class="verification-notice-icon">
+                    <i class="ri-shield-check-line"></i>
+                </div>
+                <div class="verification-notice-content">
+                    <strong>Account Verification Required</strong>
+                    <p>Please complete your Personal Information — especially your <strong>PWD ID Number</strong> — so our admin can verify your disability status and activate your full account.</p>
+                </div>
+                <button class="verification-notice-close" onclick="document.getElementById('verificationNotice').style.display='none'">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+        <?php endif; ?>
 
-    <!-- Tab Navigation -->
-    <div class="tab-navigation">
-        <?php foreach ($tabs as $index => $tab): ?>
-            <button class="tab-btn <?php echo $index === 0 ? 'active' : ''; ?>" data-tab="<?php echo $tab['id']; ?>">
-                <i class="<?php echo $tab['icon']; ?>"></i>
-                <span><?php echo $tab['label']; ?></span>
-            </button>
-        <?php endforeach; ?>
-    </div>
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <?php foreach ($tabs as $index => $tab): ?>
+                <button class="tab-btn <?php echo $index === 0 ? 'active' : ''; ?>" data-tab="<?php echo $tab['id']; ?>">
+                    <i class="<?php echo $tab['icon']; ?>"></i>
+                    <span><?php echo $tab['label']; ?></span>
+                </button>
+            <?php endforeach; ?>
+        </div>
+    </div><!-- end .sticky-med-header -->
 
     <!-- Tab Content -->
     <div class="tab-content">
-        
+
         <!-- Tab 1: Medical Profile -->
         <div class="tab-pane active" id="medical-profile">
-            
+
             <!-- Personal Information -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-icon blue"><i class="ri-user-line"></i></div>
                     <h2>Personal Information</h2>
                 </div>
-                
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label>First Name</label>
@@ -88,9 +91,9 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     </div>
                     <div class="form-group">
                         <label>PWD ID Number <span class="pwd-required-hint">* Required for verification</span></label>
-                        <input type="text" name="pwdId" class="form-control <?php echo empty($pwdId) ? 'input-highlight' : ''; ?>" 
-                               value="<?php echo $personalInfo['pwdId']; ?>" 
-                               placeholder="Enter your PWD ID to get verified">
+                        <input type="text" name="pwdId" class="form-control <?php echo empty($pwdId) ? 'input-highlight' : ''; ?>"
+                            value="<?php echo $personalInfo['pwdId']; ?>"
+                            placeholder="Enter your PWD ID to get verified">
                     </div>
                     <div class="form-group">
                         <label>Phone Number</label>
@@ -125,7 +128,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <div class="card-icon purple"><i class="ri-wheelchair-line"></i></div>
                     <h2>Disability Status</h2>
                 </div>
-                
+
                 <div class="disability-status">
                     <div class="disability-info" style="flex:1;">
                         <span class="disability-label">Primary Disability</span>
@@ -150,7 +153,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <div class="card-icon red"><i class="ri-alert-line"></i></div>
                     <h2>Allergies</h2>
                 </div>
-                
+
                 <div class="tags-container" id="allergiesContainer">
                     <?php foreach ($allergies as $allergy): ?>
                         <div class="tag tag-red">
@@ -170,7 +173,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <div class="card-icon green"><i class="ri-capsule-line"></i></div>
                     <h2>Current Medications</h2>
                 </div>
-                
+
                 <div class="medications-list" id="medicationsContainer">
                     <?php foreach ($medications as $med): ?>
                         <div class="medication-item">
@@ -193,7 +196,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <div class="card-icon yellow"><i class="ri-stethoscope-line"></i></div>
                         <h2>Medical Conditions</h2>
                     </div>
-                    
+
                     <div class="tags-container" id="conditionsContainer">
                         <?php foreach ($medicalConditions as $condition): ?>
                             <div class="tag tag-yellow">
@@ -213,7 +216,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <div class="card-icon red"><i class="ri-heart-3-line"></i></div>
                         <h2>Blood Type</h2>
                     </div>
-                    
+
                     <div class="blood-type-display">
                         <div class="blood-type-badge">
                             <span class="blood-type-value"><?php echo $bloodType; ?></span>
@@ -222,22 +225,29 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     </div>
                 </div>
             </div>
+
+            <!-- Tab Navigation Row -->
+            <div class="tab-nav-row">
+                <button class="tab-nav-btn btn-next" onclick="switchTab('emergency-contacts')">
+                    Next: Emergency Contacts <i class="ri-arrow-right-line"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Tab 2: Emergency Contacts -->
         <?php
-            // Deduplicate contacts by phone number
-            $seenPhones = [];
-            $emergencyContacts = array_filter($emergencyContacts, function($c) use (&$seenPhones) {
-                $key = preg_replace('/\D/', '', $c['phone']);
-                if (isset($seenPhones[$key])) return false;
-                $seenPhones[$key] = true;
-                return true;
-            });
-            $emergencyContacts = array_values($emergencyContacts);
+        // Deduplicate contacts by phone number
+        $seenPhones = [];
+        $emergencyContacts = array_filter($emergencyContacts, function ($c) use (&$seenPhones) {
+            $key = preg_replace('/\D/', '', $c['phone']);
+            if (isset($seenPhones[$key])) return false;
+            $seenPhones[$key] = true;
+            return true;
+        });
+        $emergencyContacts = array_values($emergencyContacts);
         ?>
         <div class="tab-pane" id="emergency-contacts">
-            
+
             <!-- Emergency Contacts List -->
             <div class="card">
                 <div class="card-header">
@@ -247,7 +257,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <i class="ri-add-line"></i> Add Contact
                     </button>
                 </div>
-                
+
                 <div class="contacts-list">
                     <?php foreach ($emergencyContacts as $contact): ?>
                         <div class="contact-card">
@@ -274,7 +284,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <div class="card-icon orange"><i class="ri-alarm-warning-line"></i></div>
                     <h2>Emergency SMS Alert Configuration</h2>
                 </div>
-                
+
                 <div class="sms-config">
                     <label class="config-label">Standard Alert Message:</label>
                     <div class="sms-preview-box">
@@ -298,22 +308,32 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     </div>
                 </div>
             </div>
+
+            <!-- Tab Navigation Row -->
+            <div class="tab-nav-row">
+                <button class="tab-nav-btn btn-back" onclick="switchTab('medical-profile')">
+                    <i class="ri-arrow-left-line"></i> Back: Medical Profile
+                </button>
+                <button class="tab-nav-btn btn-next" onclick="switchTab('medication-reminders')">
+                    Next: Medication Reminders <i class="ri-arrow-right-line"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Tab 3: Medication Reminders -->
         <?php
-            // Deduplicate reminders by name+frequency
-            $seenReminders = [];
-            $medicationReminders = array_filter($medicationReminders, function($r) use (&$seenReminders) {
-                $key = strtolower(trim($r['name'])) . '|' . strtolower(trim($r['frequency']));
-                if (isset($seenReminders[$key])) return false;
-                $seenReminders[$key] = true;
-                return true;
-            });
-            $medicationReminders = array_values($medicationReminders);
+        // Deduplicate reminders by name+frequency
+        $seenReminders = [];
+        $medicationReminders = array_filter($medicationReminders, function ($r) use (&$seenReminders) {
+            $key = strtolower(trim($r['name'])) . '|' . strtolower(trim($r['frequency']));
+            if (isset($seenReminders[$key])) return false;
+            $seenReminders[$key] = true;
+            return true;
+        });
+        $medicationReminders = array_values($medicationReminders);
         ?>
         <div class="tab-pane" id="medication-reminders">
-            
+
             <!-- Visual Medication Reminders -->
             <div class="card">
                 <div class="card-header">
@@ -323,7 +343,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <i class="ri-add-line"></i> Add Reminder
                     </button>
                 </div>
-                
+
                 <div class="reminders-list">
                     <?php foreach ($medicationReminders as $reminder): ?>
                         <div class="reminder-card">
@@ -332,10 +352,10 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                             </div>
                             <div class="reminder-info">
                                 <h4 class="reminder-name-display"><?php echo $reminder['name']; ?></h4>
-                                <input type="text" class="reminder-name-edit form-control" 
-                                       value="<?php echo $reminder['name']; ?>" 
-                                       placeholder="Enter medication name">
-                                
+                                <input type="text" class="reminder-name-edit form-control"
+                                    value="<?php echo $reminder['name']; ?>"
+                                    placeholder="Enter medication name">
+
                                 <span class="reminder-frequency-display reminder-frequency"><?php echo $reminder['frequency']; ?></span>
                                 <select class="reminder-frequency-edit form-control" style="display: none; margin-bottom: 8px; width: auto;">
                                     <option value="Once daily" <?php echo $reminder['frequency'] === 'Once daily' ? 'selected' : ''; ?>>Once daily</option>
@@ -346,7 +366,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                                     <option value="Every 8 hours" <?php echo $reminder['frequency'] === 'Every 8 hours' ? 'selected' : ''; ?>>Every 8 hours</option>
                                     <option value="As needed" <?php echo $reminder['frequency'] === 'As needed' ? 'selected' : ''; ?>>As needed</option>
                                 </select>
-                                
+
                                 <span class="reminder-time"><i class="ri-time-line"></i> <?php echo $reminder['time']; ?></span>
                             </div>
                             <div class="reminder-actions">
@@ -366,7 +386,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <div class="card-icon yellow"><i class="ri-lightbulb-line"></i></div>
                     <h2>Reminder Features</h2>
                 </div>
-                
+
                 <div class="features-list">
                     <?php foreach ($reminderFeatures as $feature): ?>
                         <div class="feature-item">
@@ -376,8 +396,15 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <?php endforeach; ?>
                 </div>
             </div>
+                        <!-- Tab Navigation Row -->
+            <div class="tab-nav-row">
+                <button class="tab-nav-btn btn-back" onclick="switchTab('emergency-contacts')">
+                    <i class="ri-arrow-left-line"></i> Back: Emergency Contacts
+                </button>
+            </div>
         </div>
     </div>
+    
 </div>
 
 <!-- ================================
@@ -401,4 +428,5 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 </script>
 <script src="<?php echo BASE_URL; ?>assets/js/medical-profile.js"></script>
 </body>
+
 </html>

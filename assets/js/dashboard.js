@@ -102,3 +102,158 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => message.remove(), 300);
     }
 });
+
+// ================================
+// DASHBOARD SOS
+// ================================
+let dashLat = null;
+let dashLng = null;
+let dashGpsReady = false;
+let dashSosOverlay = null;
+let dashToastTimer;
+
+// Start GPS silently on page load
+(function initDashGPS() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+        pos => { dashLat = pos.coords.latitude; dashLng = pos.coords.longitude; dashGpsReady = true; },
+        null,
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+    navigator.geolocation.watchPosition(
+        pos => { dashLat = pos.coords.latitude; dashLng = pos.coords.longitude; dashGpsReady = true; },
+        null,
+        { enableHighAccuracy: true }
+    );
+})();
+
+function dashboardSOS() {
+    if (!dashSosOverlay) buildSOSOverlay();
+    dashSosOverlay.classList.add('active');
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+}
+
+function buildSOSOverlay() {
+    dashSosOverlay = document.createElement('div');
+    dashSosOverlay.className = 'sos-confirm-overlay';
+    dashSosOverlay.innerHTML = `
+<div class="sos-confirm-box">
+  <div class="sos-confirm-icon"><i class="ri-alarm-warning-fill"></i></div>
+  <h3>Send SOS Alert?</h3>
+  <p>This will send an emergency SMS with your GPS location to all your emergency contacts.</p>
+  <div class="sos-confirm-btns">
+    <button class="btn-cancel" onclick="cancelDashSOS()">Cancel</button>
+    <button class="btn-send"   onclick="confirmDashSOS()"><i class="ri-send-plane-fill"></i> Send SOS</button>
+  </div>
+</div>`;
+    document.body.appendChild(dashSosOverlay);
+}
+
+function cancelDashSOS() {
+    if (dashSosOverlay) dashSosOverlay.classList.remove('active');
+}
+
+function confirmDashSOS() {
+    if (dashSosOverlay) dashSosOverlay.classList.remove('active');
+
+    const contacts = typeof DASH_CONTACTS !== 'undefined' ? DASH_CONTACTS : [];
+    const user     = typeof DASH_USER     !== 'undefined' ? DASH_USER     : {};
+
+    if (!contacts.length) {
+        showDashToast('⚠️ No emergency contacts found. Add contacts in Medical Profile.', '#d84315');
+        return;
+    }
+
+    const phones = contacts
+        .map(c => (c.phone || '').replace(/\s/g, ''))
+        .filter(Boolean)
+        .join(',');
+
+    if (!phones) {
+        showDashToast('⚠️ No valid phone numbers found.', '#d84315');
+        return;
+    }
+
+    // Build SMS body
+    let smsBody = '🚨 EMERGENCY SOS 🚨\n';
+    if (user.name) {
+        smsBody += `From: ${user.name}`;
+        if (user.pwdId) smsBody += ` (PWD ID: ${user.pwdId})`;
+        smsBody += '\n';
+    }
+
+    const locationStr = dashGpsReady && dashLat
+        ? `https://maps.google.com/?q=${dashLat},${dashLng}`
+        : (user.address || 'Location unavailable');
+
+    smsBody += `\nLocation: ${locationStr}`;
+
+    if (user.bloodType)   smsBody += `\nBlood Type: ${user.bloodType}`;
+    if (user.allergies)   smsBody += `\nAllergies: ${user.allergies}`;
+    if (user.medications) smsBody += `\nMedications: ${user.medications}`;
+    if (user.conditions)  smsBody += `\nConditions: ${user.conditions}`;
+
+    smsBody += '\n\n⚠️ This person is DEAF/MUTE - Please respond via TEXT only.';
+
+    // Visual feedback on button
+    const btn = document.getElementById('sosTriggerBtn');
+    if (btn) {
+        btn.classList.add('sending');
+        btn.innerHTML = `
+<div class="sos-pulse-ring"></div>
+<div class="sos-pulse-ring sos-pulse-ring-2"></div>
+<i class="ri-loader-4-line"></i>
+<span>Sending</span>`;
+        setTimeout(() => {
+            btn.classList.remove('sending');
+            btn.classList.add('sent');
+            btn.innerHTML = `<i class="ri-check-line"></i><span>Sent!</span>`;
+            setTimeout(() => {
+                btn.classList.remove('sent');
+                btn.innerHTML = `
+<div class="sos-pulse-ring"></div>
+<div class="sos-pulse-ring sos-pulse-ring-2"></div>
+<i class="ri-alarm-warning-fill"></i>
+<span>SOS</span>`;
+            }, 3000);
+        }, 1200);
+    }
+
+    if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+    showDashToast('📤 Opening SMS app...', '#2e7d32');
+
+    // Log to server
+    fetch((typeof DASH_BASE_URL !== 'undefined' ? DASH_BASE_URL : '') + 'index.php?action=send-hub-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify({
+            messages: [{ id: 'sos', title: 'SOS EMERGENCY', desc: 'Immediate emergency assistance needed' }],
+            contacts: contacts.map(c => ({ name: c.name, phone: c.phone })),
+            latitude: dashLat,
+            longitude: dashLng,
+            locationLabel: dashGpsReady && dashLat ? `Lat: ${dashLat.toFixed(6)}, Lng: ${dashLng.toFixed(6)}` : null
+        })
+    }).catch(() => {});
+
+    setTimeout(() => {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const sep   = isIOS ? '&' : '?';
+        window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
+    }, 400);
+}
+
+function showDashToast(msg, bg) {
+    let t = document.getElementById('dashToast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'dashToast';
+        t.className = 'dash-toast';
+        document.body.appendChild(t);
+    }
+    t.textContent      = msg;
+    t.style.background = bg || '#333';
+    t.classList.add('show');
+    clearTimeout(dashToastTimer);
+    dashToastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}

@@ -6,26 +6,29 @@ require_once __DIR__ . '/../models/MedicalProfile.php';
 require_once __DIR__ . '/../models/CommunicationHub.php';
 require_once __DIR__ . '/../models/FamilyCheckin.php';
 
-class UserController {
-    
+class UserController
+{
+
     // Shared data for header and footer
     protected $navItems;
     protected $userMenuItems;
     protected $footerLinks;
     protected $footerSupport;
     protected $footerSocial;
-    
+
     /**
      * Constructor - Initialize shared data
      */
-    public function __construct() {
+    public function __construct()
+    {
         $this->initSharedData();
     }
-    
+
     /**
      * Initialize shared header/footer data
      */
-    private function initSharedData() {
+    private function initSharedData()
+    {
         // Header navigation items
         $this->navItems = [
             ['action' => 'dashboard', 'icon' => 'ri-home-line', 'label' => 'Home'],
@@ -34,12 +37,12 @@ class UserController {
             ['action' => 'family-checkin', 'icon' => 'ri-team-line', 'label' => 'Family Check-in'],
             ['action' => 'communication-hub', 'icon' => 'ri-message-2-line', 'label' => 'Communication Hub'],
         ];
-        
+
         // User dropdown menu items
         $this->userMenuItems = [
             ['action' => 'medical-profile', 'icon' => 'ri-heart-pulse-line', 'label' => 'Medical Profile'],
         ];
-        
+
         // Footer quick links
         $this->footerLinks = [
             ['label' => 'Home', 'action' => 'dashboard'],
@@ -48,7 +51,7 @@ class UserController {
             ['label' => 'Family Check-in', 'action' => 'family-checkin'],
             ['label' => 'Communication Hub', 'action' => 'communication-hub'],
         ];
-        
+
         // Footer support links
         $this->footerSupport = [
             ['label' => 'Help Center', 'href' => 'help-center'],
@@ -56,7 +59,7 @@ class UserController {
             ['label' => 'FSL Resources', 'href' => 'fsl-resources'],
             ['label' => 'Contact Us', 'action' => 'home', 'anchor' => '#contact'],
         ];
-        
+
         // Footer social links
         $this->footerSocial = [
             ['icon' => 'fa-brands fa-facebook-f', 'href' => '#'],
@@ -65,11 +68,12 @@ class UserController {
             ['icon' => 'fa-brands fa-x-twitter', 'href' => '#'],
         ];
     }
-    
+
     /**
      * Get shared data for views
      */
-    private function getSharedData() {
+    private function getSharedData()
+    {
         return [
             'navItems' => $this->navItems,
             'userMenuItems' => $this->userMenuItems,
@@ -79,11 +83,12 @@ class UserController {
             'currentAction' => $_GET['action'] ?? 'dashboard',
         ];
     }
-    
+
     /**
      * Check if user is logged in
      */
-    private function requireLogin() {
+    private function requireLogin()
+    {
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['error'] = "Please login to access this page.";
             header("Location: " . BASE_URL . "index.php?action=auth");
@@ -100,24 +105,25 @@ class UserController {
             exit();
         }
     }
-    
+
     /**
      * User Dashboard
      */
-    public function dashboard() {
+    public function dashboard()
+    {
         $this->requireLogin();
         $pageTitle = "Dashboard - Silent Signal";
-        
+
         // Shared header/footer data
         extract($this->getSharedData());
-        
+
         // User status data
         $userStatus = [
             'status' => 'safe',
             'label' => "I'M SAFE",
             'lastUpdated' => '2 minutes ago',
         ];
-        
+
         // Module cards data
         $moduleCards = [
             [
@@ -178,7 +184,7 @@ class UserController {
                 ],
             ],
         ];
-        
+
         // Recent activity data
         $recentActivity = [
             [
@@ -202,24 +208,58 @@ class UserController {
                 'badgeClass' => 'medium',
             ],
         ];
-        
+
+        // SOS data for dashboard banner
+        require_once MODEL_PATH . 'MedicalProfile.php';
+        $medicalProfileModel = new MedicalProfile();
+        $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
+
+        $dashUserData = [
+            'name'      => trim(($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? '')),
+            'pwdId'     => $profile['pwd_id'] ?? '',
+            'address'   => trim(implode(', ', array_filter([
+                $profile['street_address'] ?? '',
+                $profile['city'] ?? '',
+                $profile['province'] ?? '',
+            ]))),
+            'bloodType' => $profile['blood_type'] ?? '',
+            'allergies' => is_array($profile['allergies'] ?? null) ? implode(', ', $profile['allergies']) : '',
+            'medications' => is_array($profile['medications'] ?? null) ? implode(', ', $profile['medications']) : '',
+            'conditions'  => is_array($profile['medical_conditions'] ?? null) ? implode(', ', $profile['medical_conditions']) : '',
+        ];
+
+        $rawContacts = $profile['emergency_contacts'] ?? [];
+        $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
+        $dashContacts = [];
+        foreach ($rawContacts as $i => $c) {
+            $nameParts = explode(' ', $c['name'] ?? '');
+            $dashContacts[] = [
+                'name'         => $c['name'] ?? '',
+                'phone'        => $c['phone'] ?? '',
+                'relationship' => $c['relationship'] ?? '',
+                'color'        => $colors[$i % count($colors)],
+                'initials'     => strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1)),
+            ];
+        }
+
         require_once VIEW_PATH . 'dashboard.php';
     }
-    
+
     /**
      * Emergency Alert System Page
      */
-    public function emergencyAlert() {
+    public function emergencyAlert()
+    {
         $this->requireLogin();
         $pageTitle = "Emergency Alert - Silent Signal";
-        
+
         // Shared header/footer data
         extract($this->getSharedData());
-        
+
         // Load medical profile for user data
         $medicalProfileModel = new MedicalProfile();
         $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
-        
+
         // Build user data for SMS
         $userData = [
             'name' => ($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? ''),
@@ -231,10 +271,10 @@ class UserController {
             'medications' => is_array($profile['medications'] ?? null) ? implode(', ', $profile['medications']) : '',
             'conditions' => is_array($profile['medical_conditions'] ?? null) ? implode(', ', $profile['medical_conditions']) : '',
         ];
-        
+
         // Get emergency contacts from profile
         $emergencyContacts = $profile['emergency_contacts'] ?? [];
-        
+
         // Add colors and initials to contacts
         $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
         foreach ($emergencyContacts as $i => &$contact) {
@@ -246,14 +286,14 @@ class UserController {
                 $contact['initials'] = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr($nameParts[1] ?? '', 0, 1));
             }
         }
-        
+
         // Quick info cards data
         $infoCards = [
             ['icon' => 'ri-map-pin-line', 'label' => 'GPS Location'],
             ['icon' => 'ri-heart-pulse-line', 'label' => 'Medical Data'],
             ['icon' => 'ri-message-2-line', 'label' => 'SMS Alert'],
         ];
-        
+
         // Feature cards data
         $featureCards = [
             [
@@ -261,7 +301,7 @@ class UserController {
                 'icon' => 'ri-hand-heart-line',
                 'color' => 'blue',
                 'title' => 'Single-Tap SOS Transmission',
-                'description' => 'Press the button below to send an emergency alert with your GPS location and medical data via SMS.',
+                'description' => 'Press the button above to send an emergency alert with your GPS location and medical data via SMS.',
             ],
             [
                 'id' => 'shake-alert',
@@ -278,23 +318,24 @@ class UserController {
                 'description' => 'Rapid taps (5 times in 3 seconds) will automatically trigger an emergency alert.',
             ],
         ];
-        
+
         // Confirmation options
         $confirmationOptions = [
             ['icon' => 'ri-pulse-line', 'title' => 'Vibration Pattern', 'desc' => 'Strong pulse feedback'],
             ['icon' => 'ri-flashlight-line', 'title' => 'Color Flash', 'desc' => 'Full screen visual alert'],
         ];
-        
+
         require_once VIEW_PATH . 'emergency-alert.php';
     }
-    
+
     /**
      * Disaster Monitoring Page
      */
-    public function disasterMonitor() {
+    public function disasterMonitor()
+    {
         $this->requireLogin();
         $pageTitle = "Disaster Monitoring - Silent Signal";
-        
+
         // Shared header/footer data
         extract($this->getSharedData());
 
@@ -325,7 +366,7 @@ class UserController {
             }
         }
         unset($contact);
-        
+
         // Active disaster alerts (would come from API/database)
         $disasterAlerts = [
             [
@@ -354,7 +395,7 @@ class UserController {
                 'time' => '1 hour ago',
             ],
         ];
-        
+
         // Weather conditions data
         $weatherConditions = [
             ['icon' => 'ri-temp-hot-line', 'label' => 'Temperature', 'value' => '28°C'],
@@ -363,7 +404,7 @@ class UserController {
             ['icon' => 'ri-rainy-line', 'label' => 'Rainfall', 'value' => 'Heavy'],
             ['icon' => 'ri-dashboard-3-line', 'label' => 'Pressure', 'value' => '1005 hPa', 'fullWidth' => true],
         ];
-        
+
         // Auto-SOS checklist items
         $autoSosSteps = [
             'Alert triggered by disaster detection',
@@ -371,35 +412,36 @@ class UserController {
             '30 second countdown begins',
             'If no response: Auto SOS sent with GPS location',
         ];
-        
+
         // Alert history (would come from database)
         $alertHistory = [
             ['type' => 'typhoon', 'name' => 'Typhoon Alert', 'time' => '2 hours ago', 'status' => 'dismissed'],
             ['type' => 'earthquake', 'name' => 'Earthquake Alert', 'time' => '5 hours ago', 'status' => 'responded'],
             ['type' => 'flood', 'name' => 'Flood Warning', 'time' => '1 day ago', 'status' => 'auto-sos'],
         ];
-        
+
         // Alert type icons mapping
         $alertIcons = [
             'typhoon' => 'ri-typhoon-line',
             'earthquake' => 'ri-earthquake-line',
             'flood' => 'ri-flood-line',
         ];
-        
+
         // Severity badge classes
         $severityClasses = [
             'HIGH' => 'high',
             'MEDIUM' => 'medium',
             'LOW' => 'low',
         ];
-        
+
         require_once VIEW_PATH . 'disaster-monitoring.php';
     }
-    
+
     /**
      * Family Check-in Page
      */
-    public function familyCheckin() {
+    public function familyCheckin()
+    {
         $this->requireLogin();
         $pageTitle = "Family Check-in - Silent Signal";
 
@@ -437,7 +479,7 @@ class UserController {
             // Name: use fname/lname if registered user, else use contact_name
             if (!empty($member['fname'])) {
                 $member['display_name'] = $member['fname'] . ' ' . $member['lname'];
-                $member['initials']     = strtoupper(substr($member['fname'],0,1) . substr($member['lname'],0,1));
+                $member['initials']     = strtoupper(substr($member['fname'], 0, 1) . substr($member['lname'], 0, 1));
                 $member['is_registered'] = true;
             } else {
                 $member['display_name'] = $member['fname_full'];
@@ -463,9 +505,9 @@ class UserController {
             if (!empty($member['last_updated'])) {
                 $diff = time() - strtotime($member['last_updated']);
                 if ($diff < 60)        $member['time_ago'] = 'Just now';
-                elseif ($diff < 3600)  $member['time_ago'] = round($diff/60) . ' min ago';
-                elseif ($diff < 86400) $member['time_ago'] = round($diff/3600) . ' hr ago';
-                else                   $member['time_ago'] = round($diff/86400) . ' day ago';
+                elseif ($diff < 3600)  $member['time_ago'] = round($diff / 60) . ' min ago';
+                elseif ($diff < 86400) $member['time_ago'] = round($diff / 3600) . ' hr ago';
+                else                   $member['time_ago'] = round($diff / 86400) . ' day ago';
             } else {
                 $member['time_ago'] = $member['is_registered'] ? 'No update yet' : 'Not on Silent Signal';
             }
@@ -478,7 +520,8 @@ class UserController {
     /**
      * AJAX: Update status (family check-in)
      */
-    public function updateCheckinStatus() {
+    public function updateCheckinStatus()
+    {
         $this->requireLogin();
         header('Content-Type: application/json');
 
@@ -514,7 +557,8 @@ class UserController {
     /**
      * AJAX: Get family status (family check-in live refresh)
      */
-    public function getFamilyStatus() {
+    public function getFamilyStatus()
+    {
         $this->requireLogin();
         header('Content-Type: application/json');
 
@@ -526,18 +570,18 @@ class UserController {
             $myStatus       = $model->getLatestStatus($userId);
 
             $avatarColors  = ['#e53935', '#ffc107', '#43a047', '#1976d2', '#9c27b0', '#ef6c00'];
-            $statusLabels  = ['safe'=>'SAFE','danger'=>'DANGER','needs_assistance'=>'NEEDS HELP','unknown'=>'UNKNOWN'];
-            $statusClasses = ['safe'=>'safe','danger'=>'needs-help','needs_assistance'=>'needs-help','unknown'=>'unknown'];
+            $statusLabels  = ['safe' => 'SAFE', 'danger' => 'DANGER', 'needs_assistance' => 'NEEDS HELP', 'unknown' => 'UNKNOWN'];
+            $statusClasses = ['safe' => 'safe', 'danger' => 'needs-help', 'needs_assistance' => 'needs-help', 'unknown' => 'unknown'];
 
             foreach ($familyStatuses as $i => &$member) {
                 if (!empty($member['fname'])) {
                     $member['display_name'] = $member['fname'] . ' ' . $member['lname'];
-                    $member['initials']     = strtoupper(substr($member['fname'],0,1) . substr($member['lname'],0,1));
+                    $member['initials']     = strtoupper(substr($member['fname'], 0, 1) . substr($member['lname'], 0, 1));
                     $member['is_registered'] = true;
                 } else {
                     $member['display_name'] = $member['fname_full'];
                     $np = explode(' ', trim($member['fname_full']));
-                    $member['initials']     = strtoupper(substr($np[0]??'',0,1).substr($np[1]??'',0,1));
+                    $member['initials']     = strtoupper(substr($np[0] ?? '', 0, 1) . substr($np[1] ?? '', 0, 1));
                     $member['is_registered'] = false;
                 }
                 $member['color'] = $avatarColors[$i % count($avatarColors)];
@@ -552,9 +596,9 @@ class UserController {
                 if (!empty($member['last_updated'])) {
                     $diff = time() - strtotime($member['last_updated']);
                     if ($diff < 60)        $member['time_ago'] = 'Just now';
-                    elseif ($diff < 3600)  $member['time_ago'] = round($diff/60) . ' min ago';
-                    elseif ($diff < 86400) $member['time_ago'] = round($diff/3600) . ' hr ago';
-                    else                   $member['time_ago'] = round($diff/86400) . ' day ago';
+                    elseif ($diff < 3600)  $member['time_ago'] = round($diff / 60) . ' min ago';
+                    elseif ($diff < 86400) $member['time_ago'] = round($diff / 3600) . ' hr ago';
+                    else                   $member['time_ago'] = round($diff / 86400) . ' day ago';
                 } else {
                     $member['time_ago'] = $member['is_registered'] ? 'No update yet' : 'Not on Silent Signal';
                 }
@@ -573,7 +617,8 @@ class UserController {
         exit();
     }
 
-    public function getLocationHistory() {
+    public function getLocationHistory()
+    {
         $this->requireLogin();
         header('Content-Type: application/json');
 
@@ -583,9 +628,9 @@ class UserController {
             foreach ($history as &$item) {
                 $diff = time() - strtotime($item['created_at']);
                 if ($diff < 60) $item['time_ago'] = 'Just now';
-                elseif ($diff < 3600) $item['time_ago'] = round($diff/60) . ' min ago';
-                elseif ($diff < 86400) $item['time_ago'] = round($diff/3600) . ' hr ago';
-                else $item['time_ago'] = round($diff/86400) . ' day ago';
+                elseif ($diff < 3600) $item['time_ago'] = round($diff / 60) . ' min ago';
+                elseif ($diff < 86400) $item['time_ago'] = round($diff / 3600) . ' hr ago';
+                else $item['time_ago'] = round($diff / 86400) . ' day ago';
             }
             unset($item);
             echo json_encode(['success' => true, 'history' => $history]);
@@ -599,7 +644,8 @@ class UserController {
     /**
      * AJAX: Log media capture (family check-in)
      */
-    public function logCheckinMedia() {
+    public function logCheckinMedia()
+    {
         $this->requireLogin();
         header('Content-Type: application/json');
         $input = json_decode(file_get_contents('php://input'), true);
@@ -618,11 +664,12 @@ class UserController {
         }
         exit();
     }
-    
+
     /**
      * Communication Hub Page
      */
-    public function communicationHub() {
+    public function communicationHub()
+    {
         $this->requireLogin();
         $pageTitle = "Communication Hub - Silent Signal";
 
@@ -670,23 +717,23 @@ class UserController {
 
         // Pre-defined icon-based messages
         $messages = [
+            ['id' => 'emergency',      'cat' => 'emergency', 'icon' => 'ri-alarm-warning-line',    'title' => 'Emergency',       'desc' => 'This is an emergency'],
+            ['id' => 'danger',         'cat' => 'emergency', 'icon' => 'ri-error-warning-line',    'title' => 'Danger',          'desc' => 'I am in danger'],
+            ['id' => 'injured',        'cat' => 'emergency', 'icon' => 'ri-health-book-line',      'title' => 'Injured',         'desc' => 'I am injured'],
             ['id' => 'medical_help',   'cat' => 'medical',   'icon' => 'ri-hospital-line',        'title' => 'Medical Help',    'desc' => 'I need medical assistance'],
-            ['id' => 'medication',     'cat' => 'medical',   'icon' => 'ri-medicine-bottle-line',  'title' => 'Medication',      'desc' => 'I need medication'],
-            ['id' => 'sick',           'cat' => 'medical',   'icon' => 'ri-emotion-sad-line',      'title' => 'Sick',            'desc' => 'I am feeling sick'],
+            ['id' => 'fire',           'cat' => 'emergency', 'icon' => 'ri-fire-line',             'title' => 'Fire',            'desc' => 'There is a fire'],
             ['id' => 'first_aid',      'cat' => 'medical',   'icon' => 'ri-first-aid-kit-line',    'title' => 'First Aid',       'desc' => 'I need first aid'],
+            ['id' => 'lost',           'cat' => 'emergency', 'icon' => 'ri-map-pin-user-line',     'title' => 'Lost',            'desc' => 'I am lost'],
+            ['id' => 'medication',     'cat' => 'medical',   'icon' => 'ri-medicine-bottle-line',  'title' => 'Medication',      'desc' => 'I need medication'],
+            ['id' => 'flood',          'cat' => 'emergency', 'icon' => 'ri-flood-line',            'title' => 'Flood',           'desc' => 'Flooding in area'],
+            ['id' => 'sick',           'cat' => 'medical',   'icon' => 'ri-emotion-sad-line',      'title' => 'Sick',            'desc' => 'I am feeling sick'],
             ['id' => 'food',           'cat' => 'food',      'icon' => 'ri-restaurant-2-line',     'title' => 'Food',            'desc' => 'I need food'],
-            ['id' => 'drinks',         'cat' => 'food',      'icon' => 'ri-cup-line',              'title' => 'Drinks',          'desc' => 'I need something to drink'],
             ['id' => 'hungry',         'cat' => 'food',      'icon' => 'ri-cake-line',             'title' => 'Hungry',          'desc' => 'I am hungry'],
-            ['id' => 'water',          'cat' => 'water',     'icon' => 'ri-drop-line',             'title' => 'Water',           'desc' => 'I need clean water'],
             ['id' => 'drinking_water', 'cat' => 'water',     'icon' => 'ri-goblet-line',           'title' => 'Drinking Water',  'desc' => 'I need drinking water'],
             ['id' => 'shelter',        'cat' => 'shelter',   'icon' => 'ri-home-heart-line',       'title' => 'Shelter',         'desc' => 'I need shelter'],
+            ['id' => 'drinks',         'cat' => 'food',      'icon' => 'ri-cup-line',              'title' => 'Drinks',          'desc' => 'I need something to drink'],
+            ['id' => 'water',          'cat' => 'water',     'icon' => 'ri-drop-line',             'title' => 'Water',           'desc' => 'I need clean water'],
             ['id' => 'rest_area',      'cat' => 'shelter',   'icon' => 'ri-hotel-bed-line',        'title' => 'Rest Area',       'desc' => 'Looking for rest area'],
-            ['id' => 'emergency',      'cat' => 'emergency', 'icon' => 'ri-alarm-warning-line',    'title' => 'Emergency',       'desc' => 'This is an emergency'],
-            ['id' => 'injured',        'cat' => 'emergency', 'icon' => 'ri-health-book-line',      'title' => 'Injured',         'desc' => 'I am injured'],
-            ['id' => 'danger',         'cat' => 'emergency', 'icon' => 'ri-error-warning-line',    'title' => 'Danger',          'desc' => 'I am in danger'],
-            ['id' => 'flood',          'cat' => 'emergency', 'icon' => 'ri-flood-line',            'title' => 'Flood',           'desc' => 'Flooding in area'],
-            ['id' => 'fire',           'cat' => 'emergency', 'icon' => 'ri-fire-line',             'title' => 'Fire',            'desc' => 'There is a fire'],
-            ['id' => 'lost',           'cat' => 'emergency', 'icon' => 'ri-map-pin-user-line',     'title' => 'Lost',            'desc' => 'I am lost'],
         ];
 
         // Filipino Sign Language (FSL) downloadable resources
@@ -719,7 +766,8 @@ class UserController {
     /**
      * AJAX: Send SMS via Communication Hub
      */
-    public function sendHubSms() {
+    public function sendHubSms()
+    {
         $this->requireLogin();
         header('Content-Type: application/json');
 
@@ -753,7 +801,8 @@ class UserController {
     /**
      * AJAX: Log media capture in Communication Hub
      */
-    public function logHubMedia() {
+    public function logHubMedia()
+    {
         $this->requireLogin();
         header('Content-Type: application/json');
         $input = json_decode(file_get_contents('php://input'), true);
@@ -776,7 +825,8 @@ class UserController {
     /**
      * AJAX: Get emergency contacts for current user (for Communication Hub)
      */
-    public function getEmergencyContacts() {
+    public function getEmergencyContacts()
+    {
         $this->requireLogin();
         header('Content-Type: application/json');
         try {
@@ -799,28 +849,29 @@ class UserController {
         }
         exit();
     }
-    
+
     /**
      * Medical Profile & Pre-Registration Page
      */
-    public function medicalProfile() {
+    public function medicalProfile()
+    {
         $this->requireLogin();
         $pageTitle = "Medical Profile - Silent Signal";
-        
+
         // Shared header/footer data
         extract($this->getSharedData());
-        
+
         // Load medical profile from database
         $medicalProfileModel = new MedicalProfile();
         $profile = $medicalProfileModel->getByUserId($_SESSION['user_id']);
-        
+
         // Tab navigation
         $tabs = [
             ['id' => 'medical-profile', 'icon' => 'ri-heart-pulse-line', 'label' => 'Medical Profile'],
             ['id' => 'emergency-contacts', 'icon' => 'ri-contacts-line', 'label' => 'Emergency Contacts'],
             ['id' => 'medication-reminders', 'icon' => 'ri-alarm-line', 'label' => 'Medication Reminders'],
         ];
-        
+
         // Personal Information from database or empty defaults
         $personalInfo = [
             'firstName' => $profile['first_name'] ?? '',
@@ -835,7 +886,7 @@ class UserController {
             'province' => $profile['province'] ?? '',
             'zipCode' => $profile['zip_code'] ?? '',
         ];
-        
+
         // Disability Status - get is_verified from users table
         require_once __DIR__ . '/../models/User.php';
         $userModel = new User();
@@ -844,22 +895,22 @@ class UserController {
             'primary' => !empty($profile['disability_type']) ? $profile['disability_type'] : 'Not specified',
             'is_verified' => $userVerified,
         ];
-        
+
         // Allergies (from JSON - already decoded by model)
         $allergies = $profile['allergies'] ?? [];
-        
+
         // Current Medications (from JSON - already decoded by model)
         $medications = $profile['medications'] ?? [];
-        
+
         // Medical Conditions (from JSON - already decoded by model)
         $medicalConditions = $profile['medical_conditions'] ?? [];
-        
+
         // Blood Type
         $bloodType = $profile['blood_type'] ?? 'Not set';
-        
+
         // Emergency Contacts (from JSON - already decoded by model)
         $emergencyContacts = $profile['emergency_contacts'] ?? [];
-        
+
         // Add colors and initials to contacts if not present
         $colors = ['#4caf50', '#ffc107', '#2196f3', '#e53935', '#9c27b0'];
         foreach ($emergencyContacts as $i => &$contact) {
@@ -884,10 +935,10 @@ class UserController {
             'allergies' => is_array($allergies) ? implode(', ', $allergies) : '',
             'medications' => is_array($medications) ? implode(', ', $medications) : '',
         ];
-        
+
         // Medication Reminders (from JSON - already decoded by model)
         $medicationReminders = $profile['medication_reminders'] ?? [];
-        
+
         // Add colors to reminders if not present
         foreach ($medicationReminders as $i => &$reminder) {
             if (!isset($reminder['color'])) {
@@ -903,30 +954,31 @@ class UserController {
             'LED flasher alert flash',
             'Customizable reminder times',
         ];
-        
+
         require_once VIEW_PATH . 'medical-profile.php';
     }
-    
+
     /**
      * Save Medical Profile (AJAX endpoint)
      */
-    public function saveMedicalProfile() {
+    public function saveMedicalProfile()
+    {
         $this->requireLogin();
-        
+
         // Set JSON header
         header('Content-Type: application/json');
-        
+
         // Get POST data
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input) {
             echo json_encode(['success' => false, 'message' => 'Invalid data received.']);
             exit();
         }
-        
+
         try {
             $medicalProfile = new MedicalProfile();
-            
+
             // Prepare data for saving
             $profileData = [
                 'first_name' => $input['firstName'] ?? '',
@@ -949,7 +1001,7 @@ class UserController {
                 'sms_template' => $input['smsTemplate'] ?? '',
                 'medication_reminders' => $input['medicationReminders'] ?? []
             ];
-            
+
             if ($medicalProfile->saveProfile($_SESSION['user_id'], $profileData)) {
                 // Sync emergency contacts → pwd_emergency_contacts + family_pwd_relationships
                 require_once __DIR__ . '/../models/FamilyCheckin.php';
@@ -963,35 +1015,36 @@ class UserController {
             error_log("Save Medical Profile Error: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'An error occurred. Please try again.']);
         }
-        
+
         exit();
     }
-    
+
     /**
      * Log Emergency Alert (AJAX endpoint)
      */
-    public function logEmergencyAlert() {
+    public function logEmergencyAlert()
+    {
         $this->requireLogin();
-        
+
         header('Content-Type: application/json');
-        
+
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input) {
             echo json_encode(['success' => false, 'message' => 'Invalid data.']);
             exit();
         }
-        
+
         try {
             require_once __DIR__ . '/../config/Database.php';
             $database = new Database();
             $db = $database->getConnection();
-            
+
             $stmt = $db->prepare("
                 INSERT INTO emergency_alerts (user_id, alert_type, message, latitude, longitude, created_at)
                 VALUES (?, ?, ?, ?, ?, NOW())
             ");
-            
+
             $stmt->execute([
                 $_SESSION['user_id'],
                 $input['type'] ?? 'sos',
@@ -999,20 +1052,21 @@ class UserController {
                 $input['location']['lat'] ?? null,
                 $input['location']['lng'] ?? null
             ]);
-            
+
             echo json_encode(['success' => true, 'message' => 'Alert logged.']);
         } catch (Exception $e) {
             error_log("Log Emergency Alert Error: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Failed to log alert.']);
         }
-        
+
         exit();
     }
 
     /**
      * Log Disaster Response (AJAX endpoint)
      */
-    public function logDisasterResponse() {
+    public function logDisasterResponse()
+    {
         $this->requireLogin();
         header('Content-Type: application/json');
 
@@ -1042,7 +1096,7 @@ class UserController {
             ]);
 
             // Also update pwd_status_updates so family dashboard reflects it
-            $mappedStatus = match($input['status'] ?? '') {
+            $mappedStatus = match ($input['status'] ?? '') {
                 'safe'              => 'safe',
                 'help', 'auto-sos' => 'needs_assistance',
                 default             => 'unknown'
@@ -1057,7 +1111,7 @@ class UserController {
                 $mappedStatus,
                 $input['latitude'] ?? null,
                 $input['longitude'] ?? null,
-                match($mappedStatus) {
+                match ($mappedStatus) {
                     'safe'             => 'Responded safe during disaster alert.',
                     'needs_assistance' => 'Needs help — disaster alert triggered.',
                     default            => 'Disaster response logged.'
@@ -1076,7 +1130,8 @@ class UserController {
     /**
      * Update Safety Status (AJAX endpoint)
      */
-    public function updateSafetyStatus() {
+    public function updateSafetyStatus()
+    {
         $this->requireLogin();
         header('Content-Type: application/json');
 
