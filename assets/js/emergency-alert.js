@@ -426,41 +426,29 @@ function buildEmergencyMessage(userData) {
     const locationText = userLocation 
         ? `https://maps.google.com/?q=${userLocation.lat},${userLocation.lng}`
         : 'Location unavailable';
-    
-    const addressText = userLocation?.address || userData.address || 'Address not available';
-    
+
     const now = new Date();
-    const timestamp = now.toLocaleString('en-PH', { 
-        dateStyle: 'short', 
-        timeStyle: 'short' 
-    });
-    
-    let message = `🚨 EMERGENCY ALERT 🚨\n`;
-    message += `⚠️ DEAF/MUTE - TEXT ONLY - NO CALLS ⚠️\n\n`;
+    const timestamp = now.toLocaleString('en-PH', { dateStyle: 'short', timeStyle: 'short' });
+
+    let message = `EMERGENCY ALERT\n`;
+    message += `DEAF/MUTE - TEXT ONLY - NO CALLS\n\n`;
     message += `Name: ${userData.name || 'Unknown'}\n`;
-    
-    if (userData.pwdId) {
-        message += `PWD ID: ${userData.pwdId}\n`;
-    }
-    
+    if (userData.pwdId) message += `PWD ID: ${userData.pwdId}\n`;
     message += `Phone: ${userData.phone || 'N/A'}\n`;
     message += `Status: NEEDS IMMEDIATE HELP\n`;
     message += `Time: ${timestamp}\n\n`;
-    
-    message += `📍 LOCATION:\n`;
-    message += `${addressText}\n`;
+    message += `LOCATION:\n`;
     message += `Map: ${locationText}\n\n`;
-    
+
     if (userData.bloodType || userData.allergies || userData.medications) {
-        message += `🏥 MEDICAL INFO:\n`;
-        if (userData.bloodType) message += `Blood Type: ${userData.bloodType}\n`;
-        if (userData.allergies) message += `Allergies: ${userData.allergies}\n`;
+        message += `MEDICAL INFO:\n`;
+        if (userData.bloodType)   message += `Blood Type: ${userData.bloodType}\n`;
+        if (userData.allergies)   message += `Allergies: ${userData.allergies}\n`;
         if (userData.medications) message += `Medications: ${userData.medications}\n`;
-        if (userData.conditions) message += `Conditions: ${userData.conditions}\n`;
+        if (userData.conditions)  message += `Conditions: ${userData.conditions}\n`;
     }
-    
-    message += `\n⚠️ Please respond via TEXT MESSAGE only.`;
-    
+
+    message += `\nPlease respond via TEXT MESSAGE only.`;
     return message;
 }
 

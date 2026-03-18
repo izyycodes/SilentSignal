@@ -1260,14 +1260,19 @@ class UserController
             $result = json_decode($response, true);
 
             // PhilSMS returns { "status": "success" } on success
-            if ($httpCode === 200 && isset($result['status']) && $result['status'] === 'success') {
-                $sent++;
-            } else {
-                $failed++;
-                $errMsg = $result['message'] ?? $response;
-                $errors[] = "Failed for {$phone}: {$errMsg}";
-                error_log("PhilSMS API error for {$phone}: {$errMsg}");
-            }
+            error_log("PhilSMS raw response for {$phone}: " . $response);
+            if ($httpCode === 200 && (
+                    (isset($result['status']) && $result['status'] === 'success') ||
+                    isset($result['data']) ||
+                    isset($result['message_id'])
+                )) {
+                    $sent++;
+                } else {
+                    $failed++;
+                    $errMsg   = $result['message'] ?? $response;
+                    $errors[] = "Failed for {$phone}: {$errMsg}";
+                    error_log("PhilSMS API error for {$phone}: {$errMsg}");
+      }
         }
 
         if ($sent > 0) {
