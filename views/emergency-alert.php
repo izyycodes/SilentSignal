@@ -5,27 +5,7 @@
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
-<meta name="base-url" content="<?php echo BASE_URL; ?>">
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/emergency-alert.css">
-
-<!-- Hidden User Data for JavaScript -->
-<div id="userData" 
-    data-name="<?php echo htmlspecialchars($userData['name'] ?? ''); ?>"
-    data-phone="<?php echo htmlspecialchars($userData['phone'] ?? ''); ?>"
-    data-pwd-id="<?php echo htmlspecialchars($userData['pwdId'] ?? ''); ?>"
-    data-address="<?php echo htmlspecialchars($userData['address'] ?? ''); ?>"
-    data-blood-type="<?php echo htmlspecialchars($userData['bloodType'] ?? ''); ?>"
-    data-allergies="<?php echo htmlspecialchars($userData['allergies'] ?? ''); ?>"
-    data-medications="<?php echo htmlspecialchars($userData['medications'] ?? ''); ?>"
-    data-conditions="<?php echo htmlspecialchars($userData['conditions'] ?? ''); ?>"
-    style="display: none;">
-</div>
-
-<!-- Hidden Emergency Contacts Data -->
-<div id="emergencyContactsData" 
-    data-contacts='<?php echo json_encode($emergencyContacts ?? []); ?>'
-    style="display: none;">
-</div>
 
 <div class="page-container">
     <!-- Page Header -->
@@ -84,7 +64,6 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             </div>
         <?php endforeach; ?>
     </div>
-
 
     <!-- Feature Cards -->
     <div class="feature-cards">
@@ -190,6 +169,22 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </div>
     </div>
 </div>
+
+<!-- Pass PHP data to JavaScript -->
+<script>
+const BASE_URL              = <?php echo json_encode(BASE_URL); ?>;
+const emergencyContactsData = <?php echo json_encode($emergencyContacts ?? []); ?>;
+const userInfoData          = {
+    name:        <?php echo json_encode(trim($userData['name']        ?? '')); ?>,
+    phone:       <?php echo json_encode($userData['phone']       ?? ''); ?>,
+    pwdId:       <?php echo json_encode($userData['pwdId']       ?? ''); ?>,
+    address:     <?php echo json_encode($userData['address']     ?? ''); ?>,
+    bloodType:   <?php echo json_encode($userData['bloodType']   ?? ''); ?>,
+    allergies:   <?php echo json_encode($userData['allergies']   ?? ''); ?>,
+    medications: <?php echo json_encode($userData['medications'] ?? ''); ?>,
+    conditions:  <?php echo json_encode($userData['conditions']  ?? ''); ?>
+};
+</script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
 <script src="<?php echo BASE_URL; ?>assets/js/emergency-alert.js"></script>

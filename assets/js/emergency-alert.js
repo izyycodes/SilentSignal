@@ -479,32 +479,14 @@ function openSMSIntent(phoneNumbers, message) {
 // GET USER DATA
 // ================================
 function getUserData() {
-    // Try to get from data attributes or hidden fields
-    const userDataEl = document.getElementById('userData');
-    
-    if (userDataEl) {
-        return {
-            name: userDataEl.dataset.name || '',
-            phone: userDataEl.dataset.phone || '',
-            pwdId: userDataEl.dataset.pwdId || '',
-            address: userDataEl.dataset.address || '',
-            bloodType: userDataEl.dataset.bloodType || '',
-            allergies: userDataEl.dataset.allergies || '',
-            medications: userDataEl.dataset.medications || '',
-            conditions: userDataEl.dataset.conditions || ''
-        };
+    if (typeof userInfoData !== 'undefined' && userInfoData) {
+        return userInfoData;
     }
-    
-    // Fallback to getting from display elements
+    // Fallback if script block somehow missing
     return {
-        name: document.querySelector('.user-name')?.textContent || 'User',
-        phone: document.querySelector('.user-phone')?.textContent || '',
-        pwdId: '',
-        address: '',
-        bloodType: '',
-        allergies: '',
-        medications: '',
-        conditions: ''
+        name: '', phone: '', pwdId: '',
+        address: '', bloodType: '',
+        allergies: '', medications: '', conditions: ''
     };
 }
 
