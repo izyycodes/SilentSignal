@@ -47,6 +47,9 @@ define('CONTACT_EMAIL', 'ssilentsignal@gmail.com');
 define('CONTACT_ADDRESS', 'Bacolod City, Philippines');
 define('CONTACT_WEBSITE', 'silentsignal.helioho.st');
 
+// PhilSMS API
+define('PHILSMS_TOKEN', '1850|4FW8etOLDfVP9BiNhnW93yo7eJzMvm1NYqe6yIOM72c7b5f9');
+
 // Paths (same for both environments)
 define('BASE_PATH', __DIR__ . '/../'); 
 define('VIEW_PATH', __DIR__ . '/../views/');
