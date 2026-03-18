@@ -1,12 +1,10 @@
 // Emergency Alert System JavaScript
-// Handles SOS, GPS location, shake detection, and SMS intent
+// Handles SOS, GPS location, shake detection, and PhilSMS sending
 
 // Global state
 let userLocation = null;
 let isAlertActive = false;
 let shakeEnabled = false;
-let panicClickCount = 0;
-let panicClickTimer = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     
@@ -83,10 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ================================
 function initializeLocation() {
     if ("geolocation" in navigator) {
-        // Get initial location
         updateLocation();
-        
-        // Update location every 30 seconds
         setInterval(updateLocation, 30000);
     } else {
         console.warn('Geolocation not supported');
@@ -104,20 +99,12 @@ function updateLocation() {
     navigator.geolocation.getCurrentPosition(
         (position) => {
             userLocation = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                accuracy: position.coords.accuracy,
+                lat:       position.coords.latitude,
+                lng:       position.coords.longitude,
+                accuracy:  position.coords.accuracy,
                 timestamp: new Date().toISOString()
             };
-            
-            // Update display
-            updateLocationDisplay(
-                'Location acquired',
-                userLocation.lat,
-                userLocation.lng
-            );
-            
-            // Reverse geocode to get address (optional)
+            updateLocationDisplay('Location acquired', userLocation.lat, userLocation.lng);
             reverseGeocode(userLocation.lat, userLocation.lng);
         },
         (error) => {
@@ -131,17 +118,15 @@ function updateLocation() {
 function updateLocationDisplay(status, lat, lng) {
     const locationStatus = document.getElementById('locationStatus');
     const locationCoords = document.getElementById('locationCoords');
-    const locationLink = document.getElementById('locationLink');
+    const locationLink   = document.getElementById('locationLink');
     
     if (locationStatus) {
         locationStatus.textContent = status;
         locationStatus.className = lat ? 'status-success' : 'status-error';
     }
-    
     if (locationCoords && lat && lng) {
         locationCoords.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     }
-    
     if (locationLink && lat && lng) {
         locationLink.href = `https://maps.google.com/?q=${lat},${lng}`;
         locationLink.style.display = 'inline-block';
@@ -149,19 +134,16 @@ function updateLocationDisplay(status, lat, lng) {
 }
 
 function reverseGeocode(lat, lng) {
-    // Using free Nominatim API for reverse geocoding
     fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
             if (data.display_name) {
                 const addressDisplay = document.getElementById('locationAddress');
                 if (addressDisplay) {
-                    // Shorten the address
                     const parts = data.display_name.split(',');
-                    const shortAddress = parts.slice(0, 3).join(',');
-                    addressDisplay.textContent = shortAddress;
+                    addressDisplay.textContent = parts.slice(0, 3).join(',');
                 }
-                userLocation.address = data.display_name;
+                if (userLocation) userLocation.address = data.display_name;
             }
         })
         .catch(err => console.log('Reverse geocode error:', err));
@@ -179,19 +161,16 @@ function initializeShakeDetection() {
         window.addEventListener('devicemotion', function(event) {
             if (!shakeEnabled) return;
             
-            const current = event.accelerationIncludingGravity;
+            const current     = event.accelerationIncludingGravity;
             const currentTime = Date.now();
             
             if ((currentTime - lastTime) > 100) {
                 const diffTime = currentTime - lastTime;
                 lastTime = currentTime;
-                
                 const speed = Math.abs(current.x + current.y + current.z - lastX - lastY - lastZ) / diffTime * 10000;
-                
                 if (speed > shakeThreshold) {
                     triggerSOS('shake');
                 }
-                
                 lastX = current.x;
                 lastY = current.y;
                 lastZ = current.z;
@@ -211,16 +190,10 @@ function initializePanicClickDetection() {
     
     sosButton.addEventListener('click', function(e) {
         const now = Date.now();
-        
-        // Add current click time
         clickTimes.push(now);
-        
-        // Keep only clicks within last 3 seconds
         clickTimes = clickTimes.filter(time => now - time < 3000);
-        
-        // 5 rapid clicks in 3 seconds triggers panic SOS
         if (clickTimes.length >= 5) {
-            clickTimes = []; // Reset
+            clickTimes = [];
             triggerSOS('panic');
         }
     });
@@ -233,15 +206,8 @@ async function triggerSOS(triggerType) {
     if (isAlertActive) return;
     isAlertActive = true;
     
-    console.log('SOS triggered by:', triggerType);
-    
-    // Visual feedback
     vibrate([500, 200, 500]);
-    
-    // Get fresh location
     await refreshLocation();
-    
-    // Show confirmation modal
     showSOSConfirmationModal(triggerType);
 }
 
@@ -249,62 +215,27 @@ async function triggerSOS(triggerType) {
 // SOS CONFIRMATION MODAL
 // ================================
 function showSOSConfirmationModal(triggerType) {
-    // Create modal if it doesn't exist
-    let modal = document.getElementById('sosConfirmModal');
+    const modal = document.getElementById('sosConfirmModal');
+    if (!modal) return;
     
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'sosConfirmModal';
-        modal.className = 'modal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-icon">
-                    <i class="ri-alarm-warning-fill"></i>
-                </div>
-                <h2>Send Emergency Alert?</h2>
-                <p>This will send an SOS message to all your emergency contacts with your location.</p>
-                <div class="countdown">
-                    Auto-sending in <span id="sosCountdown">10</span> seconds...
-                </div>
-                <div class="modal-actions">
-                    <button class="btn btn-danger" id="confirmSOSBtn">
-                        <i class="ri-send-plane-fill"></i> Send Now
-                    </button>
-                    <button class="btn btn-secondary" id="cancelSOSBtn">
-                        <i class="ri-close-line"></i> Cancel
-                    </button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-    }
-    
-    // Show modal
     modal.classList.add('active');
     
-    // Reset countdown
     let countdown = 10;
     const countdownEl = document.getElementById('sosCountdown');
     if (countdownEl) countdownEl.textContent = countdown;
     
-    // Clear any existing timer
-    if (window.sosCountdownTimer) {
-        clearInterval(window.sosCountdownTimer);
-    }
+    if (window.sosCountdownTimer) clearInterval(window.sosCountdownTimer);
     
-    // Start countdown
     window.sosCountdownTimer = setInterval(() => {
         countdown--;
         if (countdownEl) countdownEl.textContent = countdown;
-        
         if (countdown <= 0) {
             clearInterval(window.sosCountdownTimer);
             modal.classList.remove('active');
-            sendEmergencyAlert(); // Auto-send after countdown
+            sendEmergencyAlert();
         }
     }, 1000);
     
-    // Confirm button
     const confirmBtn = document.getElementById('confirmSOSBtn');
     if (confirmBtn) {
         confirmBtn.onclick = () => {
@@ -314,7 +245,6 @@ function showSOSConfirmationModal(triggerType) {
         };
     }
     
-    // Cancel button
     const cancelBtn = document.getElementById('cancelSOSBtn');
     if (cancelBtn) {
         cancelBtn.onclick = () => {
@@ -324,7 +254,6 @@ function showSOSConfirmationModal(triggerType) {
         };
     }
     
-    // Click outside to cancel
     modal.onclick = (e) => {
         if (e.target === modal) {
             clearInterval(window.sosCountdownTimer);
@@ -343,12 +272,11 @@ function refreshLocation() {
 
         let settled = false;
 
-        // Fallback: if GPS takes too long, proceed anyway
         const fallback = setTimeout(() => {
             if (!settled) {
                 settled = true;
-                console.warn('GPS timeout — proceeding without fresh location');
-                resolve(userLocation); // use last known location or null
+                console.warn('GPS timeout — proceeding with last known location');
+                resolve(userLocation);
             }
         }, 4000);
 
@@ -371,7 +299,7 @@ function refreshLocation() {
                     settled = true;
                     clearTimeout(fallback);
                     console.warn('GPS error — proceeding with last known location');
-                    resolve(userLocation); // use last known or null
+                    resolve(userLocation);
                 }
             },
             { enableHighAccuracy: true, timeout: 4000, maximumAge: 60000 }
@@ -383,8 +311,7 @@ function refreshLocation() {
 // SEND EMERGENCY ALERT
 // ================================
 async function sendEmergencyAlert() {
-    // Get user's medical data and contacts from the page
-    const userData = getUserData();
+    const userData          = getUserData();
     const emergencyContacts = getEmergencyContacts();
     
     if (emergencyContacts.length === 0) {
@@ -393,26 +320,36 @@ async function sendEmergencyAlert() {
         return;
     }
     
-    // Build SMS message
     const message = buildEmergencyMessage(userData);
     
-    // Get phone numbers
-    const phoneNumbers = emergencyContacts.map(c => c.phone).join(',');
+    showNotification('Sending emergency SMS...', 'info');
+    vibrate([200, 100, 200]);
+    flashScreen('rgba(220, 53, 69, 0.3)');
     
-    // Open SMS app with pre-filled message
-    openSMSIntent(phoneNumbers, message);
+    // Send via PhilSMS through PHP backend
+    const result = await sendViaPhilSMS(message, emergencyContacts);
+    console.log('PhilSMS result:', result);
+
+    // Success if PhilSMS sent at least 1 message
+    const philSmsSent = result && (
+        result.success === true ||
+        (typeof result.sent === 'number' && result.sent > 0)
+    );
+
+    if (philSmsSent) {
+        showNotification('Emergency SMS sent to ' + result.sent + ' contact(s)!', 'success');
+        flashScreen('rgba(76, 175, 80, 0.5)');
+        vibrate([200, 100, 200, 100, 200]);
+    } else {
+        // PhilSMS failed — open native SMS as backup
+        showNotification('Opening SMS app as backup...', 'warning');
+        const phones = emergencyContacts.map(c => c.phone).join(',');
+        setTimeout(() => openSMSFallback(phones, message), 1000);
+    }
     
-    // Log alert to database
+    // Always log to database
     logAlertToDatabase('sos', message);
     
-    // Show success feedback
-    showNotification('Opening SMS app with emergency message...', 'success');
-    
-    // Visual confirmation
-    flashScreen('green');
-    vibrate([200, 100, 200]);
-    
-    // Reset after delay
     setTimeout(() => {
         isAlertActive = false;
         hideAlertOverlay();
@@ -420,12 +357,43 @@ async function sendEmergencyAlert() {
 }
 
 // ================================
+// SEND VIA PHILSMS (through PHP backend)
+// ================================
+async function sendViaPhilSMS(message, contacts) {
+    try {
+        const phones = contacts.map(c => c.phone.replace(/\s|-/g, '')).join(',');
+        
+        const response = await fetch(BASE_URL + 'index.php?action=send-philsms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message:  message,
+                contacts: contacts,
+                phones:   phones,
+                location: userLocation
+            }),
+            keepalive: true
+        });
+        
+        const data = await response.json();
+        console.log('PhilSMS raw response:', data);
+        return data;
+        
+    } catch (err) {
+        console.error('PhilSMS send error:', err);
+        return { success: false, sent: 0, message: err.message };
+    }
+}
+
+// ================================
 // BUILD EMERGENCY MESSAGE
 // ================================
 function buildEmergencyMessage(userData) {
-    const locationText = userLocation 
+    const locationText = userLocation
         ? `https://maps.google.com/?q=${userLocation.lat},${userLocation.lng}`
         : 'Location unavailable';
+
+    const addressText = userLocation?.address || userData.address || 'Address not available';
 
     const now = new Date();
     const timestamp = now.toLocaleString('en-PH', { dateStyle: 'short', timeStyle: 'short' });
@@ -433,11 +401,12 @@ function buildEmergencyMessage(userData) {
     let message = `EMERGENCY ALERT\n`;
     message += `DEAF/MUTE - TEXT ONLY - NO CALLS\n\n`;
     message += `Name: ${userData.name || 'Unknown'}\n`;
-    if (userData.pwdId) message += `PWD ID: ${userData.pwdId}\n`;
+    if (userData.pwdId)  message += `PWD ID: ${userData.pwdId}\n`;
     message += `Phone: ${userData.phone || 'N/A'}\n`;
     message += `Status: NEEDS IMMEDIATE HELP\n`;
     message += `Time: ${timestamp}\n\n`;
     message += `LOCATION:\n`;
+    message += `${addressText}\n`;
     message += `Map: ${locationText}\n\n`;
 
     if (userData.bloodType || userData.allergies || userData.medications) {
@@ -453,27 +422,14 @@ function buildEmergencyMessage(userData) {
 }
 
 // ================================
-// SMS INTENT
+// NATIVE SMS FALLBACK
 // ================================
-function openSMSIntent(phoneNumbers, message) {
-    // Encode message for URL
+function openSMSFallback(phoneNumbers, message) {
     const encodedMessage = encodeURIComponent(message);
-    
-    // Detect platform
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    
-    let smsUrl;
-    
-    if (isIOS) {
-        // iOS uses & for body
-        smsUrl = `sms:${phoneNumbers}&body=${encodedMessage}`;
-    } else {
-        // Android and others use ?body=
-        smsUrl = `sms:${phoneNumbers}?body=${encodedMessage}`;
-    }
-    
-    // Open SMS app
+    const smsUrl = isIOS
+        ? `sms:${phoneNumbers}&body=${encodedMessage}`
+        : `sms:${phoneNumbers}?body=${encodedMessage}`;
     window.location.href = smsUrl;
 }
 
@@ -484,7 +440,6 @@ function getUserData() {
     if (typeof userInfoData !== 'undefined' && userInfoData) {
         return userInfoData;
     }
-    // Fallback if script block somehow missing
     return {
         name: '', phone: '', pwdId: '',
         address: '', bloodType: '',
@@ -496,7 +451,6 @@ function getUserData() {
 // GET EMERGENCY CONTACTS
 // ================================
 function getEmergencyContacts() {
-    // Primary: JS variable from PHP script block
     if (typeof emergencyContactsData !== 'undefined' && Array.isArray(emergencyContactsData) && emergencyContactsData.length > 0) {
         return emergencyContactsData;
     }
@@ -509,80 +463,31 @@ function getEmergencyContacts() {
 function logAlertToDatabase(type, message) {
     fetch(BASE_URL + 'index.php?action=log-emergency-alert', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            type: type,
-            message: message,
-            location: userLocation,
+            type:      type,
+            message:   message,
+            location:  userLocation,
             timestamp: new Date().toISOString()
-        })
+        }),
+        keepalive: true
     }).catch(err => console.log('Failed to log alert:', err));
 }
 
 // ================================
 // UI HELPERS
 // ================================
-function showAlertOverlay() {
-    let overlay = document.getElementById('alertOverlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'alertOverlay';
-        overlay.innerHTML = `
-            <div class="alert-overlay-content">
-                <div class="alert-spinner"></div>
-                <h2>🚨 EMERGENCY ALERT 🚨</h2>
-                <p>Preparing to send SOS...</p>
-                <button id="cancelAlertBtn" class="btn btn-cancel">Cancel</button>
-            </div>
-        `;
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(220, 53, 69, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            color: white;
-            text-align: center;
-        `;
-        document.body.appendChild(overlay);
-        
-        // Add cancel listener
-        document.getElementById('cancelAlertBtn')?.addEventListener('click', cancelAlert);
-    }
-    overlay.style.display = 'flex';
-}
-
 function hideAlertOverlay() {
     const overlay = document.getElementById('alertOverlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
+    if (overlay) overlay.style.display = 'none';
 }
 
 function cancelAlert() {
     isAlertActive = false;
-    
-    // Clear countdown timer if running
-    if (window.sosCountdownTimer) {
-        clearInterval(window.sosCountdownTimer);
-    }
-    
-    // Hide modal
+    if (window.sosCountdownTimer) clearInterval(window.sosCountdownTimer);
     const modal = document.getElementById('sosConfirmModal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
-    
-    // Hide overlay
+    if (modal) modal.classList.remove('active');
     hideAlertOverlay();
-    
     showNotification('Alert cancelled', 'info');
     vibrate([100]);
 }
@@ -590,46 +495,34 @@ function cancelAlert() {
 function flashScreen(color) {
     const flash = document.createElement('div');
     flash.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: ${color};
-        z-index: 9999;
+        position: fixed; top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: ${color}; z-index: 9999;
         animation: flashAnim 0.5s ease-out;
         pointer-events: none;
     `;
     document.body.appendChild(flash);
-    
     setTimeout(() => flash.remove(), 500);
 }
 
 function vibrate(pattern) {
-    if ('vibrate' in navigator) {
-        navigator.vibrate(pattern);
-    }
+    if ('vibrate' in navigator) navigator.vibrate(pattern);
 }
 
 function showNotification(message, type = 'info') {
     const colors = {
         success: '#4caf50',
-        error: '#f44336',
-        info: '#2196f3',
+        error:   '#f44336',
+        info:    '#2196f3',
         warning: '#ff9800'
     };
-    
     const notification = document.createElement('div');
     notification.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
+        position: fixed; top: 80px; right: 20px;
         padding: 15px 25px;
         background: ${colors[type] || colors.info};
-        color: white;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 500;
+        color: white; border-radius: 10px;
+        font-size: 14px; font-weight: 500;
         z-index: 10001;
         box-shadow: 0 5px 20px rgba(0,0,0,0.2);
         animation: slideIn 0.3s ease;
@@ -637,11 +530,10 @@ function showNotification(message, type = 'info') {
     `;
     notification.textContent = message;
     document.body.appendChild(notification);
-    
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => notification.remove(), 300);
-    }, 3000);
+    }, 4000);
 }
 
 function showTestAlert() {
@@ -657,24 +549,15 @@ const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
         from { opacity: 0; transform: translateX(100px); }
-        to { opacity: 1; transform: translateX(0); }
+        to   { opacity: 1; transform: translateX(0); }
     }
     @keyframes slideOut {
         from { opacity: 1; transform: translateX(0); }
-        to { opacity: 0; transform: translateX(100px); }
+        to   { opacity: 0; transform: translateX(100px); }
     }
     @keyframes flashAnim {
         from { opacity: 0.8; }
-        to { opacity: 0; }
-    }
-    .alert-spinner {
-        width: 60px;
-        height: 60px;
-        border: 5px solid rgba(255,255,255,0.3);
-        border-top-color: white;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 20px;
+        to   { opacity: 0; }
     }
     @keyframes spin {
         to { transform: rotate(360deg); }
