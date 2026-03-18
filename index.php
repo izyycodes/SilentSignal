@@ -306,6 +306,12 @@ switch ($action) {
         $controller = new AdminController();
         $controller->updateAlertStatus();
         break;
+    
+        case 'send-philsms':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->sendPhilSms();
+        break;
 
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';

@@ -1184,4 +1184,109 @@ class UserController
         $pageTitle = "FSL Resources - Silent Signal";
         require_once VIEW_PATH . 'fsl-resources.php';
     }
+
+    /**
+     * AJAX: Send SMS via PhilSMS API
+     * Add this method to UserController.php
+     * Add to index.php: case 'send-philsms': (new UserController())->sendPhilSms(); break;
+     */
+    public function sendPhilSms() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        if (!$input || empty($input['message']) || empty($input['phones'])) {
+            echo json_encode(['success' => false, 'message' => 'Missing message or phone numbers.']);
+            exit();
+        }
+
+        $token   = PHILSMS_TOKEN; // defined in config/config.php
+        $message = $input['message'];
+        $phones  = $input['phones']; // comma-separated string e.g. "09991234567,09997654321"
+
+        // PhilSMS API endpoint
+        $apiUrl = 'https://dashboard.philsms.com/api/v3/sms/send';
+
+        // Build recipients array — PhilSMS accepts comma-separated or array
+        $phoneList = array_map('trim', explode(',', $phones));
+        $phoneList = array_filter($phoneList); // remove empty entries
+
+        $sent    = 0;
+        $failed  = 0;
+        $errors  = [];
+
+        foreach ($phoneList as $phone) {
+            // Normalize: convert 09XXXXXXXXX → +639XXXXXXXXX
+            $normalized = $phone;
+            if (preg_match('/^09\d{9}$/', $phone)) {
+                $normalized = '+63' . substr($phone, 1);
+            } elseif (preg_match('/^9\d{9}$/', $phone)) {
+                $normalized = '+63' . $phone;
+            }
+
+            $payload = json_encode([
+                'recipient' => $normalized,
+                'sender_id' => 'PhilSMS',   // use your registered sender ID if you have one
+                'type'      => 'plain',
+                'message'   => $message
+            ]);
+
+            $ch = curl_init($apiUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $payload,
+                CURLOPT_HTTPHEADER     => [
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                    'Authorization: Bearer ' . $token,
+                ],
+                CURLOPT_TIMEOUT        => 15,
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErr  = curl_error($ch);
+            curl_close($ch);
+
+            if ($curlErr) {
+                $failed++;
+                $errors[] = "cURL error for {$phone}: {$curlErr}";
+                error_log("PhilSMS cURL error: {$curlErr}");
+                continue;
+            }
+
+            $result = json_decode($response, true);
+
+            // PhilSMS returns { "status": "success" } on success
+            if ($httpCode === 200 && isset($result['status']) && $result['status'] === 'success') {
+                $sent++;
+            } else {
+                $failed++;
+                $errMsg = $result['message'] ?? $response;
+                $errors[] = "Failed for {$phone}: {$errMsg}";
+                error_log("PhilSMS API error for {$phone}: {$errMsg}");
+            }
+        }
+
+        if ($sent > 0) {
+            echo json_encode([
+                'success' => true,
+                'sent'    => $sent,
+                'failed'  => $failed,
+                'message' => "SMS sent to {$sent} contact(s)." . ($failed > 0 ? " {$failed} failed." : '')
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'sent'    => 0,
+                'failed'  => $failed,
+                'message' => 'All SMS sends failed. Fallback to native SMS.',
+                'errors'  => $errors
+            ]);
+        }
+
+        exit();
+    }
 }
