@@ -339,26 +339,43 @@ function showSOSConfirmationModal(triggerType) {
 // ================================
 function refreshLocation() {
     return new Promise((resolve) => {
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
+        if (!("geolocation" in navigator)) return resolve(null);
+
+        let settled = false;
+
+        // Fallback: if GPS takes too long, proceed anyway
+        const fallback = setTimeout(() => {
+            if (!settled) {
+                settled = true;
+                console.warn('GPS timeout — proceeding without fresh location');
+                resolve(userLocation); // use last known location or null
+            }
+        }, 4000);
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                if (!settled) {
+                    settled = true;
+                    clearTimeout(fallback);
                     userLocation = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        accuracy: position.coords.accuracy,
+                        lat:       position.coords.latitude,
+                        lng:       position.coords.longitude,
+                        accuracy:  position.coords.accuracy,
                         timestamp: new Date().toISOString()
                     };
                     resolve(userLocation);
-                },
-                (error) => {
-                    console.error('Location error:', error);
-                    resolve(userLocation); // Use last known location
-                },
-                { enableHighAccuracy: true, timeout: 5000 }
-            );
-        } else {
-            resolve(null);
-        }
+                }
+            },
+            (error) => {
+                if (!settled) {
+                    settled = true;
+                    clearTimeout(fallback);
+                    console.warn('GPS error — proceeding with last known location');
+                    resolve(userLocation); // use last known or null
+                }
+            },
+            { enableHighAccuracy: true, timeout: 4000, maximumAge: 60000 }
+        );
     });
 }
 
