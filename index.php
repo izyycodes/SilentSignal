@@ -307,7 +307,7 @@ switch ($action) {
         $controller->updateAlertStatus();
         break;
     
-        case 'send-philsms':
+     case 'send-philsms':
         require_once CONTROLLER_PATH . 'UserController.php';
         $controller = new UserController();
         $controller->sendPhilSms();
