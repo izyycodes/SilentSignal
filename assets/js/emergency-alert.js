@@ -1,9 +1,6 @@
 // Emergency Alert System JavaScript
 // Handles SOS, GPS location, shake detection, and SMS intent
 
-// Get BASE_URL from meta tag
-const BASE_URL = document.querySelector('meta[name="base-url"]')?.content || '';
-
 // Global state
 let userLocation = null;
 let isAlertActive = false;
