@@ -491,30 +491,11 @@ function getUserData() {
 // GET EMERGENCY CONTACTS
 // ================================
 function getEmergencyContacts() {
-    const contacts = [];
-    
-    // Get from data attribute
-    const contactsDataEl = document.getElementById('emergencyContactsData');
-    if (contactsDataEl && contactsDataEl.dataset.contacts) {
-        try {
-            return JSON.parse(contactsDataEl.dataset.contacts);
-        } catch (e) {
-            console.error('Error parsing contacts:', e);
-        }
+    // Primary: JS variable from PHP script block
+    if (typeof emergencyContactsData !== 'undefined' && Array.isArray(emergencyContactsData) && emergencyContactsData.length > 0) {
+        return emergencyContactsData;
     }
-    
-    // Fallback: get from DOM
-    document.querySelectorAll('.contact-item, .contact-card').forEach(card => {
-        const name = card.querySelector('.contact-name, h4')?.textContent || '';
-        const phone = card.querySelector('.contact-phone')?.textContent || 
-                      card.dataset.phone || '';
-        
-        if (phone) {
-            contacts.push({ name, phone: phone.replace(/\s/g, '') });
-        }
-    });
-    
-    return contacts;
+    return [];
 }
 
 // ================================
