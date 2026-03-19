@@ -83,7 +83,7 @@ require_once VIEW_PATH . 'includes/home-header.php';
                 <div class="form-group">
                     <label for="signup-password">Password</label>
                     <div class="password-group">
-                        <input type="password" name="password" id="signup-password" required>
+                        <input type="password" name="password" id="signup-password" required minlength="6" maxlength="72">
                         <i class="fas fa-eye toggle-password" onclick="togglePassword('signup-password')"></i>
 
                     </div>
@@ -140,7 +140,7 @@ require_once VIEW_PATH . 'includes/home-header.php';
                 <div class="form-group">
                     <label for="login-password">Password</label>
                     <div class="password-group">
-                        <input type="password" name="password" id="login-password" required>
+                        <input type="password" name="password" id="login-password" required maxlength="72">
                         <i class="fas fa-eye toggle-password" onclick="togglePassword('login-password')"></i>
                     </div>
                 </div>

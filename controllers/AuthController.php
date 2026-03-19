@@ -120,6 +120,8 @@ class AuthController {
             $errors[] = "Password is required.";
         } elseif (strlen($password) < 6) {
             $errors[] = "Password must be at least 6 characters.";
+        } elseif (strlen($password) > 72) {
+            $errors[] = "Password cannot exceed 72 characters.";
         }
         
         // Validate role

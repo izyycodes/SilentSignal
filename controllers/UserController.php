@@ -906,7 +906,7 @@ class UserController
         $medicalConditions = $profile['medical_conditions'] ?? [];
 
         // Blood Type
-        $bloodType = $profile['blood_type'] ?? 'Not set';
+        $bloodType = $profile['blood_type'] ?? '';
 
         // Emergency Contacts (from JSON - already decoded by model)
         $emergencyContacts = $profile['emergency_contacts'] ?? [];

@@ -109,7 +109,12 @@ function updateLocation() {
         },
         (error) => {
             console.error('Geolocation error:', error.message);
-            updateLocationDisplay('Unable to get location', null, null);
+            if (error.code === error.PERMISSION_DENIED) {
+                updateLocationDisplay('Location blocked', null, null);
+                showAllowLocationBtn(true);
+            } else {
+                updateLocationDisplay('Unable to get location', null, null);
+            }
         },
         options
     );
@@ -118,12 +123,15 @@ function updateLocation() {
 function updateLocationDisplay(status, lat, lng) {
     const locationStatus = document.getElementById('locationStatus');
     const locationCoords = document.getElementById('locationCoords');
-    const locationLink   = document.getElementById('locationLink');
-    
+    const locationLink = document.getElementById('locationLink');
+
     if (locationStatus) {
         locationStatus.textContent = status;
         locationStatus.className = lat ? 'status-success' : 'status-error';
     }
+
+    // Hide allow-button once location is acquired
+    if (lat) showAllowLocationBtn(false);
     if (locationCoords && lat && lng) {
         locationCoords.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     }
@@ -131,6 +139,98 @@ function updateLocationDisplay(status, lat, lng) {
         locationLink.href = `https://maps.google.com/?q=${lat},${lng}`;
         locationLink.style.display = 'inline-block';
     }
+}
+
+function showAllowLocationBtn(show) {
+    const btn = document.getElementById('allowLocationBtn');
+    if (btn) btn.style.display = show ? 'flex' : 'none';
+}
+
+function requestLocationPermission() {
+    const btn = document.getElementById('allowLocationBtn');
+
+    // Check if the Permissions API can query location state
+    if (navigator.permissions) {
+        navigator.permissions.query({ name: 'geolocation' }).then(result => {
+            if (result.state === 'denied') {
+                // Browser has hard-blocked it — can't re-prompt, must guide to settings
+                showLocationBlockedGuide();
+            } else {
+                // 'prompt' or 'granted' — try requesting again
+                updateLocation();
+                if (btn) {
+                    btn.innerHTML = '<i class="ri-loader-4-line"></i> Requesting...';
+                    btn.disabled = true;
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="ri-gps-line"></i> Allow Location';
+                        btn.disabled = false;
+                    }, 5000);
+                }
+            }
+        });
+    } else {
+        // Fallback — just try again
+        updateLocation();
+    }
+}
+
+function showLocationBlockedGuide() {
+    // Detect browser for specific instructions
+    const isChrome  = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+    const isFirefox = /Firefox/.test(navigator.userAgent);
+    const isSafari  = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    const isEdge    = /Edg/.test(navigator.userAgent);
+
+    let steps = '';
+    if (isChrome || isEdge) {
+        steps = `1. Click the <strong>lock icon 🔒</strong> in the address bar<br>
+                 2. Find <strong>Location</strong> and set it to <strong>Allow</strong><br>
+                 3. Reload this page`;
+    } else if (isFirefox) {
+        steps = `1. Click the <strong>lock icon 🔒</strong> in the address bar<br>
+                 2. Click <strong>Connection Secure → More Information</strong><br>
+                 3. Go to <strong>Permissions → Access Your Location → Allow</strong><br>
+                 4. Reload this page`;
+    } else if (isSafari) {
+        steps = `1. Go to <strong>Settings → Safari → Location</strong><br>
+                 2. Set to <strong>Allow</strong><br>
+                 3. Reload this page`;
+    } else {
+        steps = `1. Open your browser <strong>Site Settings</strong><br>
+                 2. Find <strong>Location</strong> and set it to <strong>Allow</strong><br>
+                 3. Reload this page`;
+    }
+
+    // Simple inline alert — reuses the existing notification style
+    const notice = document.createElement('div');
+    notice.id = 'locationBlockedGuide';
+    notice.style.cssText = `
+        position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+        background: white; border: 2px solid #e53935; border-radius: 14px;
+        padding: 20px 24px; max-width: 340px; width: 90%; z-index: 10000;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.2); font-size: 13px; line-height: 1.7;
+        font-family: 'Poppins', sans-serif;
+    `;
+    notice.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <i class="ri-map-pin-off-line" style="font-size:22px; color:#e53935;"></i>
+            <strong style="font-size:14px; color:#333;">Location is Blocked</strong>
+        </div>
+        <p style="color:#555; margin:0 0 12px;">To re-enable location, follow these steps:</p>
+        <p style="color:#333; margin:0 0 16px;">${steps}</p>
+        <div style="display:flex; gap:8px;">
+            <button onclick="window.location.reload()" style="flex:1; padding:10px; background:linear-gradient(135deg,#1A4D7F,#2d6a9f); color:white; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif;">
+                <i class="ri-refresh-line"></i> Reload Page
+            </button>
+            <button onclick="document.getElementById('locationBlockedGuide')?.remove()" style="padding:10px 14px; background:#f5f5f5; color:#555; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Poppins',sans-serif;">
+                Close
+            </button>
+        </div>
+    `;
+    document.body.appendChild(notice);
+
+    // Auto-dismiss after 15 seconds
+    setTimeout(() => notice.remove(), 15000);
 }
 
 function reverseGeocode(lat, lng) {

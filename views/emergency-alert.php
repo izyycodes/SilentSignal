@@ -38,7 +38,12 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         <div class="card-header">
             <div class="card-icon blue"><i class="ri-map-pin-line"></i></div>
             <h2>Your Location</h2>
-            <span id="locationStatus" class="status-pending">Acquiring...</span>
+            <div class="location-status-group">
+                <span id="locationStatus" class="status-pending">Acquiring...</span>
+                <button id="allowLocationBtn" class="allow-location-btn" onclick="requestLocationPermission()" style="display:none;">
+                    <i class="ri-gps-line"></i> Allow Location
+                </button>
+            </div>
         </div>
         <div class="location-info">
             <div class="location-coords">
