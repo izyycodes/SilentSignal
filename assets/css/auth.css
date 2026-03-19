@@ -259,25 +259,82 @@ body {
 }
 
 /* ================================
-   FORGOT PASSWORD LINK
+   REMEMBER ME + FORGOT PASSWORD ROW
    ================================ */
+.remember-forgot-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 15px;
+    margin-top: -2px;
+}
+
+.remember-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.remember-label input[type="checkbox"] {
+    display: none;
+}
+
+.remember-custom-checkbox {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.remember-label input:checked + .remember-custom-checkbox {
+    background: linear-gradient(135deg, #2c7a94, #2c5f7f);
+    border-color: #2c7a94;
+}
+
+.remember-label input:checked + .remember-custom-checkbox::after {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 8px;
+    border: 2px solid white;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.remember-text {
+    font-size: 13px;
+    color: #555;
+}
+
+.forgot-link-inline {
+    color: #2c7a94;
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.3s;
+    white-space: nowrap;
+}
+
+.forgot-link-inline:hover {
+    color: #1a5a6e;
+    text-decoration: underline;
+}
+
+/* Keep old .forgot-link for any other use */
 .forgot-link {
     width: 100%;
     text-align: right;
     margin-bottom: 15px;
     margin-top: -5px;
-}
-
-.forgot-link a {
-    color: #2c7a94;
-    text-decoration: none;
-    font-size: 13px;
-    transition: color 0.3s;
-}
-
-.forgot-link a:hover {
-    color: #1a5a6e;
-    text-decoration: underline;
 }
 
 /* ================================
@@ -798,4 +855,11 @@ body {
     background: var(--badge-inactive-bg);
     color: var(--badge-inactive-text);
     border-color: transparent;
+}
+
+[data-theme="dark"] .remember-text { color: var(--text-muted); }
+[data-theme="dark"] .forgot-link-inline { color: var(--brand-accent); }
+[data-theme="dark"] .remember-custom-checkbox {
+    background: var(--bg-input);
+    border-color: var(--border-input);
 }

@@ -6,6 +6,7 @@ require_once VIEW_PATH . 'includes/home-header.php';
 ?>
 
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/auth.css">
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forgot-password.css">
 
 <!-- Main Container -->
 <div class="main-container">
@@ -83,7 +84,7 @@ require_once VIEW_PATH . 'includes/home-header.php';
                 <div class="form-group">
                     <label for="signup-password">Password</label>
                     <div class="password-group">
-                        <input type="password" name="password" id="signup-password" required minlength="6" maxlength="72">
+                        <input type="password" name="password" id="signup-password" required>
                         <i class="fas fa-eye toggle-password" onclick="togglePassword('signup-password')"></i>
 
                     </div>
@@ -140,13 +141,19 @@ require_once VIEW_PATH . 'includes/home-header.php';
                 <div class="form-group">
                     <label for="login-password">Password</label>
                     <div class="password-group">
-                        <input type="password" name="password" id="login-password" required maxlength="72">
+                        <input type="password" name="password" id="login-password" required>
                         <i class="fas fa-eye toggle-password" onclick="togglePassword('login-password')"></i>
                     </div>
                 </div>
 
-                <div class="forgot-link">
-                    <a href="#">Forgot password?</a>
+                <!-- Remember Me + Forgot Password on same row -->
+                <div class="remember-forgot-row">
+                    <label class="remember-label">
+                        <input type="checkbox" name="remember_me" id="rememberMe" value="1">
+                        <span class="remember-custom-checkbox"></span>
+                        <span class="remember-text">Remember me</span>
+                    </label>
+                    <a href="<?php echo BASE_URL; ?>index.php?action=forgot-password" class="forgot-link-inline">Forgot password?</a>
                 </div>
 
                 <button type="submit" class="submit-btn">LOGIN</button>
@@ -174,6 +181,23 @@ require_once VIEW_PATH . 'includes/home-header.php';
 <?php require_once VIEW_PATH . 'includes/home-footer.php'; ?>
 
 <script src="<?php echo BASE_URL; ?>assets/js/auth.js"></script>
+
+<script>
+// Pre-fill email and check Remember Me if cookie is set
+(function () {
+    function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+    }
+    const savedEmail = getCookie('ss_remember_email');
+    if (savedEmail) {
+        const emailInput = document.querySelector('input[name="email_phone"]');
+        const checkbox   = document.getElementById('rememberMe');
+        if (emailInput) emailInput.value = savedEmail;
+        if (checkbox)   checkbox.checked = true;
+    }
+})();
+</script>
 
 </body>
 
