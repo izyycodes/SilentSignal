@@ -1,5 +1,5 @@
 <?php
-// index.php - Main entry point
+// index.php - Main entry pointwdwad
 
 session_start();
 require_once 'config/config.php';
