@@ -19,9 +19,15 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <h1>Communication Hub</h1>
             <p>Select pre-written messages to send to your emergency contacts via SMS with GPS location.</p>
         </div>
-        <div class="page-header-meta">
-            <div class="sel-label">Selected</div>
-            <div class="sel-count" id="selCount">0</div>
+        <div class="page-header-actions">
+            <button class="customize-btn" onclick="openCustomizeDrawer()">
+                <i class="ri-layout-grid-line"></i>
+                <span>Customize Cards</span>
+            </button>
+            <div class="page-header-meta">
+                <div class="sel-label">Selected</div>
+                <div class="sel-count" id="selCount">0</div>
+            </div>
         </div>
     </div>
 
@@ -152,6 +158,80 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </div>
         <p class="card-sub">Download Filipino Sign Language guides and instructions for offline use.</p>
         <div id="fslList"></div>
+    </div>
+</div>
+
+<!-- Customize Cards Drawer -->
+<div class="customize-overlay" id="customizeOverlay" onclick="closeCustomizeDrawer(event)">
+    <div class="customize-drawer" id="customizeDrawer">
+
+        <div class="customize-header">
+            <div class="customize-title">
+                <i class="ri-layout-grid-line"></i>
+                <span>Customize Cards</span>
+            </div>
+            <button class="customize-close" onclick="closeCustomizeDrawerBtn()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="customize-tabs">
+            <button class="ctab active" data-tab="manage" onclick="switchCTab(this,'manage')">
+                <i class="ri-list-check"></i> Manage Cards
+            </button>
+            <button class="ctab" data-tab="create" onclick="switchCTab(this,'create')">
+                <i class="ri-add-circle-line"></i> Create Card
+            </button>
+        </div>
+
+        <!-- Manage Tab -->
+        <div class="ctab-panel active" id="ctabManage">
+            <p class="customize-hint"><i class="ri-drag-move-line"></i> Drag to reorder · Toggle to show/hide</p>
+            <div class="customize-card-list" id="customizeCardList"></div>
+            <button class="reset-cards-btn" onclick="resetCards()">
+                <i class="ri-refresh-line"></i> Reset to Default
+            </button>
+        </div>
+
+        <!-- Create Tab -->
+        <div class="ctab-panel" id="ctabCreate">
+            <div class="create-card-form">
+                <div class="ccf-group">
+                    <label>Card Title <span class="ccf-req">*</span></label>
+                    <input type="text" id="ccTitle" placeholder="e.g. Need Wheelchair" maxlength="30">
+                </div>
+                <div class="ccf-group">
+                    <label>Description <span class="ccf-req">*</span></label>
+                    <input type="text" id="ccDesc" placeholder="e.g. I need a wheelchair" maxlength="80">
+                </div>
+                <div class="ccf-group">
+                    <label>Category</label>
+                    <select id="ccCat">
+                        <option value="emergency">Emergency</option>
+                        <option value="medical">Medical</option>
+                        <option value="food">Food</option>
+                        <option value="water">Water</option>
+                        <option value="shelter">Shelter</option>
+                    </select>
+                </div>
+                <div class="ccf-group">
+                    <label>Icon <span class="ccf-req">*</span></label>
+                    <div class="icon-search-wrap">
+                        <input type="text" id="ccIconSearch" placeholder="Search icons…" oninput="filterIcons(this.value)">
+                    </div>
+                    <div class="icon-picker" id="iconPicker"></div>
+                    <div class="icon-selected-preview" id="iconSelectedPreview">
+                        <i id="iconPreviewEl" class="ri-question-line"></i>
+                        <span id="iconPreviewName">No icon selected</span>
+                    </div>
+                </div>
+                <button class="create-card-btn" onclick="createCustomCard()">
+                    <i class="ri-add-line"></i> Add Card
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>
 
