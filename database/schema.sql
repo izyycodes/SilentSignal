@@ -47,6 +47,7 @@ CREATE TABLE `users` (
   `verified_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  'pwd_id_photo' VARCHAR(255) DEFAULT NULL AFTER is_active,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   KEY `idx_email` (`email`),

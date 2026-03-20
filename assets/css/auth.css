@@ -491,6 +491,114 @@ body {
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
 }
 
+/* PWD ID FIELDS */
+#pwdFields {
+    width: 100%;
+    animation: fadeSlideDown 0.25s ease;
+}
+@keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.pwd-field-required { color: #ef4444; font-size: 0.8rem; margin-left: 2px; }
+.field-hint {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 0.75rem; color: #94a3b8; margin-top: 4px;
+}
+
+/* Upload box — compact height to match the text input row */
+.pwd-upload-box {
+    border: 2px dashed #c8d8e0;
+    border-radius: 10px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--bg-section-alt);
+    height: 51px; /* matches input padding: 14px top + 14px bottom + ~1 line font */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+.pwd-upload-box:hover {
+    border-color: #2c7a94;
+    background: rgba(44, 122, 148, 0.04);
+}
+
+/* Compact placeholder — single row layout */
+.pwd-upload-placeholder {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    color: #94a3b8;
+    pointer-events: none;
+    width: 100%;
+}
+.pwd-upload-placeholder i {
+    font-size: 20px;
+    color: #2c7a94;
+    opacity: 0.8;
+    flex-shrink: 0;
+}
+.pwd-upload-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.pwd-upload-placeholder span {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #555;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+.pwd-upload-placeholder small {
+    font-size: 0.68rem;
+    color: #aaa;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+/* Image preview — fills the compact box */
+.pwd-upload-preview {
+    position: relative;
+    width: 100%;
+    height: 51px;
+}
+.pwd-upload-preview img {
+    width: 100%;
+    height: 51px;
+    object-fit: cover;
+    display: block;
+}
+.pwd-preview-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: #fff;
+    font-size: 0.78rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.pwd-upload-preview:hover .pwd-preview-overlay { opacity: 1; }
+
+.pwd-file-name {
+    display: block;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
 /* ============================================ */
 /* RESPONSIVE - TABLET (max-width: 1024px)     */
 /* ============================================ */
@@ -863,3 +971,13 @@ body {
     background: var(--bg-input);
     border-color: var(--border-input);
 }
+
+[data-theme="dark"] .pwd-upload-box {
+    background: var(--bg-input);
+    border-color: var(--border-input);
+}
+[data-theme="dark"] .pwd-upload-box:hover {
+    border-color: var(--brand-accent);
+}
+[data-theme="dark"] .pwd-upload-placeholder span { color: var(--text-secondary); }
+[data-theme="dark"] .pwd-upload-placeholder i    { color: var(--brand-accent); }

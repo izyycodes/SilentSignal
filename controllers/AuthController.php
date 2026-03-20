@@ -197,6 +197,31 @@ class AuthController {
         if (!in_array($role, $allowedRoles)) {
             $role = 'pwd';
         }
+
+        // PWD-specific validation
+        $pwdId        = '';
+        $pwdPhotoFile = '';
+        if ($role === 'pwd') {
+            $pwdId = trim($_POST['pwd_id'] ?? '');
+            if (empty($pwdId)) {
+                $errors[] = "PWD ID Number is required.";
+            }
+            if (empty($_FILES['pwd_id_photo']['name'])) {
+                $errors[] = "PWD ID photo is required.";
+            } else {
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+                $fileType     = mime_content_type($_FILES['pwd_id_photo']['tmp_name']);
+                $fileSize     = $_FILES['pwd_id_photo']['size'];
+                $fileError    = $_FILES['pwd_id_photo']['error'];
+                if ($fileError !== UPLOAD_ERR_OK) {
+                    $errors[] = "Photo upload failed. Please try again.";
+                } elseif (!in_array($fileType, $allowedTypes)) {
+                    $errors[] = "Invalid file type. Only JPG, PNG, or PDF allowed.";
+                } elseif ($fileSize > 5 * 1024 * 1024) {
+                    $errors[] = "Photo file size must not exceed 5MB.";
+                }
+            }
+        }
         
         // If errors, redirect back
         if (!empty($errors)) {
@@ -224,6 +249,21 @@ class AuthController {
             
             // Create empty medical profile for PWD users
             if ($role === 'pwd') {
+
+                // ▼ NEW: Move uploaded PWD ID photo
+                $savedPhoto = '';
+                if (!empty($_FILES['pwd_id_photo']['tmp_name'])) {
+                    $ext       = strtolower(pathinfo($_FILES['pwd_id_photo']['name'], PATHINFO_EXTENSION));
+                    $filename  = 'pwd_' . $this->user->id . '_' . time() . '.' . $ext;
+                    $uploadDir = __DIR__ . '/../assets/uploads/pwd-ids/';
+                    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                    if (move_uploaded_file($_FILES['pwd_id_photo']['tmp_name'], $uploadDir . $filename)) {
+                        $savedPhoto = $filename;
+                        $this->user->savePwdIdPhoto($this->user->id, $savedPhoto);
+                    }
+                }
+                // ▲ END NEW
+
                 require_once __DIR__ . '/../models/MedicalProfile.php';
                 $medicalProfile = new MedicalProfile();
                 $profileData = [
@@ -233,7 +273,7 @@ class AuthController {
                     'phone' => $phone,
                     'date_of_birth' => null,
                     'gender' => '',
-                    'pwd_id' => '',
+                    'pwd_id' => $pwdId, // ← CHANGED: was empty string ''
                     'street_address' => '',
                     'city' => '',
                     'province' => '',

@@ -22,7 +22,7 @@ require_once VIEW_PATH . 'includes/home-header.php';
 
         <!-- Sign Up Form -->
         <div class="form-container sign-up">
-            <form action="<?php echo BASE_URL; ?>index.php?action=process_signup" method="POST">
+            <form action="<?php echo BASE_URL; ?>index.php?action=process_signup" method="POST" enctype="multipart/form-data">
                 <h2>Create Account</h2>
 
                 <!-- Social Login -->
@@ -52,28 +52,28 @@ require_once VIEW_PATH . 'includes/home-header.php';
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="fname">First Name</label>
+                        <label for="fname">First Name <span class="pwd-field-required">*</span></label>
                         <input type="text" name="fname" required>
                     </div>
                     <div class="form-group">
-                        <label for="lname">Last Name</label>
+                        <label for="lname">Last Name <span class="pwd-field-required">*</span></label>
                         <input type="text" name="lname" required>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email">Email <span class="pwd-field-required">*</span></label>
                     <input type="email" name="email" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="phone">Phone Number</label>
+                    <label for="phone">Phone Number <span class="pwd-field-required">*</span></label>
                     <input type="tel" name="phone" pattern="09\d{9}" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="role">Role</label>
-                    <select id="role" name="role" required>
+                    <label for="role">Role <span class="pwd-field-required">*</span></label>
+                    <select id="role" name="role" required onchange="togglePwdFields(this.value)">
                         <option value="" disabled selected>Select Role</option>
                         <option value="pwd">PWD User</option>
                         <option value="family">Family Member</option>
@@ -81,8 +81,41 @@ require_once VIEW_PATH . 'includes/home-header.php';
                     </select>
                 </div>
 
+                <!-- PWD-only fields -->
+                <div id="pwdFields" style="display:none; width:100%;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pwd_id">PWD ID Number <span class="pwd-field-required">*</span></label>
+                            <input type="text" name="pwd_id" id="pwd_id" placeholder="e.g. 06-10-01-001-0000123" maxlength="25" oninput="formatPwdId(this)">
+                            <span class="field-hint"><i class="ri-information-line"></i> RR-PP-MM-BBB-NNNNNNN</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="pwd_id_photo">PWD ID Photo <span class="pwd-field-required">*</span></label>
+                            <div class="pwd-upload-box" id="pwdUploadBox" onclick="document.getElementById('pwd_id_photo').click()">
+                                <div class="pwd-upload-placeholder" id="pwdUploadPlaceholder">
+                                    <i class="ri-id-card-line"></i>
+                                    <div class="pwd-upload-text">
+                                        <span>Click to upload</span>
+                                        <small>JPG, PNG or PDF · Max 5MB</small>
+                                    </div>
+                                </div>
+                                <div class="pwd-upload-preview" id="pwdUploadPreview" style="display:none;">
+                                    <img id="pwdPreviewImg" src="" alt="PWD ID Preview">
+                                    <div class="pwd-preview-overlay">
+                                        <i class="ri-refresh-line"></i> Change
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="file" name="pwd_id_photo" id="pwd_id_photo"
+                                accept="image/jpeg,image/png,image/jpg,application/pdf"
+                                style="display:none;" onchange="previewPwdId(this)">
+                            <span class="pwd-file-name" id="pwdFileName"></span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label for="signup-password">Password</label>
+                    <label for="signup-password">Password <span class="pwd-field-required">*</span></label>
                     <div class="password-group">
                         <input type="password" name="password" id="signup-password" required>
                         <i class="fas fa-eye toggle-password" onclick="togglePassword('signup-password')"></i>
@@ -183,20 +216,81 @@ require_once VIEW_PATH . 'includes/home-header.php';
 <script src="<?php echo BASE_URL; ?>assets/js/auth.js"></script>
 
 <script>
-// Pre-fill email and check Remember Me if cookie is set
-(function () {
-    function getCookie(name) {
-        const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
-        return match ? decodeURIComponent(match[1]) : null;
+    // Pre-fill email and check Remember Me if cookie is set
+    (function() {
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+            return match ? decodeURIComponent(match[1]) : null;
+        }
+        const savedEmail = getCookie('ss_remember_email');
+        if (savedEmail) {
+            const emailInput = document.querySelector('input[name="email_phone"]');
+            const checkbox = document.getElementById('rememberMe');
+            if (emailInput) emailInput.value = savedEmail;
+            if (checkbox) checkbox.checked = true;
+        }
+    })();
+
+    function togglePwdFields(role) {
+        const fields = document.getElementById('pwdFields');
+        const pwdIdIn = document.getElementById('pwd_id');
+        const pwdPhoto = document.getElementById('pwd_id_photo');
+        if (role === 'pwd') {
+            fields.style.display = 'block';
+            pwdIdIn.required = true;
+            pwdPhoto.required = true;
+        } else {
+            fields.style.display = 'none';
+            pwdIdIn.required = false;
+            pwdPhoto.required = false;
+        }
     }
-    const savedEmail = getCookie('ss_remember_email');
-    if (savedEmail) {
-        const emailInput = document.querySelector('input[name="email_phone"]');
-        const checkbox   = document.getElementById('rememberMe');
-        if (emailInput) emailInput.value = savedEmail;
-        if (checkbox)   checkbox.checked = true;
+
+    function previewPwdId(input) {
+        const file = input.files[0];
+        const placeholder = document.getElementById('pwdUploadPlaceholder');
+        const preview = document.getElementById('pwdUploadPreview');
+        const img = document.getElementById('pwdPreviewImg');
+        const fileName = document.getElementById('pwdFileName');
+
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File is too large. Maximum size is 5MB.');
+            input.value = '';
+            return;
+        }
+
+        fileName.textContent = file.name;
+
+        if (file.type === 'application/pdf') {
+            placeholder.innerHTML = '<i class="ri-file-pdf-line" style="color:#ef4444;font-size:32px;"></i><span>' + file.name + '</span><small>PDF selected ✓</small>';
+            preview.style.display = 'none';
+            placeholder.style.display = 'flex';
+        } else {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                placeholder.style.display = 'none';
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
     }
-})();
+
+    function formatPwdId(input) {
+        // Strip everything except digits
+        let raw = input.value.replace(/\D/g, '');
+
+        let formatted = '';
+        if (raw.length > 0) formatted = raw.substring(0, 2); // RR
+        if (raw.length > 2) formatted += '-' + raw.substring(2, 4); // PP
+        if (raw.length > 4) formatted += '-' + raw.substring(4, 6); // MM
+        if (raw.length > 6) formatted += '-' + raw.substring(6, 9); // BBB
+        if (raw.length > 9) formatted += '-' + raw.substring(9, 16); // NNNNNNN
+
+        input.value = formatted;
+    }
 </script>
 
 </body>

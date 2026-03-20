@@ -107,6 +107,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <th>PHONE NUMBER</th>
                     <th>ROLE</th>
                     <th>PWD ID</th>
+                    <th>PWD ID PHOTO</th>
                     <th>DISABILITY STATUS</th>
                     <th>LOCATION</th>
                     <th>REGISTRATION DATE</th>
@@ -153,6 +154,25 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                             </span>
                         </td>
                         <td><?php echo htmlspecialchars($pwd_id); ?></td>
+                        <td>
+                            <?php if ($user['role'] === 'pwd' && !empty($user['pwd_id_photo'])): ?>
+                                <div class="pwd-photo-cell">
+                                    <img
+                                        src="<?php echo BASE_URL; ?>assets/uploads/pwd-ids/<?php echo htmlspecialchars($user['pwd_id_photo']); ?>"
+                                        alt="PWD ID"
+                                        class="pwd-thumb"
+                                        onclick="openIdModal('<?php echo BASE_URL . 'assets/uploads/pwd-ids/' . htmlspecialchars($user['pwd_id_photo']); ?>', '<?php echo htmlspecialchars(addslashes($user['name'])); ?>')"
+                                    >
+                                    <button class="btn-view-id" onclick="openIdModal('<?php echo BASE_URL . 'assets/uploads/pwd-ids/' . htmlspecialchars($user['pwd_id_photo']); ?>', '<?php echo htmlspecialchars(addslashes($user['name'])); ?>')" title="View ID">
+                                        <i class="ri-zoom-in-line"></i>
+                                    </button>
+                                </div>
+                            <?php elseif ($user['role'] === 'pwd'): ?>
+                                <span class="no-id-badge"><i class="ri-file-unknow-line"></i> Not uploaded</span>
+                            <?php else: ?>
+                                <span style="color:#475569;">—</span>
+                            <?php endif; ?>
+                        </td>
                         <td>
                             <?php if ($disability !== 'N/A'): ?>
                                 <span class="disability-badge">
@@ -243,4 +263,46 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 require_once VIEW_PATH . 'includes/dashboard-footer.php';
 ?>
 
+<!-- PWD ID Photo Modal -->
+<div id="pwdIdModal" class="pwd-id-modal" onclick="closeIdModal(event)">
+    <div class="pwd-id-modal-box">
+        <div class="pwd-id-modal-header">
+            <div class="pwd-id-modal-title">
+                <i class="ri-id-card-line"></i>
+                <span id="pwdIdModalName">PWD ID</span>
+            </div>
+            <div class="pwd-id-modal-actions">
+                <a id="pwdIdNewTab" href="#" target="_blank" class="btn-open-tab">
+                    <i class="ri-external-link-line"></i> Open in New Tab
+                </a>
+                <button class="btn-close-modal" onclick="closeIdModalBtn()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+        </div>
+        <div class="pwd-id-modal-body">
+            <img id="pwdIdModalImg" src="" alt="PWD ID Photo">
+        </div>
+    </div>
+</div>
+
 <script src="<?php echo BASE_URL; ?>assets/js/admin-users.js"></script>
+<script>
+function openIdModal(src, name) {
+    document.getElementById('pwdIdModalImg').src = src;
+    document.getElementById('pwdIdModalName').textContent = name + ' — PWD ID';
+    document.getElementById('pwdIdNewTab').href = src;
+    document.getElementById('pwdIdModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeIdModal(e) {
+    if (e.target === document.getElementById('pwdIdModal')) closeIdModalBtn();
+}
+function closeIdModalBtn() {
+    document.getElementById('pwdIdModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeIdModalBtn();
+});
+</script>
