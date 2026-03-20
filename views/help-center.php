@@ -115,7 +115,7 @@
                         ['q' => 'How do I set up my profile after registering?', 'a' => 'After logging in, go to your Dashboard and click on "Medical Profile" in the navigation menu. Fill in your medical conditions, emergency contacts, blood type, and other important details. This information is shared with emergency responders when you send an SOS.'],
                         ['q' => 'Can I use Silent Signal without an internet connection?', 'a' => 'Some features, like the Communication Hub and pre-saved visual cards, are accessible offline. However, sending SOS alerts, receiving disaster notifications, and family check-ins require an active internet or mobile data connection.'],
                         ['q' => 'Is Silent Signal free to use?', 'a' => 'Yes. Silent Signal is a free platform designed specifically to serve the PWD community. All core features — emergency alerts, family monitoring, and the communication hub — are available at no cost.'],
-                        ['q' => 'How do I link my account to a family member?', 'a' => 'Go to your Dashboard and navigate to "Family Check-In." From there, you can add a family member\'s email address. They will receive an invitation to create or link a Family account that monitors your status.'],
+                        ['q' => 'How do I link my account to a family member?', 'a' => 'Go to your Dashboard and navigate to "Family Check-In." From there, you can add a family member\'s phone number. They will receive an invitation to create or link a Family account that monitors your status.'],
                     ];
                     foreach ($gettingStarted as $i => $item): ?>
                     <div class="faq-item" data-category="getting-started">
@@ -249,7 +249,7 @@
                         ['q' => 'The page is not loading correctly.', 'a' => 'Try clearing your browser cache and cookies, then reload the page. If using a mobile browser, ensure it is up to date. Silent Signal works best on Chrome, Firefox, Safari, and Edge.'],
                         ['q' => 'I forgot my password and cannot log in.', 'a' => 'On the Login page, click "Forgot Password?" and enter your registered email address. You will receive a password reset link within a few minutes. Check your spam folder if you do not see it in your inbox.'],
                         ['q' => 'My location is not being detected accurately.', 'a' => 'GPS accuracy depends on your device and environment. For best results, use a device with GPS hardware and allow location access in your browser. Indoors or in areas with weak signal, accuracy may be reduced.'],
-                        ['q' => 'The family check-in link is not working for my contact.', 'a' => 'Ensure the family member has created a Silent Signal account using the same email address you linked. Invitation links expire after 48 hours — you can resend the invitation from the Family Check-In settings page.'],
+                        ['q' => 'The family check-in link is not working for my contact.', 'a' => 'Ensure the family member has created a Silent Signal account using the same phone number you linked. Invitation links expire after 48 hours — you can resend the invitation from the Family Check-In settings page.'],
                     ];
                     foreach ($trouble as $item): ?>
                     <div class="faq-item" data-category="troubleshooting">

@@ -173,8 +173,48 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <?php echo htmlspecialchars($member['status_label']); ?>
                     </div>
                     <div class="family-time"><i class="ri-time-line"></i> <?php echo htmlspecialchars($member['time_ago']); ?></div>
+                    <?php if (!$member['is_registered'] && !empty($member['phone_number'])): ?>
+                    <button class="invite-btn" onclick="toggleInvitePanel(this)"
+                        data-name="<?php echo htmlspecialchars(addslashes($member['display_name'])); ?>"
+                        data-phone="<?php echo htmlspecialchars($member['phone_number']); ?>">
+                        <i class="ri-mail-send-line"></i> Invite
+                    </button>
+                    <?php endif; ?>
                 </div>
             </div>
+
+            <?php if (!$member['is_registered'] && !empty($member['phone_number'])): ?>
+            <div class="invite-panel" id="invitePanel_<?php echo (int)$member['id']; ?>" style="display:none;">
+                <div class="invite-panel-inner">
+                    <div class="invite-panel-header">
+                        <i class="ri-mail-send-line"></i>
+                        <span>Invite <?php echo htmlspecialchars($member['display_name']); ?> to Silent Signal</span>
+                    </div>
+                    <div class="invite-sms-preview">
+                        <div class="invite-sms-label"><i class="ri-message-3-line"></i> SMS Preview</div>
+                        <div class="invite-sms-body"><?php
+                            $inviterName = $_SESSION['user_name'] ?? 'Your contact';
+                            echo htmlspecialchars(
+                                "Hi " . $member['display_name'] . "! " . $inviterName . " has added you as an emergency contact on Silent Signal — a disaster preparedness app for PWD users.\n\nPlease register at: " . BASE_URL . "\n\nUse the same phone number (" . $member['phone_number'] . ") when signing up so you're automatically linked.\n\nThis invitation expires in 48 hours."
+                            );
+                        ?></div>
+                    </div>
+                    <div class="invite-notice">
+                        <i class="ri-information-line"></i>
+                        Ensure the family member has created a Silent Signal account using the same phone number you linked. Invitation links expire after 48 hours — you can resend the invitation from the Family Check-In settings page.
+                    </div>
+                    <div class="invite-panel-actions">
+                        <button class="invite-send-btn" onclick="sendInviteSms('<?php echo htmlspecialchars(addslashes($member['display_name'])); ?>','<?php echo htmlspecialchars($member['phone_number']); ?>')">
+                            <i class="ri-send-plane-fill"></i> Send Invite via SMS
+                        </button>
+                        <button class="invite-cancel-btn" onclick="closeInvitePanel(this)">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
@@ -211,5 +251,36 @@ let currentLng = <?php echo json_encode($myStatus['longitude'] ?? null); ?>;
 
 <!-- Page-specific JavaScript -->
 <script src="<?php echo BASE_URL; ?>assets/js/family-checkin.js"></script>
+<script>
+function toggleInvitePanel(btn) {
+    const item  = btn.closest('.family-item');
+    const panel = item.nextElementSibling;
+    if (!panel || !panel.classList.contains('invite-panel')) return;
+    const isOpen = panel.style.display !== 'none';
+    // Close all other open panels first
+    document.querySelectorAll('.invite-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.invite-btn').forEach(b => b.classList.remove('active'));
+    if (!isOpen) {
+        panel.style.display = 'block';
+        btn.classList.add('active');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function closeInvitePanel(btn) {
+    const panel = btn.closest('.invite-panel');
+    if (panel) panel.style.display = 'none';
+    document.querySelectorAll('.invite-btn').forEach(b => b.classList.remove('active'));
+}
+
+function sendInviteSms(name, phone) {
+    const inviterName = <?php echo json_encode($_SESSION['user_name'] ?? 'Your contact'); ?>;
+    const appUrl      = <?php echo json_encode(BASE_URL); ?>;
+    const body = `Hi ${name}! ${inviterName} has added you as an emergency contact on Silent Signal — a disaster preparedness app for PWD users.\n\nPlease register at: ${appUrl}\n\nUse the same phone number (${phone}) when signing up so you're automatically linked.\n\nThis invitation expires in 48 hours.`;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const sep   = isIOS ? '&' : '?';
+    window.location.href = `sms:${phone}${sep}body=${encodeURIComponent(body)}`;
+}
+</script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
