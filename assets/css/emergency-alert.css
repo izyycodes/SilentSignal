@@ -105,6 +105,46 @@
     background: #15406a;
 }
 
+/* Location status group */
+.location-status-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.allow-location-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: linear-gradient(135deg, #e53935, #c62828);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s;
+    animation: pulseBadge 1.8s ease-in-out infinite;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.allow-location-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.4);
+}
+
+.allow-location-btn i {
+    font-size: 14px;
+}
+
+@keyframes pulseBadge {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.4); }
+    50%       { box-shadow: 0 0 0 6px rgba(229, 57, 53, 0); }
+}
+
 /* ================================
    SOS BUTTON
    ================================ */

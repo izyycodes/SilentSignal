@@ -682,6 +682,7 @@ class UserController
 
         // Build user info for SMS
         $userInfo = [
+            'id'        => $_SESSION['user_id'],   
             'name' => trim(($profile['first_name'] ?? '') . ' ' . ($profile['last_name'] ?? '')) ?: ($_SESSION['user_name'] ?? 'User'),
             'phone' => $profile['phone'] ?? '',
             'address' => trim(implode(', ', array_filter([
@@ -906,7 +907,7 @@ class UserController
         $medicalConditions = $profile['medical_conditions'] ?? [];
 
         // Blood Type
-        $bloodType = $profile['blood_type'] ?? 'Not set';
+        $bloodType = $profile['blood_type'] ?? '';
 
         // Emergency Contacts (from JSON - already decoded by model)
         $emergencyContacts = $profile['emergency_contacts'] ?? [];

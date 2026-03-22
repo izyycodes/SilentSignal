@@ -108,6 +108,7 @@ class User {
                 u.role,
                 u.is_verified,
                 u.is_active,
+                u.pwd_id_photo,
                 DATE_FORMAT(u.created_at, '%b %d, %Y') AS registration_date,
                 m.pwd_id,
                 m.disability_type,
@@ -228,5 +229,13 @@ class User {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) return false;
         return (bool)$row['is_verified'];
+    }
+
+    public function savePwdIdPhoto($userId, $filename) {
+        $query = "UPDATE {$this->table_name} SET pwd_id_photo = :photo WHERE id = :id";
+        $stmt  = $this->db->prepare($query);
+        $stmt->bindParam(':photo', $filename);
+        $stmt->bindParam(':id',    $userId);
+        return $stmt->execute();
     }
 }

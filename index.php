@@ -71,6 +71,30 @@ switch ($action) {
         $controller->logout();
         break;
 
+    case 'forgot-password':
+        require_once CONTROLLER_PATH . 'AuthController.php';
+        $controller = new AuthController();
+        $controller->showForgotPassword();
+        break;
+
+    case 'process_forgot_password':
+        require_once CONTROLLER_PATH . 'AuthController.php';
+        $controller = new AuthController();
+        $controller->processForgotPassword();
+        break;
+
+    case 'reset-password':
+        require_once CONTROLLER_PATH . 'AuthController.php';
+        $controller = new AuthController();
+        $controller->showResetPassword();
+        break;
+
+    case 'process_reset_password':
+        require_once CONTROLLER_PATH . 'AuthController.php';
+        $controller = new AuthController();
+        $controller->processResetPassword();
+        break;
+
     // User Modules    
     case 'dashboard':
         require_once CONTROLLER_PATH . 'UserController.php';
@@ -305,12 +329,6 @@ switch ($action) {
         require_once CONTROLLER_PATH . 'AdminController.php';
         $controller = new AdminController();
         $controller->updateAlertStatus();
-        break;
-    
-    case 'send-philsms':
-        require_once CONTROLLER_PATH . 'UserController.php';
-        $controller = new UserController();
-        $controller->sendPhilSms();
         break;
 
     default:

@@ -212,7 +212,6 @@ document.addEventListener('DOMContentLoaded', function () {
         saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
         saveBtn.style.background = 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)';
 
-        // Attach character counters and blur validators once edit mode starts
         attachCharCounters();
         attachBlurValidators();
 
@@ -256,20 +255,17 @@ document.addEventListener('DOMContentLoaded', function () {
         if (cancelBtn) cancelBtn.remove();
     }
 
-    // Fields that are permanently locked and cannot be changed
+    // Fields that are permanently locked
     const LOCKED_FIELDS = ['firstName', 'lastName'];
 
     function setFormReadonly(readonly) {
         document.querySelectorAll('.form-control').forEach(input => {
             const fieldName = input.getAttribute('name');
 
-            // Permanently locked fields are always read-only
             if (LOCKED_FIELDS.includes(fieldName)) {
                 input.readOnly = true;
                 input.style.cursor = 'not-allowed';
-                input.style.background = '#f0f0f0';
                 input.title = 'Name cannot be changed. Contact support if needed.';
-                // Add lock icon to parent label if not already added
                 const formGroup = input.closest('.form-group');
                 if (formGroup && !formGroup.querySelector('.lock-badge')) {
                     const label = formGroup.querySelector('label');
@@ -294,9 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         const bloodTypeSelect = document.getElementById('bloodTypeSelect');
-        if (bloodTypeSelect) {
-            bloodTypeSelect.disabled = readonly;
-        }
+        if (bloodTypeSelect) bloodTypeSelect.disabled = readonly;
 
         const smsTemplate = document.getElementById('smsTemplate');
         if (smsTemplate) {
@@ -304,33 +298,29 @@ document.addEventListener('DOMContentLoaded', function () {
             smsTemplate.style.background = readonly ? '#f5f5f5' : '';
         }
 
+        // Hide/show edit-mode-only controls (tag remove, medication remove, contact delete, inline add-allergy/medication/condition)
+        // NOTE: addContactBtn and addReminderBtn are intentionally excluded — always visible
         document.querySelectorAll('.tag-remove, .item-remove, .action-btn.delete, .btn-add').forEach(btn => {
             btn.style.display = readonly ? 'none' : 'flex';
         });
 
-        const addContactBtn = document.getElementById('addContactBtn');
-        if (addContactBtn) addContactBtn.style.display = readonly ? 'none' : 'inline-flex';
-
-        const addReminderBtn = document.getElementById('addReminderBtn');
-        if (addReminderBtn) addReminderBtn.style.display = readonly ? 'none' : 'inline-flex';
-
+        // btn-set-time on reminder cards
         document.querySelectorAll('.btn-set-time').forEach(btn => {
             btn.style.display = readonly ? 'none' : 'inline-flex';
         });
 
+        // Reminder card display/edit mode
         document.querySelectorAll('.reminder-card').forEach(card => {
             const nameDisplay = card.querySelector('.reminder-name-display');
-            const nameEdit = card.querySelector('.reminder-name-edit');
+            const nameEdit    = card.querySelector('.reminder-name-edit');
             const freqDisplay = card.querySelector('.reminder-frequency-display');
-            const freqEdit = card.querySelector('.reminder-frequency-edit');
-            const deleteBtn = card.querySelector('.btn-delete-reminder');
+            const freqEdit    = card.querySelector('.reminder-frequency-edit');
+            const deleteBtn   = card.querySelector('.btn-delete-reminder');
 
             if (nameDisplay && nameEdit) {
-                if (readonly && nameEdit.value.trim()) {
-                    nameDisplay.textContent = nameEdit.value.trim();
-                }
+                if (readonly && nameEdit.value.trim()) nameDisplay.textContent = nameEdit.value.trim();
                 nameDisplay.style.display = readonly ? 'block' : 'none';
-                nameEdit.style.display = readonly ? 'none' : 'block';
+                nameEdit.style.display    = readonly ? 'none'  : 'block';
                 if (!readonly) {
                     nameEdit.readOnly = false;
                     nameEdit.style.cursor = 'text';
@@ -338,17 +328,39 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             if (freqDisplay && freqEdit) {
-                if (readonly && freqEdit.value) {
-                    freqDisplay.textContent = freqEdit.value;
-                }
+                if (readonly && freqEdit.value) freqDisplay.textContent = freqEdit.value;
                 freqDisplay.style.display = readonly ? 'inline-block' : 'none';
-                freqEdit.style.display = readonly ? 'none' : 'inline-block';
+                freqEdit.style.display    = readonly ? 'none' : 'inline-block';
                 freqEdit.disabled = readonly;
-                if (!readonly) {
-                    freqEdit.value = freqDisplay.textContent.trim();
-                }
+                if (!readonly) freqEdit.value = freqDisplay.textContent.trim();
             }
             if (deleteBtn) deleteBtn.style.display = readonly ? 'none' : 'inline-flex';
+        });
+    }
+
+    // ================================
+    // SILENT AUTO-SAVE (contacts & reminders)
+    // Used when adding contacts/reminders outside of edit mode
+    // ================================
+    function autoSaveQuiet(onSuccess) {
+        const formData = collectFormData();
+        fetch(BASE_URL + 'index.php?action=save-medical-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                originalFormData = formData;
+                hasUnsavedChanges = false;
+                if (onSuccess) onSuccess();
+            } else {
+                throw new Error(data.message || 'Save failed');
+            }
+        })
+        .catch(err => {
+            showNotification('Auto-save failed: ' + err.message, 'error');
         });
     }
 
@@ -369,13 +381,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         name: 'frequency', label: 'Frequency', type: 'select',
                         value: 'Once daily',
                         options: [
-                            { value: 'Once daily', label: 'Once daily' },
-                            { value: 'Twice daily', label: 'Twice daily' },
+                            { value: 'Once daily',        label: 'Once daily' },
+                            { value: 'Twice daily',       label: 'Twice daily' },
                             { value: 'Three times daily', label: 'Three times daily' },
-                            { value: 'Every 4 hours', label: 'Every 4 hours' },
-                            { value: 'Every 6 hours', label: 'Every 6 hours' },
-                            { value: 'Every 8 hours', label: 'Every 8 hours' },
-                            { value: 'As needed', label: 'As needed' }
+                            { value: 'Every 4 hours',     label: 'Every 4 hours' },
+                            { value: 'Every 6 hours',     label: 'Every 6 hours' },
+                            { value: 'Every 8 hours',     label: 'Every 8 hours' },
+                            { value: 'As needed',         label: 'As needed' }
                         ]
                     }
                 ]
@@ -383,7 +395,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!result || !result.name) return;
             addMedicationReminder(result.name, result.frequency, '8:00 AM');
-            hasUnsavedChanges = true;
+            // Auto-save immediately
+            autoSaveQuiet(() => showNotification('Reminder added and saved!', 'success'));
         });
     }
 
@@ -431,96 +444,48 @@ document.addEventListener('DOMContentLoaded', function () {
                 <i class="ri-capsule-fill"></i>
             </div>
             <div class="reminder-info">
-                <h4 class="reminder-name-display" style="display: none;">${name}</h4>
+                <h4 class="reminder-name-display">${name}</h4>
                 <input type="text" class="reminder-name-edit form-control" 
                        value="${name}" 
-                       style="margin-bottom: 8px; font-size: 1.1rem; font-weight: 600;"
+                       style="display:none; margin-bottom: 8px; font-size: 1.1rem; font-weight: 600;"
                        placeholder="Enter medication name">
-                <span class="reminder-frequency-display reminder-frequency" style="display: none;">${frequency}</span>
-                <select class="reminder-frequency-edit form-control" style="margin-bottom: 8px; width: auto;">
-                    <option value="Once daily"        ${frequency === 'Once daily' ? 'selected' : ''}>Once daily</option>
-                    <option value="Twice daily"       ${frequency === 'Twice daily' ? 'selected' : ''}>Twice daily</option>
+                <span class="reminder-frequency-display reminder-frequency">${frequency}</span>
+                <select class="reminder-frequency-edit form-control" style="display:none; margin-bottom: 8px; width: auto;">
+                    <option value="Once daily"        ${frequency === 'Once daily'        ? 'selected' : ''}>Once daily</option>
+                    <option value="Twice daily"       ${frequency === 'Twice daily'       ? 'selected' : ''}>Twice daily</option>
                     <option value="Three times daily" ${frequency === 'Three times daily' ? 'selected' : ''}>Three times daily</option>
-                    <option value="Every 4 hours"     ${frequency === 'Every 4 hours' ? 'selected' : ''}>Every 4 hours</option>
-                    <option value="Every 6 hours"     ${frequency === 'Every 6 hours' ? 'selected' : ''}>Every 6 hours</option>
-                    <option value="Every 8 hours"     ${frequency === 'Every 8 hours' ? 'selected' : ''}>Every 8 hours</option>
-                    <option value="As needed"         ${frequency === 'As needed' ? 'selected' : ''}>As needed</option>
+                    <option value="Every 4 hours"     ${frequency === 'Every 4 hours'     ? 'selected' : ''}>Every 4 hours</option>
+                    <option value="Every 6 hours"     ${frequency === 'Every 6 hours'     ? 'selected' : ''}>Every 6 hours</option>
+                    <option value="Every 8 hours"     ${frequency === 'Every 8 hours'     ? 'selected' : ''}>Every 8 hours</option>
+                    <option value="As needed"         ${frequency === 'As needed'         ? 'selected' : ''}>As needed</option>
                 </select>
                 <span class="reminder-time"><i class="ri-time-line"></i> ${time}</span>
             </div>
             <div class="reminder-actions">
-                <button class="btn btn-set-time">Set Time</button>
-                <button class="btn btn-delete-reminder" style="background: #f44336; margin-left: 5px; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center;">
+                <button class="btn btn-set-time" style="display:none;">Set Time</button>
+                <button class="btn btn-delete-reminder" style="display:none; background: #f44336; margin-left: 5px; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; align-items: center;">
                     <i class="ri-delete-bin-line"></i>
                 </button>
             </div>
         `;
 
         container.appendChild(card);
-        showNotification('Reminder added! Remember to save.', 'success');
     }
 
     // ================================
     // VALIDATION
     // ================================
-    // Rules: required, maxLength, pattern (regex), patternHint (shown to user)
     const FIELD_RULES = {
-        pwdId: {
-            label: 'PWD ID Number',
-            required: false,
-            maxLength: 30,
-            pattern: null,
-            patternHint: null
-        },
-        phone: {
-            label: 'Phone Number',
-            required: true,
-            maxLength: 11,
-            pattern: /^(09\d{9}|\+639\d{9})$/,
-            patternHint: 'Must be an 11-digit Philippine mobile number starting with 09 (e.g. 09171234567).'
-        },
-        email: {
-            label: 'Email Address',
-            required: true,
-            maxLength: 100,
-            pattern: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
-            patternHint: 'Must be a valid email address (e.g. juan@example.com).'
-        },
-        streetAddress: {
-            label: 'Street Address',
-            required: false,
-            maxLength: 100,
-            pattern: null,
-            patternHint: null
-        },
-        city: {
-            label: 'City',
-            required: false,
-            maxLength: 50,
-            pattern: null,
-            patternHint: null
-        },
-        province: {
-            label: 'Province',
-            required: false,
-            maxLength: 50,
-            pattern: null,
-            patternHint: null
-        },
-        zipCode: {
-            label: 'Zip Code',
-            required: false,
-            maxLength: 4,
-            pattern: /^\d{4}$/,
-            patternHint: 'Must be a 4-digit Philippine zip code (e.g. 6100).'
-        },
+        pwdId:         { label: 'PWD ID Number',   required: false, maxLength: 30,  pattern: null,                                  patternHint: null },
+        phone:         { label: 'Phone Number',     required: true,  maxLength: 11,  pattern: /^(09\d{9}|\+639\d{9})$/,              patternHint: 'Must be an 11-digit Philippine mobile number starting with 09 (e.g. 09171234567).' },
+        email:         { label: 'Email Address',    required: true,  maxLength: 100, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,       patternHint: 'Must be a valid email address (e.g. juan@example.com).' },
+        streetAddress: { label: 'Street Address',   required: false, maxLength: 100, pattern: null,                                  patternHint: null },
+        city:          { label: 'City',             required: false, maxLength: 50,  pattern: null,                                  patternHint: null },
+        province:      { label: 'Province',         required: false, maxLength: 50,  pattern: null,                                  patternHint: null },
+        zipCode:       { label: 'Zip Code',         required: false, maxLength: 4,   pattern: /^\d{4}$/,                             patternHint: 'Must be a 4-digit Philippine zip code (e.g. 6100).' },
     };
 
-    // ================================
-    // CHARACTER COUNTER HELPERS
-    // ================================
     function attachCharCounter(input, maxLength) {
-        // Avoid duplicate counters
         const formGroup = input.closest('.form-group') || input.parentElement;
         if (formGroup.querySelector('.char-counter')) return;
 
@@ -533,24 +498,14 @@ document.addEventListener('DOMContentLoaded', function () {
         input.addEventListener('input', () => {
             const len = input.value.length;
             counter.textContent = `${len} / ${maxLength}`;
-            if (len > maxLength) {
-                counter.style.color = '#f44336';
-                counter.style.fontWeight = '600';
-            } else if (len >= maxLength * 0.85) {
-                counter.style.color = '#ff9800';
-                counter.style.fontWeight = '600';
-            } else {
-                counter.style.color = '#999';
-                counter.style.fontWeight = 'normal';
-            }
+            if (len > maxLength) { counter.style.color = '#f44336'; counter.style.fontWeight = '600'; }
+            else if (len >= maxLength * 0.85) { counter.style.color = '#ff9800'; counter.style.fontWeight = '600'; }
+            else { counter.style.color = '#999'; counter.style.fontWeight = 'normal'; }
         });
 
-        // Enforce hard cap — block typing beyond maxLength
         input.addEventListener('keydown', (e) => {
-            const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Home', 'End'];
-            if (input.value.length >= maxLength && !allowedKeys.includes(e.key) && !e.ctrlKey && !e.metaKey) {
-                e.preventDefault();
-            }
+            const allowedKeys = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab','Home','End'];
+            if (input.value.length >= maxLength && !allowedKeys.includes(e.key) && !e.ctrlKey && !e.metaKey) e.preventDefault();
         });
     }
 
@@ -560,10 +515,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const input = document.querySelector(`.form-control[name="${fieldName}"]`);
             if (input) attachCharCounter(input, rules.maxLength);
         }
-        // Also attach to reminder name inputs
-        document.querySelectorAll('.reminder-name-edit').forEach(input => {
-            attachCharCounter(input, 80);
-        });
+        document.querySelectorAll('.reminder-name-edit').forEach(input => attachCharCounter(input, 80));
     }
 
     function attachBlurValidators() {
@@ -576,23 +528,14 @@ document.addEventListener('DOMContentLoaded', function () {
             input.addEventListener('blur', () => {
                 if (!isEditing) return;
                 const value = input.value.trim();
-
-                // Clear previous inline error for this field
                 const formGroup = input.closest('.form-group') || input.parentElement;
                 formGroup?.querySelector('.field-error-msg')?.remove();
                 input.style.borderColor = '';
                 input.style.boxShadow = '';
-
-                if (rules.required && value === '') {
-                    highlightField(input, 'This field is required.');
-                    return;
-                }
-                if (value && rules.pattern && !rules.pattern.test(value)) {
-                    highlightField(input, rules.patternHint);
-                }
+                if (rules.required && value === '') { highlightField(input, 'This field is required.'); return; }
+                if (value && rules.pattern && !rules.pattern.test(value)) highlightField(input, rules.patternHint);
             });
 
-            // Clear error as soon as user starts correcting
             input.addEventListener('input', () => {
                 if (!isEditing) return;
                 const value = input.value.trim();
@@ -606,13 +549,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // ================================
-    // VALIDATION
-    // ================================
     function validateForm() {
         const errors = [];
-
-        // Clear all previous error states
         document.querySelectorAll('.form-control').forEach(input => {
             input.style.borderColor = '';
             input.style.boxShadow = '';
@@ -623,34 +561,24 @@ document.addEventListener('DOMContentLoaded', function () {
         for (const [fieldName, rules] of Object.entries(FIELD_RULES)) {
             const input = document.querySelector(`.form-control[name="${fieldName}"]`);
             if (!input) continue;
-
             const value = input.value.trim();
-
-            // 1. Required check
             if (rules.required && value === '') {
                 errors.push(`<strong>${rules.label}</strong> is required and cannot be empty.`);
-                highlightField(input, `This field is required.`);
-                continue; // Skip further checks for this field
+                highlightField(input, 'This field is required.');
+                continue;
             }
-
-            // Skip pattern/length checks if field is optional and empty
             if (!rules.required && value === '') continue;
-
-            // 2. Max length
             if (rules.maxLength > 0 && value.length > rules.maxLength) {
                 errors.push(`<strong>${rules.label}</strong> exceeds the maximum of ${rules.maxLength} characters.`);
                 highlightField(input, `Max ${rules.maxLength} characters allowed.`);
                 continue;
             }
-
-            // 3. Pattern check
             if (rules.pattern && !rules.pattern.test(value)) {
                 errors.push(`<strong>${rules.label}</strong>: ${rules.patternHint}`);
                 highlightField(input, rules.patternHint);
             }
         }
 
-        // Validate reminder name inputs
         document.querySelectorAll('.reminder-name-edit').forEach((input, i) => {
             const value = input.value.trim();
             if (value === '') {
@@ -683,7 +611,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================================
     function saveChanges() {
         const errors = validateForm();
-
         if (errors.length > 0) {
             showAlertModal({
                 title: 'Please Fix the Following',
@@ -696,7 +623,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const formData = collectFormData();
-
         saveBtn.innerHTML = '<i class="ri-loader-4-line"></i> Saving...';
         saveBtn.disabled = true;
 
@@ -705,47 +631,38 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    originalFormData = formData;
-                    hasUnsavedChanges = false;
-
-                    const disabilityDisplay = document.getElementById('disabilityDisplay');
-                    if (disabilityDisplay) disabilityDisplay.textContent = 'Deaf/Mute';
-
-                    saveBtn.innerHTML = '<i class="ri-check-line"></i> Saved!';
-                    showNotification('Changes saved successfully!', 'success');
-
-                    setTimeout(() => {
-                        saveBtn.disabled = false;
-                        disableEditMode();
-                    }, 1500);
-                } else {
-                    throw new Error(data.message || 'Failed to save');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                saveBtn.innerHTML = '<i class="ri-error-warning-line"></i> Save Failed';
-                saveBtn.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
-                showNotification('Failed to save changes: ' + error.message, 'error');
-
-                setTimeout(() => {
-                    saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
-                    saveBtn.style.background = '';
-                    saveBtn.disabled = false;
-                }, 3000);
-            });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                originalFormData = formData;
+                hasUnsavedChanges = false;
+                const disabilityDisplay = document.getElementById('disabilityDisplay');
+                if (disabilityDisplay) disabilityDisplay.textContent = 'Deaf/Mute';
+                saveBtn.innerHTML = '<i class="ri-check-line"></i> Saved!';
+                showNotification('Changes saved successfully!', 'success');
+                setTimeout(() => { saveBtn.disabled = false; disableEditMode(); }, 1500);
+            } else {
+                throw new Error(data.message || 'Failed to save');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            saveBtn.innerHTML = '<i class="ri-error-warning-line"></i> Save Failed';
+            saveBtn.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+            showNotification('Failed to save changes: ' + error.message, 'error');
+            setTimeout(() => {
+                saveBtn.innerHTML = '<i class="ri-save-line"></i> Save Changes';
+                saveBtn.style.background = '';
+                saveBtn.disabled = false;
+            }, 3000);
+        });
     }
 
     function resetForm() {
         if (!originalFormData) return;
         document.querySelectorAll('.form-control[name]').forEach(input => {
             const name = input.getAttribute('name');
-            if (originalFormData[name] !== undefined) {
-                input.value = originalFormData[name];
-            }
+            if (originalFormData[name] !== undefined) input.value = originalFormData[name];
         });
         hasUnsavedChanges = false;
     }
@@ -756,8 +673,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('input', function (e) {
         if (isEditing && e.target.matches('.form-control, #bloodTypeSelect, #smsTemplate, .reminder-name-edit, .reminder-frequency-edit')) {
             hasUnsavedChanges = true;
-
-            // Clear error highlight on the field being edited
             if (e.target.style.borderColor === 'rgb(244, 67, 54)') {
                 e.target.style.borderColor = '';
                 e.target.style.boxShadow = '';
@@ -779,6 +694,12 @@ document.addEventListener('DOMContentLoaded', function () {
         bloodTypeSelect.style.cssText = 'font-size: 1.5rem; font-weight: bold; text-align: center; display: none;';
         bloodTypeSelect.disabled = true;
 
+        // Blank option first so new users don't get A+ auto-selected
+        const blankOption = document.createElement('option');
+        blankOption.value = '';
+        blankOption.textContent = '— Select —';
+        bloodTypeSelect.appendChild(blankOption);
+
         ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].forEach(type => {
             const option = document.createElement('option');
             option.value = type;
@@ -795,16 +716,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (readonly) {
                 bloodTypeDisplay.style.display = '';
                 bloodTypeSelect.style.display = 'none';
-                bloodTypeDisplay.textContent = bloodTypeSelect.value;
+                bloodTypeDisplay.textContent = bloodTypeSelect.value || '—';
             } else {
                 bloodTypeDisplay.style.display = 'none';
                 bloodTypeSelect.style.display = 'block';
             }
         };
 
-        bloodTypeSelect.addEventListener('change', function () {
-            hasUnsavedChanges = true;
-        });
+        bloodTypeSelect.addEventListener('change', function () { hasUnsavedChanges = true; });
     }
 
     // ================================
@@ -829,15 +748,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 const lines = smsTemplate.value.split('\n');
                 let html = '';
                 lines.forEach(line => {
-                    if (line.includes('EMERGENCY ALERT')) {
-                        html += `<p class="sms-header">${line}</p>`;
-                    } else if (line.includes('DEAF/MUTE')) {
-                        html += `<p class="sms-warning">${line}</p>`;
-                    } else if (line.trim() === '') {
-                        html += '<br>';
-                    } else {
-                        html += `<p>${line}</p>`;
-                    }
+                    if (line.includes('EMERGENCY ALERT')) html += `<p class="sms-header">${line}</p>`;
+                    else if (line.includes('DEAF/MUTE')) html += `<p class="sms-warning">${line}</p>`;
+                    else if (line.trim() === '') html += '<br>';
+                    else html += `<p>${line}</p>`;
                 });
                 smsPreviewContent.innerHTML = html;
             } else {
@@ -886,17 +800,10 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('tp_save').addEventListener('click', function () {
                 const t1 = document.getElementById('tp_time1').value;
                 const t2 = document.getElementById('tp_time2').value;
-
                 if (!t1 || !t2) {
-                    showAlertModal({
-                        title: 'Both Times Required',
-                        message: 'Please set both morning and evening reminder times before saving.',
-                        icon: 'ri-alert-line',
-                        iconClass: 'icon-orange'
-                    });
+                    showAlertModal({ title: 'Both Times Required', message: 'Please set both morning and evening reminder times before saving.', icon: 'ri-alert-line', iconClass: 'icon-orange' });
                     return;
                 }
-
                 timeSpan.innerHTML = `<i class="ri-time-line"></i> ${convertTo12Hour(t1)}, ${convertTo12Hour(t2)}`;
                 closeModal();
                 showNotification('Reminder times updated', 'success');
@@ -933,17 +840,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (addAllergyBtn) {
         addAllergyBtn.addEventListener('click', async function () {
             const result = await showInputModal({
-                title: 'Add Allergy',
-                icon: 'ri-alert-line',
-                iconClass: 'icon-red',
-                fields: [
-                    { name: 'allergy', label: 'Allergy', placeholder: 'e.g. Penicillin, Peanuts, Latex', value: '' }
-                ]
+                title: 'Add Allergy', icon: 'ri-alert-line', iconClass: 'icon-red',
+                fields: [{ name: 'allergy', label: 'Allergy', placeholder: 'e.g. Penicillin, Peanuts, Latex', value: '' }]
             });
-            if (result && result.allergy) {
-                addTag('allergiesContainer', result.allergy, 'red');
-                hasUnsavedChanges = true;
-            }
+            if (result && result.allergy) { addTag('allergiesContainer', result.allergy, 'red'); hasUnsavedChanges = true; }
         });
     }
 
@@ -954,17 +854,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (addMedicationBtn) {
         addMedicationBtn.addEventListener('click', async function () {
             const result = await showInputModal({
-                title: 'Add Medication',
-                icon: 'ri-capsule-line',
-                iconClass: 'icon-green',
-                fields: [
-                    { name: 'medication', label: 'Medication Name & Dosage', placeholder: 'e.g. Metformin 500mg twice daily', value: '' }
-                ]
+                title: 'Add Medication', icon: 'ri-capsule-line', iconClass: 'icon-green',
+                fields: [{ name: 'medication', label: 'Medication Name & Dosage', placeholder: 'e.g. Metformin 500mg twice daily', value: '' }]
             });
-            if (result && result.medication) {
-                addMedication('medicationsContainer', result.medication);
-                hasUnsavedChanges = true;
-            }
+            if (result && result.medication) { addMedication('medicationsContainer', result.medication); hasUnsavedChanges = true; }
         });
     }
 
@@ -975,52 +868,43 @@ document.addEventListener('DOMContentLoaded', function () {
     if (addConditionBtn) {
         addConditionBtn.addEventListener('click', async function () {
             const result = await showInputModal({
-                title: 'Add Medical Condition',
-                icon: 'ri-stethoscope-line',
-                iconClass: 'icon-yellow',
-                fields: [
-                    { name: 'condition', label: 'Medical Condition', placeholder: 'e.g. Type 2 Diabetes, Hypertension', value: '' }
-                ]
+                title: 'Add Medical Condition', icon: 'ri-stethoscope-line', iconClass: 'icon-yellow',
+                fields: [{ name: 'condition', label: 'Medical Condition', placeholder: 'e.g. Type 2 Diabetes, Hypertension', value: '' }]
             });
-            if (result && result.condition) {
-                addTag('conditionsContainer', result.condition, 'yellow');
-                hasUnsavedChanges = true;
-            }
+            if (result && result.condition) { addTag('conditionsContainer', result.condition, 'yellow'); hasUnsavedChanges = true; }
         });
     }
 
     // ================================
-    // ADD CONTACT
+    // ADD CONTACT MODAL
     // ================================
     const PHONE_PATTERN = /^(09\d{9}|\+639\d{9})$/;
 
-    function showContactModal() {
+    function showContactModal(prefill = {}) {
         return new Promise((resolve) => {
+            const isEdit = Object.keys(prefill).length > 0;
             modalIcon.className = 'custom-modal-icon icon-teal';
-            modalIcon.innerHTML = '<i class="ri-user-add-line"></i>';
-            modalTitle.textContent = 'Add Emergency Contact';
+            modalIcon.innerHTML = `<i class="${isEdit ? 'ri-user-settings-line' : 'ri-user-add-line'}"></i>`;
+            modalTitle.textContent = isEdit ? 'Edit Emergency Contact' : 'Add Emergency Contact';
 
             modalBody.innerHTML = `
-                <p class="modal-description">This contact will be alerted in case of an emergency.</p>
+                <p class="modal-description">${isEdit ? 'Update the details for this emergency contact.' : 'This contact will be alerted in case of an emergency.'}</p>
                 <hr class="modal-divider">
-
                 <div class="modal-field">
                     <label for="ec_name">Full Name <span style="color:#f44336;">*</span></label>
-                    <input type="text" id="ec_name" class="form-control" placeholder="e.g. Maria Santos" maxlength="80" autocomplete="off">
-                    <span class="ec-counter" id="ec_name_counter" style="font-size:0.72rem;color:#999;float:right;margin-top:3px;display:block;">0 / 80</span>
+                    <input type="text" id="ec_name" class="form-control" placeholder="e.g. Maria Santos" maxlength="80" autocomplete="off" value="${prefill.name || ''}">
+                    <span class="ec-counter" id="ec_name_counter" style="font-size:0.72rem;color:#999;float:right;margin-top:3px;display:block;">${(prefill.name || '').length} / 80</span>
                     <span class="ec-error" id="ec_name_error" style="color:#f44336;font-size:0.78rem;margin-top:2px;display:none;"></span>
                 </div>
-
                 <div class="modal-field">
                     <label for="ec_relation">Relation <span style="color:#f44336;">*</span></label>
-                    <input type="text" id="ec_relation" class="form-control" placeholder="e.g. Mother, Spouse, Friend" maxlength="50" autocomplete="off">
-                    <span class="ec-counter" id="ec_relation_counter" style="font-size:0.72rem;color:#999;float:right;margin-top:3px;display:block;">0 / 50</span>
+                    <input type="text" id="ec_relation" class="form-control" placeholder="e.g. Mother, Spouse, Friend" maxlength="50" autocomplete="off" value="${prefill.relation || ''}">
+                    <span class="ec-counter" id="ec_relation_counter" style="font-size:0.72rem;color:#999;float:right;margin-top:3px;display:block;">${(prefill.relation || '').length} / 50</span>
                     <span class="ec-error" id="ec_relation_error" style="color:#f44336;font-size:0.78rem;margin-top:2px;display:none;"></span>
                 </div>
-
                 <div class="modal-field">
                     <label for="ec_phone">Phone Number <span style="color:#f44336;">*</span></label>
-                    <input type="tel" id="ec_phone" class="form-control" placeholder="e.g. 09171234567" maxlength="13" autocomplete="off">
+                    <input type="tel" id="ec_phone" class="form-control" placeholder="e.g. 09171234567" maxlength="13" autocomplete="off" value="${prefill.phone || ''}">
                     <span style="font-size:0.7rem;color:#999;display:block;margin-top:3px;">Format: 09XXXXXXXXX (11 digits) or +639XXXXXXXXX</span>
                     <span class="ec-error" id="ec_phone_error" style="color:#f44336;font-size:0.78rem;margin-top:2px;display:none;"></span>
                 </div>
@@ -1028,13 +912,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             modalFooter.innerHTML = `
                 <button class="modal-btn modal-btn-secondary" id="ec_cancel"><i class="ri-close-line"></i> Cancel</button>
-                <button class="modal-btn modal-btn-primary" id="ec_confirm"><i class="ri-user-add-line"></i> Add Contact</button>
+                <button class="modal-btn modal-btn-primary" id="ec_confirm">
+                    <i class="${isEdit ? 'ri-save-line' : 'ri-user-add-line'}"></i> ${isEdit ? 'Save Changes' : 'Add Contact'}
+                </button>
             `;
 
             openModal();
             setTimeout(() => document.getElementById('ec_name')?.focus(), 100);
 
-            // — Live character counters —
             function setupCounter(inputId, counterId, max) {
                 const input = document.getElementById(inputId);
                 const counter = document.getElementById(counterId);
@@ -1049,112 +934,113 @@ document.addEventListener('DOMContentLoaded', function () {
             setupCounter('ec_name', 'ec_name_counter', 80);
             setupCounter('ec_relation', 'ec_relation_counter', 50);
 
-            // — Inline field error helper —
             function setFieldError(errorId, inputId, message) {
                 const errEl = document.getElementById(errorId);
                 const input = document.getElementById(inputId);
                 if (!errEl || !input) return;
                 if (message) {
-                    errEl.textContent = message;
-                    errEl.style.display = 'block';
-                    input.style.borderColor = '#f44336';
-                    input.style.boxShadow = '0 0 0 3px rgba(244,67,54,0.18)';
+                    errEl.textContent = message; errEl.style.display = 'block';
+                    input.style.borderColor = '#f44336'; input.style.boxShadow = '0 0 0 3px rgba(244,67,54,0.18)';
                 } else {
-                    errEl.style.display = 'none';
-                    input.style.borderColor = '';
-                    input.style.boxShadow = '';
+                    errEl.style.display = 'none'; input.style.borderColor = ''; input.style.boxShadow = '';
                 }
             }
 
-            // — Clear error on input —
-            [['ec_name', 'ec_name_error'], ['ec_relation', 'ec_relation_error'], ['ec_phone', 'ec_phone_error']].forEach(([inputId, errorId]) => {
-                document.getElementById(inputId)?.addEventListener('input', () => setFieldError(errorId, inputId, ''));
+            [['ec_name','ec_name_error'],['ec_relation','ec_relation_error'],['ec_phone','ec_phone_error']].forEach(([iId, eId]) => {
+                document.getElementById(iId)?.addEventListener('input', () => setFieldError(eId, iId, ''));
             });
 
-            // — Phone: allow only digits and leading + —
             document.getElementById('ec_phone')?.addEventListener('keypress', (e) => {
                 if (!/[\d+]/.test(e.key)) e.preventDefault();
             });
 
-            // — Blur validation for phone —
             document.getElementById('ec_phone')?.addEventListener('blur', () => {
                 const val = document.getElementById('ec_phone').value.trim();
                 if (val && !PHONE_PATTERN.test(val)) {
                     setFieldError('ec_phone_error', 'ec_phone', 'Must be 09XXXXXXXXX (11 digits) or +639XXXXXXXXX.');
+                } else if (val && typeof OWN_PHONE !== 'undefined' && OWN_PHONE && val === OWN_PHONE) {
+                    setFieldError('ec_phone_error', 'ec_phone', 'You cannot add your own phone number as an emergency contact.');
                 }
             });
 
-            // — Enter key submits —
             modalBody.addEventListener('keydown', function handler(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('ec_confirm')?.click();
-                    modalBody.removeEventListener('keydown', handler);
-                }
+                if (e.key === 'Enter') { e.preventDefault(); document.getElementById('ec_confirm')?.click(); modalBody.removeEventListener('keydown', handler); }
             });
 
-            document.getElementById('ec_cancel').addEventListener('click', () => {
-                closeModal();
-                resolve(null);
-            });
+            document.getElementById('ec_cancel').addEventListener('click', () => { closeModal(); resolve(null); });
 
             document.getElementById('ec_confirm').addEventListener('click', () => {
-                const name = document.getElementById('ec_name').value.trim();
+                const name     = document.getElementById('ec_name').value.trim();
                 const relation = document.getElementById('ec_relation').value.trim();
-                const phone = document.getElementById('ec_phone').value.trim();
-                let hasError = false;
+                const phone    = document.getElementById('ec_phone').value.trim();
+                let hasError   = false;
 
-                // Validate name
-                if (!name) {
-                    setFieldError('ec_name_error', 'ec_name', 'Full name is required.');
+                if (!name)           { setFieldError('ec_name_error',     'ec_name',     'Full name is required.');                              hasError = true; }
+                else if (name.length > 80) { setFieldError('ec_name_error', 'ec_name',   'Name cannot exceed 80 characters.');                  hasError = true; }
+                else                 { setFieldError('ec_name_error',     'ec_name',     ''); }
+
+                if (!relation)       { setFieldError('ec_relation_error', 'ec_relation', 'Relation is required.');                              hasError = true; }
+                else if (relation.length > 50) { setFieldError('ec_relation_error', 'ec_relation', 'Relation cannot exceed 50 characters.');    hasError = true; }
+                else                 { setFieldError('ec_relation_error', 'ec_relation', ''); }
+
+                if (!phone)          { setFieldError('ec_phone_error',    'ec_phone',    'Phone number is required.');                          hasError = true; }
+                else if (!PHONE_PATTERN.test(phone)) { setFieldError('ec_phone_error', 'ec_phone', 'Must be 09XXXXXXXXX (11 digits) or +639XXXXXXXXX.'); hasError = true; }
+                else if (typeof OWN_PHONE !== 'undefined' && OWN_PHONE && phone === OWN_PHONE) {
+                    setFieldError('ec_phone_error', 'ec_phone', 'You cannot add your own phone number as an emergency contact.');
                     hasError = true;
-                } else if (name.length > 80) {
-                    setFieldError('ec_name_error', 'ec_name', 'Name cannot exceed 80 characters.');
-                    hasError = true;
-                } else {
-                    setFieldError('ec_name_error', 'ec_name', '');
                 }
+                else                 { setFieldError('ec_phone_error',    'ec_phone',    ''); }
 
-                // Validate relation
-                if (!relation) {
-                    setFieldError('ec_relation_error', 'ec_relation', 'Relation is required.');
-                    hasError = true;
-                } else if (relation.length > 50) {
-                    setFieldError('ec_relation_error', 'ec_relation', 'Relation cannot exceed 50 characters.');
-                    hasError = true;
-                } else {
-                    setFieldError('ec_relation_error', 'ec_relation', '');
-                }
-
-                // Validate phone
-                if (!phone) {
-                    setFieldError('ec_phone_error', 'ec_phone', 'Phone number is required.');
-                    hasError = true;
-                } else if (!PHONE_PATTERN.test(phone)) {
-                    setFieldError('ec_phone_error', 'ec_phone', 'Must be 09XXXXXXXXX (11 digits) or +639XXXXXXXXX.');
-                    hasError = true;
-                } else {
-                    setFieldError('ec_phone_error', 'ec_phone', '');
-                }
-
-                if (hasError) return; // Keep modal open
-
+                if (hasError) return;
                 closeModal();
                 resolve({ name, relation, phone });
             });
         });
     }
 
+    // ================================
+    // ADD CONTACT BUTTON
+    // ================================
     const addContactBtn = document.getElementById('addContactBtn');
     if (addContactBtn) {
         addContactBtn.addEventListener('click', async function () {
             const result = await showContactModal();
             if (result) {
                 addContact(result.name, result.relation, result.phone);
-                hasUnsavedChanges = true;
+                // Auto-save immediately
+                autoSaveQuiet(() => showNotification('Contact added and saved!', 'success'));
             }
         });
     }
+
+    // ================================
+    // EDIT CONTACT (delegated — edit icon button)
+    // ================================
+    document.addEventListener('click', async function (e) {
+        if (e.target.closest('#emergency-contacts .action-btn.edit')) {
+            const card = e.target.closest('.contact-card');
+            const currentName     = card.querySelector('h4')?.textContent.trim()              || '';
+            const currentRelation = card.querySelector('.contact-relation')?.textContent.trim() || '';
+            const currentPhone    = card.querySelector('.contact-phone')?.textContent.trim()   || '';
+
+            const result = await showContactModal({ name: currentName, relation: currentRelation, phone: currentPhone });
+            if (!result) return;
+
+            // Update card in-place
+            card.querySelector('h4').textContent                    = result.name;
+            card.querySelector('.contact-relation').textContent     = result.relation;
+            card.querySelector('.contact-phone').textContent        = result.phone;
+
+            // Update avatar initials
+            const avatarEl = card.querySelector('.contact-avatar');
+            if (avatarEl) {
+                avatarEl.textContent = result.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            }
+
+            // Auto-save immediately
+            autoSaveQuiet(() => showNotification('Contact updated and saved!', 'success'));
+        }
+    });
 
     // ================================
     // TAG / ITEM / CONTACT REMOVAL
@@ -1163,56 +1049,28 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.closest('.tag-remove')) {
             const tag = e.target.closest('.tag');
             const label = tag?.querySelector('span')?.textContent || 'this item';
-            const confirmed = await showConfirmModal({
-                title: 'Remove Item',
-                message: `Remove <strong>${label}</strong> from the list?`,
-                icon: 'ri-close-circle-line',
-                iconClass: 'icon-red',
-                confirmLabel: 'Remove',
-                confirmClass: 'modal-btn-danger'
-            });
-            if (confirmed && tag) {
-                tag.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => tag.remove(), 300);
-                hasUnsavedChanges = true;
-            }
+            const confirmed = await showConfirmModal({ title: 'Remove Item', message: `Remove <strong>${label}</strong> from the list?`, icon: 'ri-close-circle-line', iconClass: 'icon-red', confirmLabel: 'Remove', confirmClass: 'modal-btn-danger' });
+            if (confirmed && tag) { tag.style.animation = 'fadeOut 0.3s ease'; setTimeout(() => tag.remove(), 300); hasUnsavedChanges = true; }
         }
 
         if (e.target.closest('.item-remove')) {
             const item = e.target.closest('.medication-item');
             const label = item?.querySelector('span')?.textContent || 'this medication';
-            const confirmed = await showConfirmModal({
-                title: 'Remove Medication',
-                message: `Remove <strong>${label}</strong> from your medication list?`,
-                icon: 'ri-capsule-line',
-                iconClass: 'icon-red',
-                confirmLabel: 'Remove',
-                confirmClass: 'modal-btn-danger'
-            });
-            if (confirmed && item) {
-                item.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => item.remove(), 300);
-                hasUnsavedChanges = true;
-            }
+            const confirmed = await showConfirmModal({ title: 'Remove Medication', message: `Remove <strong>${label}</strong> from your medication list?`, icon: 'ri-capsule-line', iconClass: 'icon-red', confirmLabel: 'Remove', confirmClass: 'modal-btn-danger' });
+            if (confirmed && item) { item.style.animation = 'fadeOut 0.3s ease'; setTimeout(() => item.remove(), 300); hasUnsavedChanges = true; }
         }
 
-        // ── FIX: scope delete to #emergency-contacts tab only ──
         if (e.target.closest('#emergency-contacts .action-btn.delete')) {
             const card = e.target.closest('.contact-card');
             const name = card?.querySelector('h4')?.textContent || 'this contact';
-            const confirmed = await showConfirmModal({
-                title: 'Remove Contact',
-                message: `Remove <strong>${name}</strong> from your emergency contacts?`,
-                icon: 'ri-user-unfollow-line',
-                iconClass: 'icon-red',
-                confirmLabel: 'Remove',
-                confirmClass: 'modal-btn-danger',
-                warning: 'This contact will no longer receive emergency alerts.'
-            });
+            const confirmed = await showConfirmModal({ title: 'Remove Contact', message: `Remove <strong>${name}</strong> from your emergency contacts?`, icon: 'ri-user-unfollow-line', iconClass: 'icon-red', confirmLabel: 'Remove', confirmClass: 'modal-btn-danger', warning: 'This contact will no longer receive emergency alerts.' });
             if (confirmed && card) {
                 card.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => card.remove(), 300);
-                hasUnsavedChanges = true;
+                setTimeout(() => {
+                    card.remove();
+                    // Auto-save after deletion too
+                    autoSaveQuiet(() => showNotification('Contact removed and saved.', 'info'));
+                }, 300);
             }
         }
     });
@@ -1221,11 +1079,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // PREVENT NAVIGATION WITH UNSAVED CHANGES
     // ================================
     window.addEventListener('beforeunload', function (e) {
-        if (hasUnsavedChanges) {
-            e.preventDefault();
-            e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
-            return e.returnValue;
-        }
+        if (hasUnsavedChanges) { e.preventDefault(); e.returnValue = 'You have unsaved changes. Are you sure you want to leave?'; return e.returnValue; }
     });
 
     document.querySelectorAll('.sidebar-menu a').forEach(link => {
@@ -1233,15 +1087,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (hasUnsavedChanges) {
                 e.preventDefault();
                 const href = this.href;
-                const confirmed = await showConfirmModal({
-                    title: 'Unsaved Changes',
-                    message: 'You have unsaved changes. Leaving this page will discard them.',
-                    icon: 'ri-edit-line',
-                    iconClass: 'icon-orange',
-                    confirmLabel: 'Leave Page',
-                    confirmClass: 'modal-btn-danger',
-                    warning: 'All unsaved changes will be permanently lost.'
-                });
+                const confirmed = await showConfirmModal({ title: 'Unsaved Changes', message: 'You have unsaved changes. Leaving this page will discard them.', icon: 'ri-edit-line', iconClass: 'icon-orange', confirmLabel: 'Leave Page', confirmClass: 'modal-btn-danger', warning: 'All unsaved changes will be permanently lost.' });
                 if (confirmed) window.location.href = href;
             }
         });
@@ -1255,10 +1101,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!container) return;
         const tag = document.createElement('div');
         tag.className = `tag tag-${color}`;
-        tag.innerHTML = `
-            <span>${text}</span>
-            <button class="tag-remove"><i class="ri-close-line"></i></button>
-        `;
+        tag.innerHTML = `<span>${text}</span><button class="tag-remove"><i class="ri-close-line"></i></button>`;
         tag.style.animation = 'fadeIn 0.3s ease';
         if (!isEditing) tag.querySelector('.tag-remove').style.display = 'none';
         container.appendChild(tag);
@@ -1269,18 +1112,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!container) return;
         const item = document.createElement('div');
         item.className = 'medication-item';
-        item.innerHTML = `
-            <i class="ri-medicine-bottle-line"></i>
-            <span>${text}</span>
-            <button class="item-remove"><i class="ri-close-line"></i></button>
-        `;
+        item.innerHTML = `<i class="ri-medicine-bottle-line"></i><span>${text}</span><button class="item-remove"><i class="ri-close-line"></i></button>`;
         item.style.animation = 'fadeIn 0.3s ease';
         if (!isEditing) item.querySelector('.item-remove').style.display = 'none';
         container.appendChild(item);
     }
 
     function addContact(name, relation, phone) {
-        // ── FIX: scope to #emergency-contacts tab only ──
         const container = document.querySelector('#emergency-contacts .contacts-list');
         if (!container) return;
 
@@ -1298,88 +1136,70 @@ document.addEventListener('DOMContentLoaded', function () {
                 <span class="contact-phone">${phone}</span>
             </div>
             <div class="contact-actions">
-                <button class="action-btn call"><i class="ri-phone-fill"></i></button>
-                <button class="action-btn delete"><i class="ri-close-line"></i></button>
+                <button class="action-btn edit" title="Edit contact"><i class="ri-edit-line"></i></button>
+                <button class="action-btn delete" title="Remove contact" style="display:none;"><i class="ri-close-line"></i></button>
             </div>
         `;
         card.style.animation = 'fadeIn 0.3s ease';
-        if (!isEditing) card.querySelector('.action-btn.delete').style.display = 'none';
         container.appendChild(card);
-        showNotification('Contact added successfully!', 'success');
     }
 
     function collectFormData() {
         const data = {};
 
         document.querySelectorAll('.form-control[name]').forEach(input => {
-            const name = input.getAttribute('name');
-            data[name] = input.value;
+            data[input.getAttribute('name')] = input.value;
         });
 
         data.disabilityType = 'Deaf/Mute';
 
         const bloodTypeSelect = document.getElementById('bloodTypeSelect');
-        if (bloodTypeSelect) {
-            data.bloodType = bloodTypeSelect.value;
-        } else {
-            const bloodTypeDisplay = document.querySelector('.blood-type-value');
-            if (bloodTypeDisplay) data.bloodType = bloodTypeDisplay.textContent.trim();
-        }
+        if (bloodTypeSelect) { data.bloodType = bloodTypeSelect.value; }
+        else { const btd = document.querySelector('.blood-type-value'); if (btd) data.bloodType = btd.textContent.trim(); }
 
         const smsTemplate = document.getElementById('smsTemplate');
         if (smsTemplate) data.smsTemplate = smsTemplate.value;
 
         data.allergies = [];
-        document.querySelectorAll('#allergiesContainer .tag span').forEach(tag => {
-            data.allergies.push(tag.textContent);
-        });
+        document.querySelectorAll('#allergiesContainer .tag span').forEach(tag => data.allergies.push(tag.textContent));
 
         data.medications = [];
-        document.querySelectorAll('#medicationsContainer .medication-item span').forEach(item => {
-            data.medications.push(item.textContent);
-        });
+        document.querySelectorAll('#medicationsContainer .medication-item span').forEach(item => data.medications.push(item.textContent));
 
         data.medicalConditions = [];
-        document.querySelectorAll('#conditionsContainer .tag span').forEach(tag => {
-            data.medicalConditions.push(tag.textContent);
-        });
+        document.querySelectorAll('#conditionsContainer .tag span').forEach(tag => data.medicalConditions.push(tag.textContent));
 
-        // ── FIX: scope to #emergency-contacts tab to prevent duplication ──
         data.emergencyContacts = [];
         document.querySelectorAll('#emergency-contacts .contact-card').forEach(card => {
-            const nameEl = card.querySelector('h4');
+            const nameEl     = card.querySelector('h4');
             const relationEl = card.querySelector('.contact-relation');
-            const phoneEl = card.querySelector('.contact-phone');
-            const avatarEl = card.querySelector('.contact-avatar');
-
+            const phoneEl    = card.querySelector('.contact-phone');
+            const avatarEl   = card.querySelector('.contact-avatar');
             if (nameEl && relationEl && phoneEl) {
                 data.emergencyContacts.push({
-                    name: nameEl.textContent.trim(),
+                    name:     nameEl.textContent.trim(),
                     relation: relationEl.textContent.trim(),
-                    phone: phoneEl.textContent.trim(),
+                    phone:    phoneEl.textContent.trim(),
                     initials: avatarEl ? avatarEl.textContent.trim() : '',
-                    color: avatarEl ? avatarEl.style.background : ''
+                    color:    avatarEl ? avatarEl.style.background : ''
                 });
             }
         });
 
         data.medicationReminders = [];
         document.querySelectorAll('.reminder-card').forEach(card => {
-            const nameInput = card.querySelector('.reminder-name-edit');
+            const nameInput   = card.querySelector('.reminder-name-edit');
             const nameDisplay = card.querySelector('.reminder-name-display');
-            const freqSelect = card.querySelector('.reminder-frequency-edit');
+            const freqSelect  = card.querySelector('.reminder-frequency-edit');
             const freqDisplay = card.querySelector('.reminder-frequency-display');
-            const timeEl = card.querySelector('.reminder-time');
-            const iconEl = card.querySelector('.reminder-icon');
-
-            const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : (nameDisplay ? nameDisplay.textContent.trim() : '');
-            const frequency = (freqSelect && freqSelect.value) ? freqSelect.value : (freqDisplay ? freqDisplay.textContent.trim() : '');
-
+            const timeEl      = card.querySelector('.reminder-time');
+            const iconEl      = card.querySelector('.reminder-icon');
+            const name        = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : (nameDisplay ? nameDisplay.textContent.trim() : '');
+            const frequency   = (freqSelect && freqSelect.value) ? freqSelect.value : (freqDisplay ? freqDisplay.textContent.trim() : '');
             data.medicationReminders.push({
-                name,
-                frequency,
-                time: timeEl ? timeEl.textContent.replace(/[^\d:APMapm ,]/g, '').trim() : '',
-                color: iconEl ? iconEl.style.background : ''
+                name, frequency,
+                time:  timeEl  ? timeEl.textContent.replace(/[^\d:APMapm ,]/g, '').trim() : '',
+                color: iconEl  ? iconEl.style.background : ''
             });
         });
 
@@ -1388,33 +1208,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showNotification(message, type) {
         const notification = document.createElement('div');
-        let icon = 'checkbox-circle';
-        let color = '#4caf50';
+        let icon = 'checkbox-circle', color = '#4caf50';
         if (type === 'error') { icon = 'error-warning'; color = '#f44336'; }
         else if (type === 'info') { icon = 'information'; color = '#2196f3'; }
-
         notification.innerHTML = `<i class="ri-${icon}-fill"></i><span>${message}</span>`;
-        notification.style.cssText = `
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            padding: 15px 20px;
-            background: ${color};
-            color: white;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            z-index: 100001;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        `;
+        notification.style.cssText = `position:fixed;top:80px;right:20px;padding:15px 20px;background:${color};color:white;border-radius:10px;display:flex;align-items:center;gap:10px;font-size:14px;z-index:100001;animation:slideIn 0.3s ease;box-shadow:0 5px 15px rgba(0,0,0,0.2);`;
         document.body.appendChild(notification);
-        setTimeout(() => {
-            notification.style.animation = 'fadeOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
+        setTimeout(() => { notification.style.animation = 'fadeOut 0.3s ease'; setTimeout(() => notification.remove(), 300); }, 3000);
     }
 
     // ================================
@@ -1422,18 +1222,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================================
     const style = document.createElement('style');
     style.textContent = `
-        @keyframes fadeOut {
-            from { opacity: 1; transform: translateX(0); }
-            to   { opacity: 0; transform: translateX(20px); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to   { opacity: 1; transform: scale(1); }
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(100px); }
-            to   { opacity: 1; transform: translateX(0); }
-        }
+        @keyframes fadeOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(20px); } }
+        @keyframes fadeIn  { from { opacity:0; transform:scale(0.9); }   to { opacity:1; transform:scale(1); } }
+        @keyframes slideIn { from { opacity:0; transform:translateX(100px); } to { opacity:1; transform:translateX(0); } }
     `;
     document.head.appendChild(style);
 
@@ -1449,8 +1240,5 @@ function switchTab(tabId) {
     document.querySelectorAll('.tab-pane').forEach(pane => {
         pane.classList.toggle('active', pane.id === tabId);
     });
-    // Scroll to just below the sticky header
-    const stickyBar = document.querySelector('.sticky-med-header');
-    const offset = stickyBar ? stickyBar.offsetHeight + 65 + 10 : 100;
-    window.scrollTo({ top: offset, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }

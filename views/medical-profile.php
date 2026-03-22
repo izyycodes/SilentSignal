@@ -270,8 +270,8 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                                 <span class="contact-phone"><?php echo $contact['phone']; ?></span>
                             </div>
                             <div class="contact-actions">
-                                <button class="action-btn call"><i class="ri-phone-fill"></i></button>
-                                <button class="action-btn delete"><i class="ri-close-line"></i></button>
+                                <button class="action-btn edit" title="Edit contact"><i class="ri-edit-line"></i></button>
+                                <button class="action-btn delete" title="Remove contact" style="display:none;"><i class="ri-close-line"></i></button>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -425,6 +425,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
 <script>
     const BASE_URL = '<?php echo BASE_URL; ?>';
+    const OWN_PHONE = '<?php echo htmlspecialchars($personalInfo['phone'] ?? ''); ?>';
 </script>
 <script src="<?php echo BASE_URL; ?>assets/js/medical-profile.js"></script>
 </body>
