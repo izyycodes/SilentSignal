@@ -153,14 +153,14 @@ function cancelDashSOS() {
     if (dashSosOverlay) dashSosOverlay.classList.remove('active');
 }
 
-function confirmDashSOS() {
+async function confirmDashSOS() {
     if (dashSosOverlay) dashSosOverlay.classList.remove('active');
 
     const contacts = typeof DASH_CONTACTS !== 'undefined' ? DASH_CONTACTS : [];
     const user     = typeof DASH_USER     !== 'undefined' ? DASH_USER     : {};
 
     if (!contacts.length) {
-        showDashToast('⚠️ No emergency contacts found. Add contacts in Medical Profile.', '#d84315');
+        showDashToast('No emergency contacts found. Add contacts in Medical Profile.', '#d84315');
         return;
     }
 
@@ -170,32 +170,30 @@ function confirmDashSOS() {
         .join(',');
 
     if (!phones) {
-        showDashToast('⚠️ No valid phone numbers found.', '#d84315');
+        showDashToast('No valid phone numbers found.', '#d84315');
         return;
     }
 
-    // Build SMS body
-    let smsBody = '🚨 EMERGENCY SOS 🚨\n';
+    // Build concise SMS body
+    let smsBody = 'EMERGENCY SOS\n';
+    smsBody += 'DEAF/MUTE - TEXT ONLY\n\n';
     if (user.name) {
         smsBody += `From: ${user.name}`;
-        if (user.pwdId) smsBody += ` (PWD ID: ${user.pwdId})`;
+        if (user.pwdId) smsBody += ` (PWD: ${user.pwdId})`;
         smsBody += '\n';
     }
 
     const locationStr = dashGpsReady && dashLat
-        ? `https://maps.google.com/?q=${dashLat},${dashLng}`
+        ? `maps.google.com/?q=${dashLat.toFixed(4)},${dashLng.toFixed(4)}`
         : (user.address || 'Location unavailable');
 
-    smsBody += `\nLocation: ${locationStr}`;
-
-    if (user.bloodType)   smsBody += `\nBlood Type: ${user.bloodType}`;
+    smsBody += `Location: ${locationStr}`;
+    if (user.bloodType)   smsBody += `\nBlood: ${user.bloodType}`;
     if (user.allergies)   smsBody += `\nAllergies: ${user.allergies}`;
-    if (user.medications) smsBody += `\nMedications: ${user.medications}`;
-    if (user.conditions)  smsBody += `\nConditions: ${user.conditions}`;
+    if (user.medications) smsBody += `\nMeds: ${user.medications}`;
+    smsBody += '\nReply via TEXT only.';
 
-    smsBody += '\n\n⚠️ This person is DEAF/MUTE - Please respond via TEXT only.';
-
-    // Visual feedback on button
+    // Visual feedback
     const btn = document.getElementById('sosTriggerBtn');
     if (btn) {
         btn.classList.add('sending');
@@ -204,7 +202,32 @@ function confirmDashSOS() {
 <div class="sos-pulse-ring sos-pulse-ring-2"></div>
 <i class="ri-loader-4-line"></i>
 <span>Sending</span>`;
-        setTimeout(() => {
+    }
+
+    if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
+    showDashToast('Sending emergency SMS...', '#1976d2');
+
+    // Send via PhilSMS
+    const baseUrl = typeof DASH_BASE_URL !== 'undefined' ? DASH_BASE_URL : '';
+    try {
+        const response = await fetch(baseUrl + 'index.php?action=send-philsms', {
+            method:    'POST',
+            headers:   { 'Content-Type': 'application/json' },
+            keepalive: true,
+            body: JSON.stringify({
+                message:  smsBody,
+                phones:   phones,
+                contacts: contacts.map(c => ({ name: c.name, phone: c.phone }))
+            })
+        });
+
+        const result = await response.json();
+        const sent   = result && (
+            result.success === true ||
+            (typeof result.sent === 'number' && result.sent > 0)
+        );
+
+        if (btn) {
             btn.classList.remove('sending');
             btn.classList.add('sent');
             btn.innerHTML = `<i class="ri-check-line"></i><span>Sent!</span>`;
@@ -216,31 +239,43 @@ function confirmDashSOS() {
 <i class="ri-alarm-warning-fill"></i>
 <span>SOS</span>`;
             }, 3000);
-        }, 1200);
+        }
+
+        if (sent) {
+            showDashToast('Emergency SMS sent to ' + result.sent + ' contact(s)!', '#2e7d32');
+        } else {
+            // Fallback to native SMS
+            showDashToast('Opening SMS app as backup...', '#e65100');
+            setTimeout(() => {
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const sep   = isIOS ? '&' : '?';
+                window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
+            }, 500);
+        }
+
+    } catch (err) {
+        console.error('PhilSMS error:', err);
+        if (btn) { btn.classList.remove('sending'); }
+        showDashToast('Opening SMS app as backup...', '#e65100');
+        setTimeout(() => {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const sep   = isIOS ? '&' : '?';
+            window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
+        }, 500);
     }
 
-    if (navigator.vibrate) navigator.vibrate([500, 200, 500]);
-    showDashToast('📤 Opening SMS app...', '#2e7d32');
-
-    // Log to server
-    fetch((typeof DASH_BASE_URL !== 'undefined' ? DASH_BASE_URL : '') + 'index.php?action=send-hub-sms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+    // Always log to server
+    fetch(baseUrl + 'index.php?action=log-emergency-alert', {
+        method:    'POST',
+        headers:   { 'Content-Type': 'application/json' },
         keepalive: true,
         body: JSON.stringify({
-            messages: [{ id: 'sos', title: 'SOS EMERGENCY', desc: 'Immediate emergency assistance needed' }],
-            contacts: contacts.map(c => ({ name: c.name, phone: c.phone })),
-            latitude: dashLat,
-            longitude: dashLng,
-            locationLabel: dashGpsReady && dashLat ? `Lat: ${dashLat.toFixed(6)}, Lng: ${dashLng.toFixed(6)}` : null
+            type:      'sos',
+            message:   smsBody,
+            location:  { lat: dashLat, lng: dashLng },
+            timestamp: new Date().toISOString()
         })
     }).catch(() => {});
-
-    setTimeout(() => {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const sep   = isIOS ? '&' : '?';
-        window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
-    }, 400);
 }
 
 function showDashToast(msg, bg) {
