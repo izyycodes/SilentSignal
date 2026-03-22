@@ -139,21 +139,22 @@ function triggerAutoSOS() {
     sendSafetyResponse('auto-sos');
 }
 
+
 // ============================================================
 // SEND SAFETY RESPONSE
 // ============================================================
-function sendSafetyResponse(status) {
-    const contacts   = typeof emergencyContactsData !== 'undefined' ? emergencyContactsData : [];
-    const phones     = contacts.map(c => (c.phone || '').replace(/\s/g, '')).filter(Boolean).join(',');
-    const userName   = typeof userInfoData !== 'undefined' ? (userInfoData.name   || 'Silent Signal User') : 'Silent Signal User';
-    const pwdId      = typeof userInfoData !== 'undefined' ? (userInfoData.pwdId  || '') : '';
-    const bloodType  = typeof userInfoData !== 'undefined' ? (userInfoData.bloodType || '') : '';
+async function sendSafetyResponse(status) {
+    const contacts  = typeof emergencyContactsData !== 'undefined' ? emergencyContactsData : [];
+    const phones    = contacts.map(c => (c.phone || '').replace(/\s/g, '')).filter(Boolean).join(',');
+    const userName  = typeof userInfoData !== 'undefined' ? (userInfoData.name      || 'Silent Signal User') : 'Silent Signal User';
+    const pwdId     = typeof userInfoData !== 'undefined' ? (userInfoData.pwdId     || '') : '';
+    const bloodType = typeof userInfoData !== 'undefined' ? (userInfoData.bloodType || '') : '';
 
-    function buildAndSend(lat, lng) {
-        // Log to server — keepalive survives navigation
+    async function buildAndSend(lat, lng) {
+        // Log to server
         fetch(BASE_URL + 'index.php?action=log-disaster-response', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method:    'POST',
+            headers:   { 'Content-Type': 'application/json' },
             keepalive: true,
             body: JSON.stringify({
                 status:     status,
@@ -164,30 +165,64 @@ function sendSafetyResponse(status) {
             })
         }).catch(() => {});
 
-        // Only open SMS for help / auto-sos
+        // Only send SMS for help / auto-sos
         if (status === 'safe') return;
         if (!phones)           return;
 
         const label = status === 'auto-sos' ? 'AUTO-SOS' : 'SOS';
-        let smsBody  = `🚨 ${label} - DISASTER EMERGENCY 🚨\n`;
-        smsBody     += `From: ${userName}`;
-        if (pwdId)      smsBody += ` (PWD ID: ${pwdId})`;
-        smsBody     += `\n`;
-        if (status === 'auto-sos') smsBody += `⚠️ No response detected — auto alert triggered.\n`;
-        smsBody     += lat && lng
-            ? `\nLocation: https://maps.google.com/?q=${lat},${lng}`
-            : `\nLocation: unavailable`;
-        if (bloodType)  smsBody += `\nBlood Type: ${bloodType}`;
-        smsBody     += `\n\nThis person is DEAF/MUTE - Please respond via TEXT only.`;
 
-        setTimeout(() => {
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            const sep   = isIOS ? '&' : '?';
-            window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
-        }, 300);
+        // Build concise message
+        let smsBody  = `${label} - DISASTER EMERGENCY\n`;
+        smsBody     += `DEAF/MUTE - TEXT ONLY\n\n`;
+        smsBody     += `From: ${userName}`;
+        if (pwdId)   smsBody += ` (PWD: ${pwdId})`;
+        smsBody     += `\n`;
+        if (status === 'auto-sos') smsBody += `No response - auto alert triggered.\n`;
+        smsBody     += lat && lng
+            ? `Location: maps.google.com/?q=${lat.toFixed(4)},${lng.toFixed(4)}`
+            : `Location: unavailable`;
+        if (bloodType) smsBody += `\nBlood: ${bloodType}`;
+        smsBody     += `\nReply via TEXT only.`;
+
+        // Send via PhilSMS
+        try {
+            const response = await fetch(BASE_URL + 'index.php?action=send-philsms', {
+                method:    'POST',
+                headers:   { 'Content-Type': 'application/json' },
+                keepalive: true,
+                body: JSON.stringify({
+                    message:  smsBody,
+                    phones:   phones,
+                    contacts: contacts.map(c => ({ name: c.name, phone: c.phone }))
+                })
+            });
+
+            const result = await response.json();
+            const sent   = result && (
+                result.success === true ||
+                (typeof result.sent === 'number' && result.sent > 0)
+            );
+
+            if (!sent) {
+                // Fallback to native SMS
+                setTimeout(() => {
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                    const sep   = isIOS ? '&' : '?';
+                    window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
+                }, 300);
+            }
+
+        } catch (err) {
+            console.error('PhilSMS error:', err);
+            setTimeout(() => {
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const sep   = isIOS ? '&' : '?';
+                window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
+            }, 300);
+        }
     }
 
-    // Try GPS but fall back after 3 seconds so SMS always fires
+    // Try GPS but fall back after 3 seconds
     if (navigator.geolocation) {
         let done = false;
 
