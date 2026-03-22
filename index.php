@@ -214,6 +214,12 @@ switch ($action) {
         $controller = new UserController();
         $controller->sendHubSms();
         break;
+    
+    case 'send-philsms':          
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->sendPhilSms();
+        break;
 
     case 'log-hub-media':
         require_once CONTROLLER_PATH . 'UserController.php';
