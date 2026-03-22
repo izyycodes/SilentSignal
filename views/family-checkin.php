@@ -195,13 +195,13 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <div class="invite-sms-body"><?php
                             $inviterName = $_SESSION['user_name'] ?? 'Your contact';
                             echo htmlspecialchars(
-                                "Hi " . $member['display_name'] . "! " . $inviterName . " added you as an emergency contact on Silent Signal — a disaster app for PWD users.\n\nRegister at: " . BASE_URL . "\n\nUse this number (" . $member['phone_number'] . ") when signing up to be automatically linked."
+                                "Hi " . $member['display_name'] . "! " . $inviterName . " added you to Silent Signal (PWD emergency app). Register: " . BASE_URL . " Use number " . $member['phone_number'] . " to sign up."
                             );
                         ?></div>
                     </div>
                     <div class="invite-notice">
                         <i class="ri-information-line"></i>
-                        Ensure the family member has created a Silent Signal account using the same phone number you linked. Invitation links expire after 48 hours — you can resend the invitation from the Family Check-In settings page.
+                        Ensure the family member registers using the same phone number you linked so they are automatically connected to your account.
                     </div>
                     <div class="invite-panel-actions">
                         <button class="invite-send-btn" onclick="sendInviteSms('<?php echo htmlspecialchars(addslashes($member['display_name'])); ?>','<?php echo htmlspecialchars($member['phone_number']); ?>')">
@@ -276,11 +276,13 @@ function closeInvitePanel(btn) {
 async function sendInviteSms(name, phone) {
     const inviterName = <?php echo json_encode($_SESSION['user_name'] ?? 'Your contact'); ?>;
     const appUrl      = <?php echo json_encode(BASE_URL); ?>;
-    const body = `Hi ${name}! ${inviterName} added you as an emergency contact on Silent Signal — a disaster app for PWD users.\n\nRegister at: ${appUrl}\n\nUse this number (${phone}) when signing up to be automatically linked.`;
     const cleanPhone  = phone.replace(/\s|-/g, '');
 
-    // Show sending state on button
-    const sendBtn = document.querySelector(`.invite-send-btn`);
+    // Short message to stay within 1 SMS part (160 chars)
+    const body = `Hi ${name}! ${inviterName} added you to Silent Signal (PWD emergency app). Register: ${appUrl} Use number ${phone} to sign up.`;
+
+    // Show sending state
+    const sendBtn = event?.target?.closest('.invite-send-btn') || document.querySelector('.invite-send-btn');
     if (sendBtn) {
         sendBtn.disabled  = true;
         sendBtn.innerHTML = '<i class="ri-loader-4-line"></i> Sending...';
@@ -308,7 +310,6 @@ async function sendInviteSms(name, phone) {
             document.querySelectorAll('.invite-panel').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.invite-btn').forEach(b => b.classList.remove('active'));
         } else {
-            // Fallback to native SMS
             showToast('Opening SMS app as backup...', '#e65100');
             setTimeout(() => {
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
