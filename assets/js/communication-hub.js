@@ -494,10 +494,10 @@ const ICON_POOL = [
     'ri-scissors-line','ri-tools-line','ri-flashlight-line',
     'ri-shield-line','ri-hand-heart-line','ri-user-heart-line',
     'ri-building-line','ri-store-line','ri-road-map-line',
-    'ri-police-line','ri-team-line','ri-parent-line','ri-child-line',
-    'ri-eye-line','ri-ear-line','ri-mental-health-line',
-    'ri-thermometer-line','ri-syringe-line','ri-blood-type-line',
-    'ri-wheelchair-fill','ri-walk-fill','ri-parent-fill',
+    'ri-government-line','ri-group-line','ri-user-2-line','ri-bear-smile-line',
+    'ri-eye-2-line','ri-volume-mute-line','ri-psychotherapy-line',
+    'ri-temp-hot-line','ri-syringe-line','ri-heart-line',
+    'ri-wheelchair-fill','ri-walk-fill','ri-user-smile-line',
 ];
 
 let selectedIcon = '';
