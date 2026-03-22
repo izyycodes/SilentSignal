@@ -171,17 +171,17 @@ function updateButtons() {
 }
 
 // ── Send SMS ──
-function sendSMS() {
+async function sendSMS() {
     if (selected.size === 0) return;
 
     if (!CONTACTS.length) {
-        showToast('⚠️ No emergency contacts found. Add contacts in Medical Profile.', '#d84315');
+        showToast('No emergency contacts found. Add contacts in Medical Profile.', '#d84315');
         return;
     }
 
     const selectedMsgs = MESSAGES.filter(m => selected.has(m.id));
 
-    // Build plain text SMS body
+    // Build SMS body
     let smsBody = '';
     if (USER_INFO.name) {
         smsBody += `From: ${USER_INFO.name}`;
@@ -198,11 +198,7 @@ function sendSMS() {
         : (USER_INFO.address || 'Location unavailable');
 
     smsBody += `\nLocation: ${locationStr}`;
-
-    if (USER_INFO.bloodType) {
-        smsBody += `\nBlood Type: ${USER_INFO.bloodType}`;
-    }
-
+    if (USER_INFO.bloodType) smsBody += `\nBlood Type: ${USER_INFO.bloodType}`;
     smsBody += `\n\nThis person is DEAF/MUTE - Please respond via TEXT only.`;
 
     const phones = CONTACTS
@@ -211,33 +207,63 @@ function sendSMS() {
         .join(',');
 
     if (!phones) {
-        showToast('⚠️ No valid phone numbers in your contacts.', '#d84315');
+        showToast('No valid phone numbers in your contacts.', '#d84315');
         return;
     }
 
-    // Log to server with keepalive — survives navigation, won't trigger network error
+    showToast('Sending SMS...', '#1976d2');
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+    // Send via PhilSMS
+    try {
+        const response = await fetch(BASE_URL + 'index.php?action=send-philsms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            keepalive: true,
+            body: JSON.stringify({
+                message:  smsBody,
+                phones:   phones,
+                contacts: CONTACTS.map(c => ({ name: c.name, phone: c.phone }))
+            })
+        });
+
+        const result = await response.json();
+        const sent = result && (result.success === true || (typeof result.sent === 'number' && result.sent > 0));
+
+        if (sent) {
+            showToast('SMS sent to ' + result.sent + ' contact(s)!', '#2e7d32');
+        } else {
+            // Fallback to native SMS
+            showToast('Opening SMS app as backup...', '#e65100');
+            setTimeout(() => {
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const sep   = isIOS ? '&' : '?';
+                window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
+            }, 500);
+        }
+    } catch (err) {
+        // Network error — fallback to native SMS
+        showToast('Opening SMS app as backup...', '#e65100');
+        setTimeout(() => {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const sep   = isIOS ? '&' : '?';
+            window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
+        }, 500);
+    }
+
+    // Always log to server
     fetch(BASE_URL + 'index.php?action=send-hub-sms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         keepalive: true,
         body: JSON.stringify({
-            messages: selectedMsgs.map(m => ({ id: m.id, title: m.title, desc: m.desc })),
-            contacts: CONTACTS.map(c => ({ name: c.name, phone: c.phone })),
-            latitude: hubLat,
-            longitude: hubLng,
+            messages:      selectedMsgs.map(m => ({ id: m.id, title: m.title, desc: m.desc })),
+            contacts:      CONTACTS.map(c => ({ name: c.name, phone: c.phone })),
+            latitude:      hubLat,
+            longitude:     hubLng,
             locationLabel: gpsReady && hubLat ? `Lat: ${hubLat.toFixed(6)}, Lng: ${hubLng.toFixed(6)}` : null
         })
-    }).catch(() => {}); // silent — SMS opens regardless
-
-    showToast('📤 Opening SMS app...', '#2e7d32');
-    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-
-    // Navigate LAST after short delay so toast shows first
-    setTimeout(() => {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const sep   = isIOS ? '&' : '?';
-        window.location.href = `sms:${phones}${sep}body=${encodeURIComponent(smsBody)}`;
-    }, 300);
+    }).catch(() => {});
 }
 
 // ── Clear All ──
