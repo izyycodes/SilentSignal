@@ -74,4 +74,4 @@
 
 <!-- Dashboard Shared Scripts -->
 <script src="<?php echo BASE_URL; ?>assets/js/theme.js"></script>
-<script src="<?php echo BASE_URL; ?>assets/js/dashboard.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/dashboard.js?v=2"></script>
