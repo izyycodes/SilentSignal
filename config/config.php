@@ -50,6 +50,9 @@ define('CONTACT_WEBSITE', 'silentsignal.helioho.st');
 // PhilSMS API
 define('PHILSMS_TOKEN', '1850|4FW8etOLDfVP9BiNhnW93yo7eJzMvm1NYqe6yIOM72c7b5f9');
 
+// Gemini API Key
+define('GEMINI_API_KEY', 'AIzaSyBDnXXn9vc9zfR3pm3FNhyBVAVTRHN2GbE');
+
 // Paths (same for both environments)
 define('BASE_PATH', __DIR__ . '/../'); 
 define('VIEW_PATH', __DIR__ . '/../views/');

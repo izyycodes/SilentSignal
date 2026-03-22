@@ -46,5 +46,7 @@
 
     <script src="<?php echo BASE_URL; ?>assets/js/theme.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/home.js"></script>
+
+    <?php require_once VIEW_PATH . 'includes/chatbot.php'; ?>
 </body>
 </html>

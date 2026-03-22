@@ -337,6 +337,12 @@ switch ($action) {
         $controller->updateAlertStatus();
         break;
 
+    case 'chatbot-proxy':
+        require_once CONTROLLER_PATH . 'ChatbotController.php';
+        $controller = new ChatbotController();
+        $controller->proxy();
+        break;
+        
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';
         $controller = new HomeController();
