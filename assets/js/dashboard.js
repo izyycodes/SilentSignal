@@ -175,12 +175,12 @@ async function confirmDashSOS() {
     }
 
     // Build concise SMS body
-    let smsBody = 'EMERGENCY SOS\n';
-    smsBody += 'DEAF/MUTE - TEXT ONLY\n\n';
+    let smsBody = 'EMERGENCY ALERT\n';
+    smsBody += 'DEAF/MUTE - TEXT ONLY - NO CALLS\n\n';
     if (user.name) {
         smsBody += `From: ${user.name}`;
         if (user.pwdId) smsBody += ` (PWD: ${user.pwdId})`;
-        smsBody += '\n';
+        smsBody += '\n\n';
     }
 
     const locationStr = dashGpsReady && dashLat
@@ -188,10 +188,11 @@ async function confirmDashSOS() {
         : (user.address || 'Location unavailable');
 
     smsBody += `Location: ${locationStr}`;
-    if (user.bloodType)   smsBody += `\nBlood: ${user.bloodType}`;
+    if (user.bloodType)   smsBody += `\nBlood Type: ${user.bloodType}`;
     if (user.allergies)   smsBody += `\nAllergies: ${user.allergies}`;
-    if (user.medications) smsBody += `\nMeds: ${user.medications}`;
-    smsBody += '\nReply via TEXT only.';
+    if (user.medications) smsBody += `\nMedications: ${user.medications}`;
+    if (user.conditions)  smsBody += `\nConditions: ${user.conditions}`;
+    smsBody += `\n\nThis person is DEAF/MUTE - Please respond via TEXT only.`;
 
     // Visual feedback
     const btn = document.getElementById('sosTriggerBtn');

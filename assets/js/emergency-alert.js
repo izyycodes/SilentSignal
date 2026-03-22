@@ -517,7 +517,7 @@ function buildEmergencyMessage(userData) {
         if (userData.conditions)  message += `Conditions: ${userData.conditions}\n`;
     }
 
-    message += `\nPlease respond via TEXT MESSAGE only.`;
+    message += `\nThis person is DEAF/MUTE - Please respond via TEXT only.`;
     return message;
 }
 

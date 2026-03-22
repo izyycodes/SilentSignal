@@ -869,6 +869,9 @@ button {
     font-size: 18px;
     flex-shrink: 0;
     cursor: grab;
+    touch-action: none;
+    padding: 8px;
+    margin: -8px;
 }
 
 .cc-icon {
