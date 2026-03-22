@@ -273,13 +273,55 @@ function closeInvitePanel(btn) {
     document.querySelectorAll('.invite-btn').forEach(b => b.classList.remove('active'));
 }
 
-function sendInviteSms(name, phone) {
+async function sendInviteSms(name, phone) {
     const inviterName = <?php echo json_encode($_SESSION['user_name'] ?? 'Your contact'); ?>;
     const appUrl      = <?php echo json_encode(BASE_URL); ?>;
-    const body = `Hi ${name}! ${inviterName} has added you as an emergency contact on Silent Signal — a disaster preparedness app for PWD users.\n\nPlease register at: ${appUrl}\n\nUse the same phone number (${phone}) when signing up so you're automatically linked.\n\nThis invitation expires in 48 hours.`;
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const sep   = isIOS ? '&' : '?';
-    window.location.href = `sms:${phone}${sep}body=${encodeURIComponent(body)}`;
+    const body = `Hi ${name}! ${inviterName} added you as an emergency contact on Silent Signal — a disaster app for PWD users.\n\nRegister at: ${appUrl}\n\nUse this number (${phone}) when signing up to be automatically linked.`;
+
+    const cleanPhone = phone.replace(/\s|-/g, '');
+
+    // Send via PhilSMS
+    try {
+        const response = await fetch(BASE_URL + 'index.php?action=send-philsms', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message:  body,
+                phones:   cleanPhone,
+                contacts: [{ name: name, phone: cleanPhone }]
+            })
+        });
+
+        const result = await response.json();
+        const sent   = result && (
+            result.success === true ||
+            (typeof result.sent === 'number' && result.sent > 0)
+        );
+
+        if (sent) {
+            showToast('Invite sent to ' + name + '!', '#2e7d32');
+            // Close the invite panel
+            document.querySelectorAll('.invite-panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.invite-btn').forEach(b => b.classList.remove('active'));
+        } else {
+            // Fallback to native SMS
+            showToast('Opening SMS app as backup...', '#e65100');
+            setTimeout(() => {
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const sep   = isIOS ? '&' : '?';
+                window.location.href = `sms:${cleanPhone}${sep}body=${encodeURIComponent(body)}`;
+            }, 500);
+        }
+
+    } catch (err) {
+        console.error('PhilSMS error:', err);
+        showToast('Opening SMS app as backup...', '#e65100');
+        setTimeout(() => {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const sep   = isIOS ? '&' : '?';
+            window.location.href = `sms:${cleanPhone}${sep}body=${encodeURIComponent(body)}`;
+        }, 500);
+    }
 }
 </script>
 
