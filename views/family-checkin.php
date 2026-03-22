@@ -195,7 +195,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <div class="invite-sms-body"><?php
                             $inviterName = $_SESSION['user_name'] ?? 'Your contact';
                             echo htmlspecialchars(
-                                "Hi " . $member['display_name'] . "! " . $inviterName . " has added you as an emergency contact on Silent Signal — a disaster preparedness app for PWD users.\n\nPlease register at: " . BASE_URL . "\n\nUse the same phone number (" . $member['phone_number'] . ") when signing up so you're automatically linked.\n\nThis invitation expires in 48 hours."
+                                "Hi " . $member['display_name'] . "! " . $inviterName . " added you as an emergency contact on Silent Signal — a disaster app for PWD users.\n\nRegister at: " . BASE_URL . "\n\nUse this number (" . $member['phone_number'] . ") when signing up to be automatically linked."
                             );
                         ?></div>
                     </div>
@@ -240,24 +240,24 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 
 <!-- Pass PHP data to JavaScript -->
 <script>
-const BASE_URL = <?php echo json_encode(BASE_URL); ?>;
-const currentUserId = <?php echo json_encode($_SESSION['user_id']); ?>;
-const initialMyStatus = <?php echo json_encode($myStatus['status'] ?? null); ?>;
+const BASE_URL              = <?php echo json_encode(BASE_URL); ?>;
+const currentUserId         = <?php echo json_encode($_SESSION['user_id']); ?>;
+const initialMyStatus       = <?php echo json_encode($myStatus['status'] ?? null); ?>;
 const initialFamilyStatuses = <?php echo json_encode($familyStatuses); ?>;
-const initialStatusHistory = <?php echo json_encode($statusHistory); ?>;
-let currentLat = <?php echo json_encode($myStatus['latitude'] ?? null); ?>;
+const initialStatusHistory  = <?php echo json_encode($statusHistory); ?>;
+let currentLat = <?php echo json_encode($myStatus['latitude']  ?? null); ?>;
 let currentLng = <?php echo json_encode($myStatus['longitude'] ?? null); ?>;
 </script>
 
 <!-- Page-specific JavaScript -->
-<script src="<?php echo BASE_URL; ?>assets/js/family-checkin.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/family-checkin.js?v=2"></script>
+
 <script>
 function toggleInvitePanel(btn) {
     const item  = btn.closest('.family-item');
     const panel = item.nextElementSibling;
     if (!panel || !panel.classList.contains('invite-panel')) return;
     const isOpen = panel.style.display !== 'none';
-    // Close all other open panels first
     document.querySelectorAll('.invite-panel').forEach(p => p.style.display = 'none');
     document.querySelectorAll('.invite-btn').forEach(b => b.classList.remove('active'));
     if (!isOpen) {
@@ -277,10 +277,15 @@ async function sendInviteSms(name, phone) {
     const inviterName = <?php echo json_encode($_SESSION['user_name'] ?? 'Your contact'); ?>;
     const appUrl      = <?php echo json_encode(BASE_URL); ?>;
     const body = `Hi ${name}! ${inviterName} added you as an emergency contact on Silent Signal — a disaster app for PWD users.\n\nRegister at: ${appUrl}\n\nUse this number (${phone}) when signing up to be automatically linked.`;
+    const cleanPhone  = phone.replace(/\s|-/g, '');
 
-    const cleanPhone = phone.replace(/\s|-/g, '');
+    // Show sending state on button
+    const sendBtn = document.querySelector(`.invite-send-btn`);
+    if (sendBtn) {
+        sendBtn.disabled  = true;
+        sendBtn.innerHTML = '<i class="ri-loader-4-line"></i> Sending...';
+    }
 
-    // Send via PhilSMS
     try {
         const response = await fetch(BASE_URL + 'index.php?action=send-philsms', {
             method:  'POST',
@@ -300,7 +305,6 @@ async function sendInviteSms(name, phone) {
 
         if (sent) {
             showToast('Invite sent to ' + name + '!', '#2e7d32');
-            // Close the invite panel
             document.querySelectorAll('.invite-panel').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.invite-btn').forEach(b => b.classList.remove('active'));
         } else {
@@ -321,6 +325,11 @@ async function sendInviteSms(name, phone) {
             const sep   = isIOS ? '&' : '?';
             window.location.href = `sms:${cleanPhone}${sep}body=${encodeURIComponent(body)}`;
         }, 500);
+    } finally {
+        if (sendBtn) {
+            sendBtn.disabled  = false;
+            sendBtn.innerHTML = '<i class="ri-send-plane-fill"></i> Send Invite via SMS';
+        }
     }
 }
 </script>
