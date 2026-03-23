@@ -145,7 +145,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </div>
     </div>
 
-    <!-- System Health -->
+    <!-- System Healthttg -->
     <div class="dashboard-section">
         <div class="section-header">
             <h2><i class="ri-pulse-line"></i> System Health</h2>
