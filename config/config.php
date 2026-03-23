@@ -2,11 +2,13 @@
 // config/config.php - Environment-Based Configuration
 // Works automatically on both localhost and HelioHost
 
-// Detect environment based on server name
+// Detect environment based on server name (safe check)
+$httpHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+
 $isLocal = (
-    $_SERVER['HTTP_HOST'] === 'localhost' || 
-    strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false ||
-    strpos($_SERVER['HTTP_HOST'], 'localhost:') !== false
+    $httpHost === 'localhost' ||
+    strpos($httpHost, '127.0.0.1') !== false ||
+    strpos($httpHost, 'localhost:') !== false
 );
 
 // Site settings
@@ -71,8 +73,12 @@ if ($isLocal) {
     ini_set('display_errors', 0);
     error_reporting(E_ALL);
     ini_set('log_errors', 1);
-    // HelioHost error log location
-    ini_set('error_log', $_SERVER['DOCUMENT_ROOT'] . '/../logs/php_errors.log');
+    // Use BASE_PATH so logs folder is relative to the app root
+    $logDir = BASE_PATH . 'logs';
+    if (!is_dir($logDir)) {
+        @mkdir($logDir, 0755, true);
+    }
+    ini_set('error_log', $logDir . '/php_errors.log');
 }
 
 ?>
