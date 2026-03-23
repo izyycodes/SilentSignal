@@ -82,6 +82,28 @@ class AuthController {
         
         // Attempt login using User model
         if ($this->user->login($email_or_phone, $password)) {
+
+            // ── MFA Check ─────────────────────────────────────────────────────────────
+            require_once __DIR__ . '/../models/UserSettings.php';
+            $settingsModel = new UserSettings();
+            if ($settingsModel->isMfaEnabled($this->user->id)) {
+                // Store pending login data in session (not full login yet)
+                $_SESSION['mfa_pending_id']    = $this->user->id;
+                $_SESSION['mfa_pending_name']  = $this->user->fname . ' ' . $this->user->lname;
+                $_SESSION['mfa_pending_email'] = $this->user->email;
+                $_SESSION['mfa_pending_role']  = $this->user->role;
+                $_SESSION['mfa_pending_phone'] = $this->user->phone_number;
+                $_SESSION['mfa_remember_me']   = !empty($_POST['remember_me']);
+
+                // Generate and send OTP
+                $code = $settingsModel->generateMfaCode($this->user->id);
+                $this->sendMfaEmail($this->user->email, $this->user->fname, $code);
+
+                header("Location: " . BASE_URL . "index.php?action=mfa-verify");
+                exit();
+            }
+            // ──────────────────────────────────────────────────────────────────────
+
             // Set session variables
             $_SESSION['user_id']    = $this->user->id;
             $_SESSION['user_name']  = $this->user->fname . ' ' . $this->user->lname;
@@ -561,7 +583,179 @@ HTML;
 
 
     
-    /**
+    // =========================================================================
+    // MFA VERIFICATION — Show page
+    // =========================================================================
+    public function showMfaVerify() {
+        if (!isset($_SESSION['mfa_pending_id'])) {
+            header("Location: " . BASE_URL . "index.php?action=auth");
+            exit();
+        }
+        $pageTitle = "Two-Factor Authentication - Silent Signal";
+        $maskedEmail = $this->maskEmail($_SESSION['mfa_pending_email']);
+        require_once VIEW_PATH . 'mfa-verify.php';
+    }
+
+    // =========================================================================
+    // MFA VERIFICATION — Process submitted code
+    // =========================================================================
+    public function processMfaVerify() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: " . BASE_URL . "index.php?action=auth");
+            exit();
+        }
+
+        if (!isset($_SESSION['mfa_pending_id'])) {
+            $_SESSION['error'] = "Session expired. Please login again.";
+            header("Location: " . BASE_URL . "index.php?action=auth");
+            exit();
+        }
+
+        $code   = trim($_POST['otp_code'] ?? '');
+        $userId = $_SESSION['mfa_pending_id'];
+
+        require_once __DIR__ . '/../models/UserSettings.php';
+        $settingsModel = new UserSettings();
+
+        if (!$settingsModel->verifyMfaCode($userId, $code)) {
+            $_SESSION['mfa_error'] = "Invalid or expired code. Please try again.";
+            header("Location: " . BASE_URL . "index.php?action=mfa-verify");
+            exit();
+        }
+
+        // Code correct — complete the login
+        $_SESSION['user_id']    = $_SESSION['mfa_pending_id'];
+        $_SESSION['user_name']  = $_SESSION['mfa_pending_name'];
+        $_SESSION['user_email'] = $_SESSION['mfa_pending_email'];
+        $_SESSION['user_role']  = $_SESSION['mfa_pending_role'];
+        $_SESSION['user_phone'] = $_SESSION['mfa_pending_phone'];
+        $rememberMe             = $_SESSION['mfa_remember_me'] ?? false;
+
+        // Clean up MFA pending keys
+        unset($_SESSION['mfa_pending_id'], $_SESSION['mfa_pending_name'],
+              $_SESSION['mfa_pending_email'], $_SESSION['mfa_pending_role'],
+              $_SESSION['mfa_pending_phone'], $_SESSION['mfa_remember_me'],
+              $_SESSION['mfa_error']);
+
+        // Handle Remember Me if it was requested
+        if ($rememberMe) {
+            $token  = bin2hex(random_bytes(32));
+            $expiry = time() + (30 * 24 * 60 * 60);
+            require_once __DIR__ . '/../config/Database.php';
+            $db   = (new Database())->getConnection();
+            $hash = hash('sha256', $token);
+            $db->prepare("
+                INSERT INTO remember_tokens (user_id, token_hash, expires_at)
+                VALUES (?, ?, NOW() + INTERVAL 30 DAY)
+                ON DUPLICATE KEY UPDATE token_hash = VALUES(token_hash), expires_at = NOW() + INTERVAL 30 DAY
+            ")->execute([$_SESSION['user_id'], $hash]);
+            setcookie('ss_remember', $token, ['expires' => $expiry, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
+            setcookie('ss_remember_email', $_SESSION['user_email'], ['expires' => $expiry, 'path' => '/', 'httponly' => false, 'samesite' => 'Lax']);
+        }
+
+        $_SESSION['success'] = "Login successful! Welcome back, " . explode(' ', $_SESSION['user_name'])[0] . "!";
+        $this->redirectToDashboard();
+    }
+
+    // =========================================================================
+    // MFA — Resend code
+    // =========================================================================
+    public function resendMfaCode() {
+        if (!isset($_SESSION['mfa_pending_id'])) {
+            header("Location: " . BASE_URL . "index.php?action=auth");
+            exit();
+        }
+        require_once __DIR__ . '/../models/UserSettings.php';
+        $settingsModel = new UserSettings();
+        $code = $settingsModel->generateMfaCode($_SESSION['mfa_pending_id']);
+        $this->sendMfaEmail($_SESSION['mfa_pending_email'], explode(' ', $_SESSION['mfa_pending_name'])[0], $code);
+        $_SESSION['mfa_info'] = "A new verification code has been sent to your email.";
+        header("Location: " . BASE_URL . "index.php?action=mfa-verify");
+        exit();
+    }
+
+    // =========================================================================
+    // HELPER — send MFA OTP email
+    // =========================================================================
+    private function sendMfaEmail($toEmail, $toName, $code) {
+        require_once BASE_PATH . 'vendor/autoload.php';
+        try {
+            $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'ssilentsignal@gmail.com';
+            $mail->Password   = 'rnfa bxze eyix tmjw';
+            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+            $mail->setFrom(CONTACT_EMAIL, 'Silent Signal');
+            $mail->addAddress($toEmail, $toName);
+            $mail->isHTML(true);
+            $mail->Subject = 'Your Silent Signal Login Code';
+            $mail->Body    = $this->buildMfaEmailHtml($toName, $code);
+            $mail->AltBody = "Hi {$toName},\n\nYour Silent Signal verification code is: {$code}\n\nThis code expires in 10 minutes.\n\nIf you did not attempt to login, please change your password immediately.\n\n— Silent Signal Team";
+            $mail->send();
+        } catch (\PHPMailer\PHPMailer\Exception $e) {
+            error_log("MFA email failed for {$toEmail}: " . ($mail->ErrorInfo ?? $e->getMessage()));
+        }
+    }
+
+    private function buildMfaEmailHtml($name, $code) {
+        $digits = str_split($code);
+        $digitHtml = '';
+        foreach ($digits as $d) {
+            $digitHtml .= "<span style=\"display:inline-block;width:44px;height:54px;line-height:54px;text-align:center;font-size:28px;font-weight:700;color:#1A4D7F;background:#f0f6ff;border:2px solid #c7daf5;border-radius:8px;margin:0 4px;\">{$d}</span>";
+        }
+        return <<<HTML
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f5f7fa;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fa;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+        <tr>
+          <td style="background:linear-gradient(135deg,#1A4D7F,#2d6a9f);padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">Silent Signal</h1>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:13px;">Two-Factor Authentication</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 40px;">
+            <h2 style="margin:0 0 8px;color:#1a1a2e;font-size:20px;">Hi {$name},</h2>
+            <p style="color:#555;font-size:14px;line-height:1.6;margin:0 0 28px;">
+              Your one-time login verification code is below. It expires in <strong>10 minutes</strong>.
+            </p>
+            <div style="text-align:center;margin:0 0 28px;">{$digitHtml}</div>
+            <p style="color:#888;font-size:13px;line-height:1.6;margin:0 0 8px;">
+              If you didn't try to log in, someone may have your password — please change it immediately.
+            </p>
+            <p style="color:#bbb;font-size:12px;margin:0;">Do not share this code with anyone.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f8f9fa;padding:20px 40px;text-align:center;border-top:1px solid #eee;">
+            <p style="font-size:12px;color:#999;margin:0;">© 2026 Silent Signal · Bacolod City, Philippines</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+HTML;
+    }
+
+    // =========================================================================
+    // HELPER — mask email for display (e.g. j***@gmail.com)
+    // =========================================================================
+    private function maskEmail($email) {
+        [$local, $domain] = explode('@', $email, 2);
+        $masked = substr($local, 0, 1) . str_repeat('*', max(1, strlen($local) - 1));
+        return $masked . '@' . $domain;
+    }
+
+        /**
      * Redirect to appropriate dashboard based on role
      */
     private function redirectToDashboard() {

@@ -2,11 +2,10 @@
 // views/auth.php - Combined Login and Signup with Sliding Animation
 // Note: config is already loaded by index.php
 // $pageTitle and $isHome are set by controller
+$pageStyles = [BASE_URL . 'assets/css/auth.css', BASE_URL . 'assets/css/forgot-password.css'];
 require_once VIEW_PATH . 'includes/home-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/auth.css">
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forgot-password.css">
 
 <!-- Main Container -->
 <div class="main-container">

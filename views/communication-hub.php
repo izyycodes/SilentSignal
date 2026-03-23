@@ -2,11 +2,11 @@
 // views/communication-hub.php
 // Communication Hub - Data is passed from UserController
 
+$pageStyles = [BASE_URL . 'assets/css/communication-hub.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
 <!-- Page-specific styles -->
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/communication-hub.css">
 
 <!-- Page Container -->
 <div class="page-container">

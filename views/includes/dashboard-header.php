@@ -46,6 +46,9 @@ $isPWD = ($userRole === 'pwd');
             document.documentElement.setAttribute('data-theme', t);
         })();
     </script>
+    <?php if (!empty($pageStyles)): foreach ((array)$pageStyles as $href): ?>
+        <link rel="stylesheet" href="<?php echo $href; ?>">
+    <?php endforeach; endif; ?>
 </head>
 <body>
     

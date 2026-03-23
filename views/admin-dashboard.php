@@ -1,9 +1,9 @@
 <?php
 // views/admin/dashboard.php
+$pageStyles = [BASE_URL . 'assets/css/admin-dashboard.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin-dashboard.css">
 
 <div class="dashboard-container">
     <!-- 1Admin Dashboard Welcome Header -->
@@ -145,7 +145,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </div>
     </div>
 
-    <!-- System Healthttfefeg -->
+    <!-- System Health -->
     <div class="dashboard-section">
         <div class="section-header">
             <h2><i class="ri-pulse-line"></i> System Health</h2>

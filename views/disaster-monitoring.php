@@ -2,10 +2,10 @@
 // views/disaster-monitoring.php
 // Disaster Monitoring & Auto-Alert - Data is passed from UserController
 
+$pageStyles = [BASE_URL . 'assets/css/disaster-monitoring.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/disaster-monitoring.css">
 
 <!-- Pass data to JavaScript -->
 <script>

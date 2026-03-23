@@ -2,9 +2,10 @@
 // Handles SOS, GPS location, shake detection, and PhilSMS sending
 
 // Global state
-let userLocation = null;
-let isAlertActive = false;
-let shakeEnabled = false;
+let userLocation       = null;
+let isAlertActive      = false;
+let shakeEnabled       = false;
+let sosCountdownSeconds = 10; // default; overridden by user settings on load
 
 document.addEventListener('DOMContentLoaded', function() {
     
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeLocation();
     initializeShakeDetection();
     initializePanicClickDetection();
+    loadUserSettings();
     
     // ================================
     // SOS BUTTON
@@ -52,18 +54,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ================================
-    // SHAKE TOGGLE
+    // SHAKE TOGGLE — controlled from Settings page
+    // The toggle UI was moved to Settings; state is loaded via loadUserSettings()
     // ================================
-    const shakeToggle = document.getElementById('shakeToggle');
-    if (shakeToggle) {
-        shakeToggle.addEventListener('change', function() {
-            shakeEnabled = this.checked;
-            showNotification(
-                shakeEnabled ? 'Shake-to-alert enabled' : 'Shake-to-alert disabled',
-                shakeEnabled ? 'success' : 'info'
-            );
-        });
-    }
     
     // ================================
     // TEST ALERT BUTTON
@@ -302,6 +295,28 @@ function initializePanicClickDetection() {
 // ================================
 // TRIGGER SOS
 // ================================
+// ================================
+// LOAD USER SETTINGS FROM SERVER
+// ================================
+async function loadUserSettings() {
+    try {
+        const res  = await fetch(BASE_URL + 'index.php?action=get-settings-api');
+        const data = await res.json();
+        if (typeof data.sos_countdown_seconds === 'number') {
+            sosCountdownSeconds = data.sos_countdown_seconds;
+        }
+        if (data.auto_shake_enabled) {
+            shakeEnabled = true;
+            showNotification('Shake-to-alert is active (via Settings)', 'info');
+        }
+        // Update countdown display on the SOS modal if it's already open
+        const countdownEl = document.getElementById('sosCountdown');
+        if (countdownEl) countdownEl.textContent = sosCountdownSeconds;
+    } catch (e) {
+        // Fail silently — use defaults
+    }
+}
+
 async function triggerSOS(triggerType) {
     if (isAlertActive) return;
     isAlertActive = true;
@@ -320,7 +335,7 @@ function showSOSConfirmationModal(triggerType) {
     
     modal.classList.add('active');
     
-    let countdown = 10;
+    let countdown = sosCountdownSeconds;
     const countdownEl = document.getElementById('sosCountdown');
     if (countdownEl) countdownEl.textContent = countdown;
     

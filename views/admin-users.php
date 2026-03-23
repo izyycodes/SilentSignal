@@ -1,8 +1,8 @@
 <?php
+$pageStyles = [BASE_URL . 'assets/css/admin-users.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin-users.css">
 
 <div class="dashboard-container">
 

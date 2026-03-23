@@ -2,10 +2,10 @@
 // views/family-dashboard.php
 // Family Member Dashboard – all data from FamilyController
 
+$pageStyles = [BASE_URL . 'assets/css/family-dashboard.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/family-dashboard.css">
 
 <div class="family-dashboard-container">
 

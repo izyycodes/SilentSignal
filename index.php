@@ -95,6 +95,42 @@ switch ($action) {
         $controller->processResetPassword();
         break;
 
+    case 'mfa-verify':
+        require_once CONTROLLER_PATH . 'AuthController.php';
+        $controller = new AuthController();
+        $controller->showMfaVerify();
+        break;
+
+    case 'process_mfa_verify':
+        require_once CONTROLLER_PATH . 'AuthController.php';
+        $controller = new AuthController();
+        $controller->processMfaVerify();
+        break;
+
+    case 'resend_mfa_code':
+        require_once CONTROLLER_PATH . 'AuthController.php';
+        $controller = new AuthController();
+        $controller->resendMfaCode();
+        break;
+
+    case 'settings':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->settings();
+        break;
+
+    case 'save-settings':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->saveSettings();
+        break;
+
+    case 'get-settings-api':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->getSettingsApi();
+        break;
+
     // User Modules    
     case 'dashboard':
         require_once CONTROLLER_PATH . 'UserController.php';

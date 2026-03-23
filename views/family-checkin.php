@@ -2,11 +2,11 @@
 // views/family-checkin.php
 // Family Check-in - Data is passed from UserController
 
+$pageStyles = [BASE_URL . 'assets/css/family-checkin.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
 <!-- Page-specific styles -->
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/family-checkin.css">
 
 <!-- Page Container -->
 <div class="page-container">

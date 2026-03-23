@@ -41,6 +41,7 @@ class UserController
         // User dropdown menu items
         $this->userMenuItems = [
             ['action' => 'medical-profile', 'icon' => 'ri-heart-pulse-line', 'label' => 'Medical Profile'],
+            ['action' => 'settings', 'icon' => 'ri-settings-3-line', 'label' => 'Settings'],
         ];
 
         // Footer quick links
@@ -1008,6 +1009,19 @@ class UserController
                 require_once __DIR__ . '/../models/FamilyCheckin.php';
                 $fcModel = new FamilyCheckin();
                 $fcModel->syncEmergencyContacts($_SESSION['user_id'], $profileData['emergency_contacts'] ?? []);
+
+                // Auto-invite contacts if setting is enabled
+                require_once __DIR__ . '/../models/UserSettings.php';
+                $settingsModel = new UserSettings();
+                $userSettings  = $settingsModel->getSettings($_SESSION['user_id']);
+                if (!empty($userSettings['auto_invite_contacts'])) {
+                    $this->autoInviteEmergencyContacts(
+                        $_SESSION['user_id'],
+                        $_SESSION['user_name'],
+                        $profileData['emergency_contacts'] ?? []
+                    );
+                }
+
                 echo json_encode(['success' => true, 'message' => 'Profile saved successfully!']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to save profile.']);
@@ -1293,6 +1307,178 @@ class UserController
             ]);
         }
 
+        exit();
+    }
+
+
+    // =========================================================================
+    // HELPER — Auto-invite emergency contacts to Family Check-in
+    // Sends a notification email to each contact who has a registered account
+    // =========================================================================
+    private function autoInviteEmergencyContacts($pwdUserId, $pwdName, array $contacts) {
+        if (empty($contacts)) return;
+
+        require_once BASE_PATH . 'vendor/autoload.php';
+        require_once __DIR__ . '/../config/Database.php';
+        $db = (new Database())->getConnection();
+
+        foreach ($contacts as $contact) {
+            $contactEmail = trim($contact['email'] ?? '');
+            $contactName  = trim($contact['name']  ?? '');
+            $contactPhone = trim($contact['phone']  ?? '');
+
+            if (empty($contactEmail) && empty($contactPhone)) continue;
+
+            // Look up registered user by email or phone
+            $stmt = $db->prepare(
+                "SELECT id, fname, email FROM users WHERE email = ? OR phone_number = ? LIMIT 1"
+            );
+            $stmt->execute([$contactEmail, $contactPhone]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$user || empty($user['email'])) continue;
+
+            // Already linked? Skip sending another invite
+            $check = $db->prepare(
+                "SELECT id FROM family_pwd_relationships WHERE family_member_id = ? AND pwd_user_id = ? LIMIT 1"
+            );
+            $check->execute([$user['id'], $pwdUserId]);
+            if (!$check->fetch()) continue; // not yet linked — sync should have handled it
+
+            // Send invite email
+            $this->sendAutoInviteEmail($user['email'], $user['fname'], $pwdName);
+        }
+    }
+
+    private function sendAutoInviteEmail($toEmail, $toName, $pwdName) {
+        try {
+            $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'ssilentsignal@gmail.com';
+            $mail->Password   = 'rnfa bxze eyix tmjw';
+            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+            $mail->setFrom(CONTACT_EMAIL, 'Silent Signal');
+            $mail->addAddress($toEmail, $toName);
+            $mail->isHTML(true);
+            $mail->Subject = "{$pwdName} has added you as an emergency contact on Silent Signal";
+            $dashLink = BASE_URL . 'index.php?action=family-dashboard';
+            $mail->Body = <<<HTML
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f5f7fa;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f7fa;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+        <tr>
+          <td style="background:linear-gradient(135deg,#1A4D7F,#2d6a9f);padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">Silent Signal</h1>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:13px;">Emergency Contact Invitation</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 40px;">
+            <h2 style="margin:0 0 12px;color:#1a1a2e;font-size:20px;">Hi {$toName},</h2>
+            <p style="color:#555;font-size:14px;line-height:1.7;margin:0 0 20px;">
+              <strong>{$pwdName}</strong> has added you as an emergency contact on <strong>Silent Signal</strong>.
+              You are now linked to their Family Check-in dashboard where you can monitor their safety status and respond to emergency alerts.
+            </p>
+            <div style="text-align:center;margin:0 0 24px;">
+              <a href="{$dashLink}" style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#1A4D7F,#2d6a9f);color:#ffffff;text-decoration:none;border-radius:10px;font-size:15px;font-weight:600;">
+                View Family Dashboard
+              </a>
+            </div>
+            <p style="color:#888;font-size:13px;line-height:1.6;margin:0;">
+              If you don't have a Silent Signal account yet, you can sign up at <a href="{$dashLink}" style="color:#1A4D7F;">{$dashLink}</a>
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f8f9fa;padding:20px 40px;text-align:center;border-top:1px solid #eee;">
+            <p style="font-size:12px;color:#999;margin:0;">© 2026 Silent Signal · Bacolod City, Philippines</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+HTML;
+            $mail->AltBody = "Hi {$toName}, {$pwdName} has added you as an emergency contact on Silent Signal. Visit your Family Dashboard: {$dashLink}";
+            $mail->send();
+        } catch (\PHPMailer\PHPMailer\Exception $e) {
+            error_log("Auto-invite email failed for {$toEmail}: " . ($mail->ErrorInfo ?? $e->getMessage()));
+        }
+    }
+
+    // =========================================================================
+    // SETTINGS PAGE
+    // =========================================================================
+    public function settings() {
+        $this->requireLogin();
+        require_once __DIR__ . '/../models/UserSettings.php';
+        $settingsModel = new UserSettings();
+        $userSettings  = $settingsModel->getSettings($_SESSION['user_id']);
+
+        $pageTitle = "Settings - Silent Signal";
+        extract($this->getSharedData());
+        require_once VIEW_PATH . 'settings.php';
+    }
+
+    // =========================================================================
+    // SAVE SETTINGS (AJAX + form POST)
+    // =========================================================================
+    public function saveSettings() {
+        $this->requireLogin();
+        require_once __DIR__ . '/../models/UserSettings.php';
+        $settingsModel = new UserSettings();
+
+        $mfaEnabled   = !empty($_POST['mfa_enabled'])   ? 1 : 0;
+        $sosCountdown = (int)($_POST['sos_countdown']   ?? 10);
+        $autoShake    = !empty($_POST['auto_shake'])     ? 1 : 0;
+        $autoInvite   = !empty($_POST['auto_invite'])    ? 1 : 0;
+
+        $ok = $settingsModel->saveSettings(
+            $_SESSION['user_id'],
+            $mfaEnabled,
+            $sosCountdown,
+            $autoShake,
+            $autoInvite
+        );
+
+        // AJAX request
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => $ok]);
+            exit();
+        }
+
+        // Normal form POST
+        if ($ok) {
+            $_SESSION['success'] = "Settings saved successfully!";
+        } else {
+            $_SESSION['error'] = "Failed to save settings. Please try again.";
+        }
+        header("Location: " . BASE_URL . "index.php?action=settings");
+        exit();
+    }
+
+    // =========================================================================
+    // GET SETTINGS (AJAX — called by emergency-alert.js on page load)
+    // =========================================================================
+    public function getSettingsApi() {
+        $this->requireLogin();
+        require_once __DIR__ . '/../models/UserSettings.php';
+        $settingsModel = new UserSettings();
+        $s = $settingsModel->getSettings($_SESSION['user_id']);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'sos_countdown_seconds' => (int)$s['sos_countdown_seconds'],
+            'auto_shake_enabled'    => (bool)$s['auto_shake_enabled'],
+        ]);
         exit();
     }
 }

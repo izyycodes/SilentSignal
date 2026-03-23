@@ -1,9 +1,8 @@
 <?php
+$pageStyles = [BASE_URL . 'assets/css/auth.css', BASE_URL . 'assets/css/forgot-password.css'];
 require_once VIEW_PATH . 'includes/home-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/auth.css">
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forgot-password.css">
 
 <div class="main-container">
     <div class="back-to-home-wrapper">

@@ -1,6 +1,6 @@
-<?php require_once VIEW_PATH . 'includes/home-header.php'; ?>
+<?php <?php $pageStyles = [BASE_URL . 'assets/css/support-pages.css']; ?>
+require_once VIEW_PATH . 'includes/home-header.php'; ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/support-pages.css">
 
 <!-- Page Hero -->
 <section class="support-hero fsl-hero">

@@ -1,8 +1,8 @@
 <?php
+$pageStyles = [BASE_URL . 'assets/css/admin-emergency-alerts.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin-emergency-alerts.css">
 
 <div class="dashboard-container">
 

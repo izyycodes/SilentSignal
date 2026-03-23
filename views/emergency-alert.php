@@ -2,10 +2,10 @@
 // views/emergency-alert.php
 // Emergency Alert System - Data is passed from UserController
 
+$pageStyles = [BASE_URL . 'assets/css/emergency-alert.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/emergency-alert.css">
 
 <div class="page-container">
     <!-- Page Header -->
@@ -80,13 +80,20 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     </div>
                     <h2><?php echo $feature['title']; ?></h2>
                     <?php if ($feature['id'] === 'shake-alert'): ?>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="shakeToggle">
-                            <span class="toggle-slider"></span>
-                        </label>
+                        <a href="<?php echo BASE_URL; ?>index.php?action=settings" class="shake-settings-link" title="Configure in Settings">
+                            <i class="ri-settings-3-line"></i>
+                        </a>
                     <?php endif; ?>
                 </div>
-                <p class="card-description"><?php echo $feature['description']; ?></p>
+                <?php if ($feature['id'] === 'shake-alert'): ?>
+                    <p class="card-description"><?php echo $feature['description']; ?></p>
+                    <p class="shake-status-indicator" id="shakeStatusIndicator">
+                        <i class="ri-information-line"></i> Status controlled from
+                        <a href="<?php echo BASE_URL; ?>index.php?action=settings">Settings</a>
+                    </p>
+                <?php else: ?>
+                    <p class="card-description"><?php echo $feature['description']; ?></p>
+                <?php endif; ?>
             </div>
         <?php endforeach; ?>
     </div>
@@ -164,6 +171,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         <div class="countdown">
             Auto-sending in <span id="sosCountdown">10</span> seconds...
         </div>
+        <p class="countdown-settings-hint"><i class="ri-settings-3-line"></i> Countdown duration is configurable in <a href="<?php echo BASE_URL; ?>index.php?action=settings">Settings</a></p>
         <div class="modal-actions">
             <button class="btn btn-danger" id="confirmSOSBtn">
                 <i class="ri-send-plane-fill"></i> Send Now

@@ -2,10 +2,10 @@
 // views/medical-profile.php
 // Medical Profile & Pre-Registration - Data is passed from UserController
 
+$pageStyles = [BASE_URL . 'assets/css/medical-profile.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/medical-profile.css">
 
 <div class="page-container">
     <!-- Sticky Header + Tabs -->
