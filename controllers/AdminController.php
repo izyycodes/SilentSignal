@@ -1,5 +1,5 @@
 <?php
-// controllers/AdminController.php
+// controllers/AdminController.phps
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
