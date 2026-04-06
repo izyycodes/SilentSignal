@@ -878,3 +878,99 @@
 
 [data-theme="dark"] .welcome-content h2 { color: var(--text-primary); }
 [data-theme="dark"] .welcome-subtitle { color: var(--text-muted); }
+
+/* ============================================================
+   FAMILY DASHBOARD — Location Map Section
+   ============================================================ */
+
+.family-map-sub {
+    font-size: 13px;
+    color: var(--text-muted, #6b7c93);
+    margin: -6px 0 14px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.family-map-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Mini-map canvas */
+.family-mini-map {
+    width: 100%;
+    height: 220px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid #e0e7ef;
+    position: relative;
+    background: #e8eef5;
+}
+
+.family-mini-map .leaflet-control-container { display: none; }
+
+/* Placeholder shown before GPS */
+.family-map-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #90a4b7;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    background: #eef2f7;
+    z-index: 10;
+}
+.family-map-placeholder i { font-size: 32px; color: #b0c4d8; }
+
+/* View Full Map button — matches pattern from other pages */
+.btn-view-map {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #1A4D7F, #2d6a9f);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    text-decoration: none;
+    width: fit-content;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+.btn-view-map:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(26,77,127,0.35);
+}
+
+/* Leaflet tooltip shown on mini-map for PWD name labels */
+.fm-mini-tooltip {
+    background: #fff;
+    border: 1px solid #cdd5df;
+    border-radius: 6px;
+    padding: 3px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: #1a3050;
+    box-shadow: 0 2px 6px rgba(0,0,0,.15);
+    white-space: nowrap;
+}
+.fm-mini-tooltip::before { display: none; }
+
+/* ── Dark theme ── */
+[data-theme="dark"] .family-mini-map { border-color: var(--border-light); }
+[data-theme="dark"] .family-map-placeholder { background: #1e2a38; color: var(--text-muted); }
+[data-theme="dark"] .family-map-placeholder i { color: #4a6a88; }
+[data-theme="dark"] .family-map-sub { color: var(--text-muted); }
+[data-theme="dark"] .fm-mini-tooltip {
+    background: #1e2a38;
+    border-color: #2d3e52;
+    color: #8fb3d3;
+}

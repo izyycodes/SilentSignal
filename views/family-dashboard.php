@@ -6,6 +6,16 @@ $pageStyles = [BASE_URL . 'assets/css/family-dashboard.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
+<!-- Leaflet.js -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
+
+<!-- Full-screen map modal (shared module) -->
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/fullmap-modal.css">
+<script src="<?php echo BASE_URL; ?>assets/js/fullmap-modal.js" defer></script>
+
 
 <div class="family-dashboard-container">
 
@@ -40,6 +50,31 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             </div>
         </div>
         <?php endforeach; ?>
+    </div>
+
+    <!-- ── Location Map Section ── -->
+    <div class="section-container" id="familyMapSection">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="ri-map-2-line"></i>
+                <h2>Location Map</h2>
+            </div>
+            <span class="section-badge" id="familyMapBadge">Acquiring GPS…</span>
+        </div>
+        <p class="family-map-sub">Your position and all linked PWD members. Tap a PWD marker to get directions.</p>
+
+        <!-- Mini-map container -->
+        <div class="family-map-wrap">
+            <div id="familyMiniMapEl" class="family-mini-map">
+                <div class="family-map-placeholder" id="familyMapPlaceholder">
+                    <i class="ri-map-pin-time-line"></i>
+                    <span>Waiting for GPS signal…</span>
+                </div>
+            </div>
+            <button id="familyViewFullMapBtn" class="btn-view-map" style="display:none;" onclick="openFamilyFullMap()">
+                <i class="ri-fullscreen-line"></i> View Full Map
+            </button>
+        </div>
     </div>
 
     <!-- PWD Members Section -->
@@ -322,5 +357,6 @@ const pwdMembersData = <?php echo $pwdMembersJson; ?>;
 </script>
 
 <script src="<?php echo BASE_URL; ?>assets/js/family-dashboard.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/family-dashboard-map.js"></script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
