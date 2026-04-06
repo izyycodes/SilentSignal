@@ -20,7 +20,7 @@ class FSL_PDF extends FPDF {
         $this->SetDrawColor(0, 123, 191);
         $this->SetLineWidth(0.8);
         $this->Line(10, 20, 200, 20);
-        $this->Ln(8);
+        $this->Ln(14);
     }
 
     function Footer() {
@@ -72,9 +72,10 @@ class FSL_PDF extends FPDF {
 }
 
 $pdf = new FSL_PDF();
-$pdf->SetMargins(10, 25, 10);
+$pdf->SetMargins(10, 30, 10);
 $pdf->SetAutoPageBreak(true, 20);
 $pdf->AddPage();
+$pdf->Ln(6);
 
 // ── Title ──
 $pdf->SetFont('Helvetica', 'B', 20);
