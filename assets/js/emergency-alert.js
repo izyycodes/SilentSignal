@@ -131,7 +131,7 @@ function updateLocationDisplay(status, lat, lng) {
         locationCoords.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     }
     if (locationLink && lat && lng) {
-        locationLink.href = `https://maps.google.com/?q=${lat},${lng}`;
+        // Button now opens the full-screen map modal (no href needed)
         locationLink.style.display = 'inline-flex';
     }
 

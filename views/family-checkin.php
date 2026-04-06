@@ -12,6 +12,10 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLEg=" crossorigin=""></script>
 
+<!-- Full-screen map modal -->
+<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/fullmap-modal.css">
+<script src="<?php echo BASE_URL; ?>assets/js/fullmap-modal.js" defer></script>
+
 <!-- Page-specific styles -->
 <style>
 .mini-map-wrapper {
@@ -174,9 +178,9 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <span>Waiting for GPS signal...</span>
                 </div>
             </div>
-            <a href="#" id="familyLocationLink" class="btn-view-map" target="_blank" style="display:none;">
-                <i class="ri-external-link-line"></i> View Full Map
-            </a>
+            <button id="familyLocationLink" class="btn-view-map" style="display:none;" onclick="openFamilyFullMap()">
+                <i class="ri-map-2-line"></i> View Full Map
+            </button>
         </div>
     </div>
 
@@ -413,3 +417,61 @@ async function sendInviteSms(name, phone) {
 </script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
+<script>
+/**
+ * Build member array from initialFamilyStatuses, then open the
+ * full-screen map modal.  Called by the "View Full Map" button.
+ */
+function openFamilyFullMap() {
+    var pwdLat = (typeof currentLat !== 'undefined') ? currentLat : null;
+    var pwdLng = (typeof currentLng !== 'undefined') ? currentLng : null;
+
+    if (!pwdLat || !pwdLng) {
+        alert('GPS location not yet acquired. Please wait a moment and try again.');
+        return;
+    }
+
+    /* Build member list from server-provided family statuses */
+    var memberColors = ['#e91e63','#ff9800','#9c27b0','#4caf50','#2196f3','#f44336'];
+    var members = [];
+
+    /* Also include the mock offsets used by the mini-map as fallback */
+    var offsets = [
+        { dLat:  0.003, dLng:  0.005 },
+        { dLat: -0.004, dLng:  0.002 },
+        { dLat:  0.001, dLng: -0.006 },
+        { dLat: -0.002, dLng: -0.003 },
+        { dLat:  0.005, dLng: -0.001 },
+        { dLat: -0.001, dLng:  0.004 },
+    ];
+
+    var statuses = (typeof initialFamilyStatuses !== 'undefined' && Array.isArray(initialFamilyStatuses))
+        ? initialFamilyStatuses : [];
+
+    statuses.forEach(function (m, idx) {
+        var off  = offsets[idx % offsets.length];
+        var mLat = (m.latitude  && parseFloat(m.latitude)  !== 0) ? parseFloat(m.latitude)  : pwdLat + off.dLat;
+        var mLng = (m.longitude && parseFloat(m.longitude) !== 0) ? parseFloat(m.longitude) : pwdLng + off.dLng;
+        members.push({
+            name:  m.display_name || ('Member ' + (idx + 1)),
+            lat:   mLat,
+            lng:   mLng,
+            color: m.color || memberColors[idx % memberColors.length]
+        });
+    });
+
+    /* If no registered family yet, fall back to FAMILY_MOCK_OFFSETS from the mini-map */
+    if (members.length === 0 && typeof FAMILY_MOCK_OFFSETS !== 'undefined') {
+        FAMILY_MOCK_OFFSETS.forEach(function (m, idx) {
+            members.push({
+                name:  m.name,
+                lat:   pwdLat + m.latOffset,
+                lng:   pwdLng + m.lngOffset,
+                color: m.color || memberColors[idx % memberColors.length]
+            });
+        });
+    }
+
+    FullMapModal.open(pwdLat, pwdLng, members);
+}
+</script>

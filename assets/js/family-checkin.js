@@ -167,7 +167,7 @@ function updateFamilyMap(lat, lng) {
 
     // Show & update "View Full Map" button
     if (viewMapBtn) {
-        viewMapBtn.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+        // Button now opens the full-screen map modal (no href needed)
         viewMapBtn.style.display = 'inline-flex';
     }
 }
