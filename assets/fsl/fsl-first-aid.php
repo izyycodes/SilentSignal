@@ -1,7 +1,6 @@
 <?php
-// fsl-first-aid.php
-// Generates Basic First Aid in FSL PDF using FPDF
-
+ob_start(); // catch any accidental output before FPDF headers
+// fsl-emergency-preparedness.php
 require_once __DIR__ . '/fpdf/fpdf.php';
 
 class FSL_PDF extends FPDF {
@@ -122,4 +121,6 @@ $pdf->BulletItem('BLOOD - Index finger on lips, move downward (red).');
 $pdf->BulletItem('DIZZY - Index finger pointing at temple, rotate in circle.');
 $pdf->BulletItem('ALLERGIC - Claw hand on arm, move upward (like hives).');
 
+ob_end_clean();
 $pdf->Output('D', 'fsl-first-aid.pdf');
+exit();

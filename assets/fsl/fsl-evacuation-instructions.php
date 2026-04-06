@@ -1,7 +1,6 @@
 <?php
-// fsl-evacuation-instructions.php
-// Generates FSL Evacuation Instructions PDF using FPDF
-
+ob_start(); // catch any accidental output before FPDF headers
+// fsl-emergency-preparedness.php
 require_once __DIR__ . '/fpdf/fpdf.php';
 
 class FSL_PDF extends FPDF {
@@ -116,4 +115,6 @@ $pdf->BulletItem('Contact family members through the app Communication Hub.');
 $pdf->BulletItem('Stay at the evacuation center until authorities declare it safe to return.');
 $pdf->BulletItem('Do not re-enter flood- or earthquake-damaged structures.');
 
+ob_end_clean();
 $pdf->Output('D', 'fsl-evacuation-instructions.pdf');
+exit();

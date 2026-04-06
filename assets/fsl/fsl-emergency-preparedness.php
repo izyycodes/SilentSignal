@@ -1,6 +1,7 @@
 <?php
+ob_start(); // catch any accidental output before FPDF headers
 // fsl-emergency-preparedness.php
-// Generates FSL Emergency Preparedness Guide PDF using FPDF
+
 
 require_once __DIR__ . '/fpdf/fpdf.php';
 
@@ -114,4 +115,6 @@ $pdf->BulletItem('Practice monthly drills using only FSL for 10 minutes.');
 $pdf->BulletItem('Keep a printed FSL emergency flashcard set in your Go-Bag.');
 $pdf->BulletItem('Use the Silent Signal app to send pre-written emergency messages.');
 
+ob_end_clean();
 $pdf->Output('D', 'fsl-emergency-preparedness.pdf');
+exit();

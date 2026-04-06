@@ -1,7 +1,6 @@
 <?php
-// fsl-disaster-communication.php
-// Generates FSL Disaster Communication Signs PDF using FPDF
-
+ob_start(); // catch any accidental output before FPDF headers
+// fsl-emergency-preparedness.php
 require_once __DIR__ . '/fpdf/fpdf.php';
 
 class FSL_PDF extends FPDF {
@@ -132,4 +131,6 @@ $pdf->BulletItem('Use the Communication Hub to send pre-written icon-based messa
 $pdf->BulletItem('Update your status in Family Check-in so your family knows you are safe.');
 $pdf->BulletItem('Check the Disaster Monitoring tab for real-time alerts in your area.');
 
+ob_end_clean();
 $pdf->Output('D', 'fsl-disaster-communication.pdf');
+exit();
