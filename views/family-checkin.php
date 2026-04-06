@@ -6,7 +6,71 @@ $pageStyles = [BASE_URL . 'assets/css/family-checkin.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
+<!-- Leaflet.js for mini-map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLEg=" crossorigin=""></script>
+
 <!-- Page-specific styles -->
+<style>
+.mini-map-wrapper {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.mini-map-container {
+    width: 100%;
+    height: 200px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #e0e7ef;
+    position: relative;
+    background: #e8eef5;
+}
+.mini-map-container .leaflet-control-container { display: none; }
+.mini-map-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #90a4b7;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    background: #eef2f7;
+    z-index: 10;
+}
+.mini-map-placeholder i { font-size: 32px; color: #b0c4d8; }
+.mini-map-placeholder.hidden { display: none; }
+.btn-view-map {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #1A4D7F, #2d6a9f);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    text-decoration: none;
+    width: fit-content;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+}
+.btn-view-map:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(26,77,127,0.35);
+}
+[data-theme="dark"] .mini-map-container { border-color: var(--border-light); }
+[data-theme="dark"] .mini-map-placeholder { background: #1e2a38; color: var(--text-muted); }
+[data-theme="dark"] .mini-map-placeholder i { color: #4a6a88; }
+</style>
 
 <!-- Page Container -->
 <div class="page-container">
@@ -65,7 +129,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     <div class="card">
         <div class="card-header">
             <div class="card-icon blue"><i class="ri-map-pin-line"></i></div>
-            <h2>Current Location</h2>
+            <h2>Your Location</h2>
         </div>
         <div class="gps-location">
             <div class="gps-location-label">&#128205; CURRENT GPS LOCATION</div>
@@ -100,6 +164,19 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <i class="ri-map-pin-fill"></i>
                 </button>
             </div>
+        </div>
+
+        <!-- Leaflet Mini-Map: PWD location + family markers -->
+        <div class="mini-map-wrapper">
+            <div id="familyMiniMap" class="mini-map-container">
+                <div class="mini-map-placeholder" id="familyMapPlaceholder">
+                    <i class="ri-map-pin-time-line"></i>
+                    <span>Waiting for GPS signal...</span>
+                </div>
+            </div>
+            <a href="#" id="familyLocationLink" class="btn-view-map" target="_blank" style="display:none;">
+                <i class="ri-external-link-line"></i> View Full Map
+            </a>
         </div>
     </div>
 
