@@ -5,6 +5,11 @@
 $pageStyles = [BASE_URL . 'assets/css/emergency-alert.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
+<!-- Leaflet.js for mini-map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
 
 
 <div class="page-container">
@@ -54,9 +59,19 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <i class="ri-map-2-line"></i>
                 <span id="locationAddress">Getting address...</span>
             </div>
-            <a href="#" id="locationLink" class="btn btn-small" style="display: none;" target="_blank">
-                <i class="ri-external-link-line"></i> View on Map
-            </a>
+
+            <!-- Leaflet Mini-Map -->
+            <div class="mini-map-wrapper">
+                <div id="miniMap" class="mini-map-container">
+                    <div class="mini-map-placeholder" id="miniMapPlaceholder">
+                        <i class="ri-map-pin-time-line"></i>
+                        <span>Waiting for GPS signal…</span>
+                    </div>
+                </div>
+                <a href="#" id="locationLink" class="btn btn-view-map" target="_blank" style="display:none;">
+                    <i class="ri-external-link-line"></i> View Full Map
+                </a>
+            </div>
         </div>
     </div>
     

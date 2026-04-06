@@ -6,6 +6,8 @@ let userLocation       = null;
 let isAlertActive      = false;
 let shakeEnabled       = false;
 let sosCountdownSeconds = 10; // default; overridden by user settings on load
+let miniMap            = null; // Leaflet mini-map instance
+let miniMapMarker      = null; // Leaflet marker
 
 document.addEventListener('DOMContentLoaded', function() {
     
@@ -130,7 +132,77 @@ function updateLocationDisplay(status, lat, lng) {
     }
     if (locationLink && lat && lng) {
         locationLink.href = `https://maps.google.com/?q=${lat},${lng}`;
-        locationLink.style.display = 'inline-block';
+        locationLink.style.display = 'inline-flex';
+    }
+
+    // Update Leaflet mini-map
+    if (lat && lng) {
+        updateMiniMap(lat, lng);
+    }
+}
+
+/* ── Leaflet Mini-Map ────────────────────────────────────── */
+function updateMiniMap(lat, lng) {
+    const placeholder = document.getElementById('miniMapPlaceholder');
+
+    if (!miniMap) {
+        // First time: initialise the map
+        miniMap = L.map('miniMap', {
+            center: [lat, lng],
+            zoom: 16,
+            zoomControl: false,
+            attributionControl: false,
+            dragging: false,
+            scrollWheelZoom: false,
+            doubleClickZoom: false,
+            touchZoom: false,
+            keyboard: false,
+            boxZoom: false,
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+        }).addTo(miniMap);
+
+        // Custom "You are here" marker
+        const youAreHereIcon = L.divIcon({
+            className: '',
+            html: `<div style="
+                background:#e53935;
+                width:14px;height:14px;
+                border-radius:50%;
+                border:3px solid #fff;
+                box-shadow:0 0 0 3px rgba(229,57,53,0.35),0 2px 6px rgba(0,0,0,0.35);
+                position:relative;">
+                <div style="
+                    position:absolute;
+                    bottom:18px;left:50%;transform:translateX(-50%);
+                    white-space:nowrap;
+                    background:rgba(26,77,127,0.92);
+                    color:#fff;
+                    font-size:10px;font-weight:600;
+                    font-family:'Poppins',sans-serif;
+                    padding:3px 7px;
+                    border-radius:20px;
+                    box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+                    📍 You are here
+                </div>
+            </div>`,
+            iconSize: [14, 14],
+            iconAnchor: [7, 7],
+        });
+
+        miniMapMarker = L.marker([lat, lng], { icon: youAreHereIcon }).addTo(miniMap);
+
+        // Hide placeholder
+        if (placeholder) placeholder.classList.add('hidden');
+
+    } else {
+        // Subsequent updates: pan + move marker
+        miniMap.setView([lat, lng], 16, { animate: true });
+        miniMapMarker.setLatLng([lat, lng]);
+        if (placeholder) placeholder.classList.add('hidden');
     }
 }
 
