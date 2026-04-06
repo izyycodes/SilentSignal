@@ -238,6 +238,15 @@ class AdminController {
             ];
         }
         
+        // ── Chart Data (via AdminDashboard model) ──
+        require_once MODEL_PATH . 'AdminDashboard.php';
+        $dashboardModel = new AdminDashboard();
+
+        $chartUserRoles       = json_encode($dashboardModel->getUserRoleBreakdown());
+        $chartAlertStatus     = json_encode($dashboardModel->getAlertStatusChart());
+        $chartMonthlyActivity = json_encode($dashboardModel->getMonthlyActivityChart());
+        $chartMsgCategories   = json_encode($dashboardModel->getMessageCategoriesChart());
+        
         require_once VIEW_PATH . 'admin-dashboard.php';
     }
 
