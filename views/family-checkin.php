@@ -6,75 +6,7 @@ $pageStyles = [BASE_URL . 'assets/css/family-checkin.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
-<!-- Leaflet.js for mini-map -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLEg=" crossorigin=""></script>
-
-<!-- Full-screen map modal -->
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/fullmap-modal.css">
-<script src="<?php echo BASE_URL; ?>assets/js/fullmap-modal.js" defer></script>
-
 <!-- Page-specific styles -->
-<style>
-.mini-map-wrapper {
-    margin-top: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.mini-map-container {
-    width: 100%;
-    height: 200px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 2px solid #e0e7ef;
-    position: relative;
-    background: #e8eef5;
-}
-.mini-map-container .leaflet-control-container { display: none; }
-.mini-map-placeholder {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: #90a4b7;
-    font-size: 13px;
-    font-family: 'Poppins', sans-serif;
-    background: #eef2f7;
-    z-index: 10;
-}
-.mini-map-placeholder i { font-size: 32px; color: #b0c4d8; }
-.mini-map-placeholder.hidden { display: none; }
-.btn-view-map {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 18px;
-    font-size: 13px;
-    font-weight: 600;
-    background: linear-gradient(135deg, #1A4D7F, #2d6a9f);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    text-decoration: none;
-    width: fit-content;
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-    font-family: 'Poppins', sans-serif;
-}
-.btn-view-map:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(26,77,127,0.35);
-}
-[data-theme="dark"] .mini-map-container { border-color: var(--border-light); }
-[data-theme="dark"] .mini-map-placeholder { background: #1e2a38; color: var(--text-muted); }
-[data-theme="dark"] .mini-map-placeholder i { color: #4a6a88; }
-</style>
 
 <!-- Page Container -->
 <div class="page-container">
@@ -133,7 +65,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     <div class="card">
         <div class="card-header">
             <div class="card-icon blue"><i class="ri-map-pin-line"></i></div>
-            <h2>Your Location</h2>
+            <h2>Current Location</h2>
         </div>
         <div class="gps-location">
             <div class="gps-location-label">&#128205; CURRENT GPS LOCATION</div>
@@ -168,19 +100,6 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     <i class="ri-map-pin-fill"></i>
                 </button>
             </div>
-        </div>
-
-        <!-- Leaflet Mini-Map: PWD location + family markers -->
-        <div class="mini-map-wrapper">
-            <div id="familyMiniMap" class="mini-map-container">
-                <div class="mini-map-placeholder" id="familyMapPlaceholder">
-                    <i class="ri-map-pin-time-line"></i>
-                    <span>Waiting for GPS signal...</span>
-                </div>
-            </div>
-            <button id="familyLocationLink" class="btn-view-map" style="display:none;" onclick="openFamilyFullMap()">
-                <i class="ri-map-2-line"></i> View Full Map
-            </button>
         </div>
     </div>
 
@@ -417,61 +336,3 @@ async function sendInviteSms(name, phone) {
 </script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
-<script>
-/**
- * Build member array from initialFamilyStatuses, then open the
- * full-screen map modal.  Called by the "View Full Map" button.
- */
-function openFamilyFullMap() {
-    var pwdLat = (typeof currentLat !== 'undefined') ? currentLat : null;
-    var pwdLng = (typeof currentLng !== 'undefined') ? currentLng : null;
-
-    if (!pwdLat || !pwdLng) {
-        alert('GPS location not yet acquired. Please wait a moment and try again.');
-        return;
-    }
-
-    /* Build member list from server-provided family statuses */
-    var memberColors = ['#e91e63','#ff9800','#9c27b0','#4caf50','#2196f3','#f44336'];
-    var members = [];
-
-    /* Also include the mock offsets used by the mini-map as fallback */
-    var offsets = [
-        { dLat:  0.003, dLng:  0.005 },
-        { dLat: -0.004, dLng:  0.002 },
-        { dLat:  0.001, dLng: -0.006 },
-        { dLat: -0.002, dLng: -0.003 },
-        { dLat:  0.005, dLng: -0.001 },
-        { dLat: -0.001, dLng:  0.004 },
-    ];
-
-    var statuses = (typeof initialFamilyStatuses !== 'undefined' && Array.isArray(initialFamilyStatuses))
-        ? initialFamilyStatuses : [];
-
-    statuses.forEach(function (m, idx) {
-        var off  = offsets[idx % offsets.length];
-        var mLat = (m.latitude  && parseFloat(m.latitude)  !== 0) ? parseFloat(m.latitude)  : pwdLat + off.dLat;
-        var mLng = (m.longitude && parseFloat(m.longitude) !== 0) ? parseFloat(m.longitude) : pwdLng + off.dLng;
-        members.push({
-            name:  m.display_name || ('Member ' + (idx + 1)),
-            lat:   mLat,
-            lng:   mLng,
-            color: m.color || memberColors[idx % memberColors.length]
-        });
-    });
-
-    /* If no registered family yet, fall back to FAMILY_MOCK_OFFSETS from the mini-map */
-    if (members.length === 0 && typeof FAMILY_MOCK_OFFSETS !== 'undefined') {
-        FAMILY_MOCK_OFFSETS.forEach(function (m, idx) {
-            members.push({
-                name:  m.name,
-                lat:   pwdLat + m.latOffset,
-                lng:   pwdLng + m.lngOffset,
-                color: m.color || memberColors[idx % memberColors.length]
-            });
-        });
-    }
-
-    FullMapModal.open(pwdLat, pwdLng, members);
-}
-</script>

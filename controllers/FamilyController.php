@@ -249,16 +249,8 @@ class FamilyController {
             ['label'=>'PWD Safe Rate',   'value'=>$stats['safePercent'],         'icon'=>'ri-shield-check-line',  'color'=>'#4caf50'],
         ];
 
-        // Pass PWD list to JS for "send message" / "view profile" buttons + map markers
-        $pwdMembersJson = json_encode(array_map(fn($p) => [
-            'id'        => $p['id'],
-            'name'      => $p['name'],
-            'phone'     => $p['phone'],
-            'latitude'  => $p['latitude'],
-            'longitude' => $p['longitude'],
-            'color'     => $p['color'],
-            'status'    => $p['status'],
-        ], $pwdMembers));
+        // Pass PWD list to JS for "send message" / "view profile" buttons
+        $pwdMembersJson = json_encode(array_map(fn($p) => ['id'=>$p['id'],'name'=>$p['name'],'phone'=>$p['phone']], $pwdMembers));
 
         require_once VIEW_PATH . 'family-dashboard.php';
     }

@@ -387,7 +387,7 @@ function startDownload(idx, onDone) {
 
             if (FSL_ITEMS[idx].file) {
                 const a       = document.createElement('a');
-                a.href = BASE_URL + 'index.php?action=download-fsl&file=' + FSL_ITEMS[idx].file;
+                a.href        = BASE_URL + 'assets/fsl/' + FSL_ITEMS[idx].file;
                 a.download    = FSL_ITEMS[idx].file;
                 a.style.display = 'none';
                 document.body.appendChild(a);

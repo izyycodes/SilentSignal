@@ -6,20 +6,6 @@
 let gpsWatchId = null;
 let isSendingStatus = false;
 
-// ── Leaflet map state ──
-let familyMap = null;
-let pwdMarker = null;
-
-// Mock family member coordinates (offset slightly from PWD location)
-// These will be placed relative to the PWD's actual GPS once acquired
-const FAMILY_MOCK_OFFSETS = [
-    { name: 'Maria (Mother)',   latOffset:  0.003, lngOffset:  0.005, color: '#e91e63' },
-    { name: 'Jose (Father)',    latOffset: -0.004, lngOffset:  0.002, color: '#ff9800' },
-    { name: 'Ana (Sister)',     latOffset:  0.001, lngOffset: -0.006, color: '#9c27b0' },
-    { name: 'Carlos (Brother)', latOffset: -0.002, lngOffset: -0.003, color: '#4caf50' },
-];
-let familyMarkers = [];
-
 // ── Init GPS on load ──
 document.addEventListener('DOMContentLoaded', function () {
     startGPS();
@@ -39,7 +25,6 @@ function startGPS() {
             currentLat = pos.coords.latitude;
             currentLng = pos.coords.longitude;
             updateGPSDisplay(currentLat, currentLng);
-            updateFamilyMap(currentLat, currentLng);
         },
         function (err) {
             document.getElementById('gpsAddressText').textContent = 'GPS unavailable (' + err.message + ')';
@@ -53,7 +38,6 @@ function startGPS() {
             currentLat = pos.coords.latitude;
             currentLng = pos.coords.longitude;
             updateGPSDisplay(currentLat, currentLng);
-            updateFamilyMap(currentLat, currentLng);
         },
         null,
         { enableHighAccuracy: true }
@@ -66,112 +50,6 @@ function updateGPSDisplay(lat, lng) {
     if (addrEl) addrEl.textContent = 'Lat: ' + lat.toFixed(6) + ', Lng: ' + lng.toFixed(6);
     if (timeEl) timeEl.textContent = 'Updated just now';
 }
-
-// ── Leaflet Family Map ──
-function updateFamilyMap(lat, lng) {
-    const placeholder = document.getElementById('familyMapPlaceholder');
-    const viewMapBtn  = document.getElementById('familyLocationLink');
-
-    if (!familyMap) {
-        // First time: initialise map
-        familyMap = L.map('familyMiniMap', {
-            center: [lat, lng],
-            zoom: 15,
-            zoomControl: true,
-            attributionControl: false,
-            scrollWheelZoom: false,
-            doubleClickZoom: false,
-            touchZoom: true,
-            keyboard: false,
-            boxZoom: false,
-        });
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19,
-        }).addTo(familyMap);
-
-        // PWD "You are here" icon
-        const pwdIcon = L.divIcon({
-            className: '',
-            html: `<div style="
-                background:#e53935;
-                width:16px;height:16px;
-                border-radius:50%;
-                border:3px solid #fff;
-                box-shadow:0 0 0 3px rgba(229,57,53,0.35),0 2px 6px rgba(0,0,0,0.4);
-                position:relative;">
-                <div style="
-                    position:absolute;
-                    bottom:20px;left:50%;transform:translateX(-50%);
-                    white-space:nowrap;
-                    background:rgba(26,77,127,0.92);
-                    color:#fff;
-                    font-size:10px;font-weight:600;
-                    font-family:'Poppins',sans-serif;
-                    padding:3px 7px;
-                    border-radius:20px;
-                    box-shadow:0 2px 6px rgba(0,0,0,0.25);">
-                    📍 You are here
-                </div>
-            </div>`,
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
-        });
-
-        pwdMarker = L.marker([lat, lng], { icon: pwdIcon })
-            .addTo(familyMap)
-            .bindPopup('<b>You (PWD)</b><br>Your current location');
-
-        // Add mock family member markers
-        familyMarkers = [];
-        FAMILY_MOCK_OFFSETS.forEach(function(member) {
-            const mLat = lat + member.latOffset;
-            const mLng = lng + member.lngOffset;
-
-            const famIcon = L.divIcon({
-                className: '',
-                html: `<div style="
-                    background:${member.color};
-                    width:13px;height:13px;
-                    border-radius:50%;
-                    border:2px solid #fff;
-                    box-shadow:0 0 0 2px ${member.color}55,0 2px 5px rgba(0,0,0,0.35);">
-                </div>`,
-                iconSize: [13, 13],
-                iconAnchor: [6, 6],
-            });
-
-            const marker = L.marker([mLat, mLng], { icon: famIcon })
-                .addTo(familyMap)
-                .bindPopup(`<b>${member.name}</b><br><span style="color:#666;font-size:11px;">Family member</span>`);
-
-            familyMarkers.push(marker);
-        });
-
-        // Fit map to show all markers
-        const allLatLngs = [[lat, lng]].concat(
-            FAMILY_MOCK_OFFSETS.map(m => [lat + m.latOffset, lng + m.lngOffset])
-        );
-        familyMap.fitBounds(L.latLngBounds(allLatLngs), { padding: [24, 24] });
-
-        // Hide placeholder
-        if (placeholder) placeholder.classList.add('hidden');
-
-    } else {
-        // Subsequent GPS updates: move PWD marker + re-fit
-        pwdMarker.setLatLng([lat, lng]);
-        familyMap.setView([lat, lng], familyMap.getZoom(), { animate: true });
-        if (placeholder) placeholder.classList.add('hidden');
-    }
-
-    // Show & update "View Full Map" button
-    if (viewMapBtn) {
-        // Button now opens the full-screen map modal (no href needed)
-        viewMapBtn.style.display = 'inline-flex';
-    }
-}
-
 
 // ── Set Status ──
 function setStatus(type, el) {

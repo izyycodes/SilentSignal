@@ -5,15 +5,6 @@
 $pageStyles = [BASE_URL . 'assets/css/emergency-alert.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
-<!-- Leaflet.js for mini-map -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
-
-<!-- Full-screen map modal -->
-<link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/fullmap-modal.css">
-<script src="<?php echo BASE_URL; ?>assets/js/fullmap-modal.js" defer></script>
 
 
 <div class="page-container">
@@ -63,19 +54,9 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <i class="ri-map-2-line"></i>
                 <span id="locationAddress">Getting address...</span>
             </div>
-
-            <!-- Leaflet Mini-Map -->
-            <div class="mini-map-wrapper">
-                <div id="miniMap" class="mini-map-container">
-                    <div class="mini-map-placeholder" id="miniMapPlaceholder">
-                        <i class="ri-map-pin-time-line"></i>
-                        <span>Waiting for GPS signal…</span>
-                    </div>
-                </div>
-                <button id="locationLink" class="btn btn-view-map" style="display:none;" onclick="openEmergencyFullMap()">
-                    <i class="ri-map-2-line"></i> View Full Map
-                </button>
-            </div>
+            <a href="#" id="locationLink" class="btn btn-small" style="display: none;" target="_blank">
+                <i class="ri-external-link-line"></i> View on Map
+            </a>
         </div>
     </div>
     
@@ -220,52 +201,5 @@ const userInfoData          = {
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
 <script src="<?php echo BASE_URL; ?>assets/js/emergency-alert.js"></script>
-
-<script>
-/**
- * Build family-member array from emergency contacts, then open the
- * full-screen map modal.  Called by the "View Full Map" button.
- */
-function openEmergencyFullMap() {
-    var pwdLat = (typeof userLocation !== 'undefined' && userLocation) ? userLocation.lat : null;
-    var pwdLng = (typeof userLocation !== 'undefined' && userLocation) ? userLocation.lng : null;
-
-    if (!pwdLat || !pwdLng) {
-        alert('GPS location not yet acquired. Please wait a moment and try again.');
-        return;
-    }
-
-    /* Build family markers from emergency contacts.
-       Emergency contacts may not have lat/lng stored, so we spread them
-       around the PWD using small offsets so the map is still useful. */
-    var memberColors = ['#e91e63','#ff9800','#9c27b0','#4caf50','#2196f3','#f44336'];
-    var members = [];
-
-    if (typeof emergencyContactsData !== 'undefined' && Array.isArray(emergencyContactsData)) {
-        var offsets = [
-            { dLat:  0.003, dLng:  0.005 },
-            { dLat: -0.004, dLng:  0.002 },
-            { dLat:  0.001, dLng: -0.006 },
-            { dLat: -0.002, dLng: -0.003 },
-            { dLat:  0.005, dLng: -0.001 },
-            { dLat: -0.001, dLng:  0.004 },
-        ];
-        emergencyContactsData.forEach(function (c, idx) {
-            var off  = offsets[idx % offsets.length];
-            /* use stored coords if available, else simulate nearby */
-            var mLat = (c.latitude  && parseFloat(c.latitude)  !== 0) ? parseFloat(c.latitude)  : pwdLat + off.dLat;
-            var mLng = (c.longitude && parseFloat(c.longitude) !== 0) ? parseFloat(c.longitude) : pwdLng + off.dLng;
-            members.push({
-                name:  c.name || ('Contact ' + (idx + 1)),
-                lat:   mLat,
-                lng:   mLng,
-                color: c.color || memberColors[idx % memberColors.length]
-            });
-        });
-    }
-
-    FullMapModal.open(pwdLat, pwdLng, members);
-}
-</script>
 </body>
 </html>
