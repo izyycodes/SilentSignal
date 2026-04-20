@@ -1,5 +1,5 @@
 <?php
-// models/CommunicationHub.php
+// models/CommunicationHub.phps
 
 require_once __DIR__ . '/../config/Database.php';
 
