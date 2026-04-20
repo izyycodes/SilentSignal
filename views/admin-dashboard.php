@@ -149,9 +149,18 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     <div class="charts-section">
         <div class="charts-section-header">
             <h2><i class="ri-bar-chart-2-line"></i> Analytics Overview</h2>
-            <a href="<?php echo BASE_URL; ?>index.php?action=admin-print-pdf" target="_blank" class="btn-print-pdf">
-                <i class="ri-file-pdf-2-line"></i> Print PDF Report
-            </a>
+            <div class="charts-header-right">
+                <!-- Period Filter -->
+                <div class="chart-period-filter">
+                    <button class="period-btn" data-period="daily">Daily</button>
+                    <button class="period-btn active" data-period="monthly">Monthly</button>
+                    <button class="period-btn" data-period="weekly">Weekly</button>
+                    <button class="period-btn" data-period="yearly">Yearly</button>
+                </div>
+                <a href="<?php echo BASE_URL; ?>index.php?action=admin-print-pdf" target="_blank" class="btn-print-pdf">
+                    <i class="ri-file-pdf-2-line"></i> Print PDF Report
+                </a>
+            </div>
         </div>
         <div class="charts-grid">
 
@@ -210,6 +219,33 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </div>
     </div>
 
+    <!-- SMS Broadcast Panel -->
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2><i class="ri-message-2-line"></i> SMS Broadcast</h2>
+            <span class="sms-badge"><i class="ri-signal-tower-line"></i> PhilSMS Active</span>
+        </div>
+        <div class="sms-broadcast-panel">
+            <div class="sms-form-group">
+                <label for="smsRecipients"><i class="ri-user-line"></i> Recipient Phone Numbers</label>
+                <input type="text" id="smsRecipients" placeholder="e.g. 09991234567, 09997654321 (comma-separated)" />
+            </div>
+            <div class="sms-form-group">
+                <label for="smsMessage"><i class="ri-chat-1-line"></i> Message <span id="smsCharCount">0 / 160</span></label>
+                <textarea id="smsMessage" rows="3" maxlength="160" placeholder="Type your emergency broadcast message here..."></textarea>
+            </div>
+            <div class="sms-form-actions">
+                <button class="btn-sms-send" id="btnSmsSend">
+                    <i class="ri-send-plane-fill"></i> Send SMS Broadcast
+                </button>
+                <button class="btn-sms-clear" id="btnSmsClear">
+                    <i class="ri-delete-bin-line"></i> Clear
+                </button>
+            </div>
+            <div id="smsResult" class="sms-result" style="display:none;"></div>
+        </div>
+    </div>
+
     <!-- System Health -->
     <div class="dashboard-section">
         <div class="section-header">
@@ -247,6 +283,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 
 <!-- Pass chart data to JS -->
 <script>
+const BASE_URL             = '<?php echo BASE_URL; ?>';
 const chartUserRoles       = <?php echo $chartUserRoles; ?>;
 const chartAlertStatus     = <?php echo $chartAlertStatus; ?>;
 const chartMonthlyActivity = <?php echo $chartMonthlyActivity; ?>;
@@ -255,5 +292,69 @@ const chartMsgCategories   = <?php echo $chartMsgCategories; ?>;
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/admin-dashboard.js"></script>
+
+<script>
+// ── SMS Broadcast ────────────────────────────────────────────
+(function () {
+    const msgEl      = document.getElementById('smsMessage');
+    const countEl    = document.getElementById('smsCharCount');
+    const sendBtn    = document.getElementById('btnSmsSend');
+    const clearBtn   = document.getElementById('btnSmsClear');
+    const resultEl   = document.getElementById('smsResult');
+    const recipEl    = document.getElementById('smsRecipients');
+
+    if (!msgEl) return;
+
+    msgEl.addEventListener('input', () => {
+        countEl.textContent = msgEl.value.length + ' / 160';
+        countEl.style.color = msgEl.value.length > 140 ? '#ef4444' : '';
+    });
+
+    clearBtn.addEventListener('click', () => {
+        msgEl.value = '';
+        recipEl.value = '';
+        countEl.textContent = '0 / 160';
+        resultEl.style.display = 'none';
+    });
+
+    sendBtn.addEventListener('click', async () => {
+        const phones  = recipEl.value.trim();
+        const message = msgEl.value.trim();
+
+        if (!phones) { showSmsResult('error', 'Please enter at least one phone number.'); return; }
+        if (!message) { showSmsResult('error', 'Please type a message before sending.'); return; }
+
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Sending...';
+
+        try {
+            const res = await fetch(BASE_URL + 'index.php?action=send-philsms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phones, message })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showSmsResult('success', '✓ ' + data.message);
+                msgEl.value = '';
+                countEl.textContent = '0 / 160';
+            } else {
+                showSmsResult('error', '✗ ' + (data.message || 'Failed to send SMS.'));
+            }
+        } catch (err) {
+            showSmsResult('error', '✗ Network error. Please try again.');
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="ri-send-plane-fill"></i> Send SMS Broadcast';
+        }
+    });
+
+    function showSmsResult(type, msg) {
+        resultEl.style.display = 'block';
+        resultEl.className = 'sms-result sms-result-' + type;
+        resultEl.textContent = msg;
+    }
+})();
+</script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>

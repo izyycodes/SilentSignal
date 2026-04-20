@@ -4,6 +4,40 @@
 session_start();
 require_once 'config/config.php';
 
+// ── Global error / exception handler ────────────────────────
+set_exception_handler(function (Throwable $e) {
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) ||
+              (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) ||
+              isset($_GET['action']) && in_array($_GET['action'], ['admin-chart-data','send-philsms','chatbot-proxy','admin-alerts-api']);
+
+    error_log('[SilentSignal] Uncaught exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+
+    if ($isAjax) {
+        if (!headers_sent()) header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Server error. Please try again.']);
+        exit();
+    }
+
+    http_response_code(500);
+    if (!headers_sent()) {
+        require_once 'config/config.php';
+    }
+    echo '<!DOCTYPE html><html><head><title>Error - Silent Signal</title>
+    <style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f1f5f9;margin:0}
+    .box{background:#fff;border-radius:16px;padding:40px;text-align:center;max-width:480px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+    h2{color:#ef4444;margin:0 0 12px}p{color:#64748b;margin:0 0 24px}a{color:#2563eb;font-weight:600;text-decoration:none}</style></head>
+    <body><div class="box"><h2>&#9888; Something went wrong</h2>
+    <p>An unexpected error occurred. Please try again or contact support.</p>
+    <a href="' . (defined('BASE_URL') ? BASE_URL : '/') . 'index.php">&#8592; Return Home</a></div></body></html>';
+    exit();
+});
+
+set_error_handler(function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return false;
+    throw new ErrorException($message, 0, $severity, $file, $line);
+}, E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT);
+
 $action = $_GET['action'] ?? 'home';
 $isHome = ($action === 'home');
 
@@ -365,6 +399,12 @@ switch ($action) {
         require_once CONTROLLER_PATH . 'AdminController.php';
         $controller = new AdminController();
         $controller->printPdf();
+        break;
+
+    case 'admin-chart-data':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->getChartData();
         break;
 
     case 'admin-alerts-api':

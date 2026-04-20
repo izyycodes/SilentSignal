@@ -39,6 +39,29 @@ $chartAlertStatus     = $dashModel->getAlertStatusChart();
 $chartMonthlyActivity = $dashModel->getMonthlyActivityChart();
 $chartMsgCategories   = $dashModel->getMessageCategoriesChart();
 
+// Recent Alerts for data table
+$recentAlertsStmt = $db->query("
+    SELECT ea.alert_type, ea.status, ea.created_at,
+           CONCAT(u.first_name, ' ', u.last_name) AS user_name,
+           ea.location_address
+    FROM emergency_alerts ea
+    LEFT JOIN users u ON ea.user_id = u.id
+    ORDER BY ea.created_at DESC
+    LIMIT 10
+");
+$recentAlertsData = $recentAlertsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Recent Users for data table
+$recentUsersStmt = $db->query("
+    SELECT CONCAT(first_name, ' ', last_name) AS full_name,
+           email, role,
+           DATE_FORMAT(created_at, '%b %d, %Y') AS joined
+    FROM users
+    ORDER BY created_at DESC
+    LIMIT 8
+");
+$recentUsersData = $recentUsersStmt->fetchAll(PDO::FETCH_ASSOC);
+
 // ── Custom FPDF class ───────────────────────────────────────
 class AdminReportPDF extends FPDF {
 
@@ -46,6 +69,12 @@ class AdminReportPDF extends FPDF {
         // Blue header bar
         $this->SetFillColor(26, 77, 127);
         $this->Rect(0, 0, 210, 28, 'F');
+
+        // Logo image (top-left)
+        $logoPath = BASE_PATH . 'assets/images/logo.png';
+        if (file_exists($logoPath)) {
+            $this->Image($logoPath, 5, 4, 20, 20, 'PNG');
+        }
 
         $this->SetFont('Helvetica', 'B', 18);
         $this->SetTextColor(255, 255, 255);
@@ -461,6 +490,46 @@ foreach ($chartMsgCategories as $d) {
 }
 $catTableRows[] = ['TOTAL', (string)$totalCat];
 $pdf->DataTable($catHeaders, $catTableRows, $catWidths);
+
+// ── PAGE 4: Recent Activity Tables ──────────────────────────
+$pdf->AddPage();
+
+// Recent Emergency Alerts Table
+$pdf->SectionTitle('Recent Emergency Alerts', 239, 68, 68);
+$alertDetailHeaders = ['User', 'Type', 'Status', 'Date'];
+$alertDetailWidths  = [52, 40, 34, 56];
+$alertDetailRows    = [];
+foreach ($recentAlertsData as $row) {
+    $alertDetailRows[] = [
+        mb_substr($row['user_name'] ?? 'Unknown', 0, 20),
+        ucwords(str_replace('_', ' ', $row['alert_type'] ?? 'SOS')),
+        ucfirst($row['status'] ?? 'pending'),
+        date('M d, Y H:i', strtotime($row['created_at'])),
+    ];
+}
+if (empty($alertDetailRows)) {
+    $alertDetailRows[] = ['No recent alerts', '', '', ''];
+}
+$pdf->DataTable($alertDetailHeaders, $alertDetailRows, $alertDetailWidths);
+
+// Recent Users Table
+$pdf->SectionTitle('Recently Registered Users', 59, 130, 246);
+$userDetailHeaders = ['Name', 'Email', 'Role', 'Joined'];
+$userDetailWidths  = [45, 65, 28, 44];
+$userDetailRows    = [];
+$roleMap2          = ['pwd' => 'PWD User', 'family' => 'Family', 'admin' => 'Admin'];
+foreach ($recentUsersData as $row) {
+    $userDetailRows[] = [
+        mb_substr($row['full_name'] ?? 'N/A', 0, 22),
+        mb_substr($row['email'] ?? '', 0, 30),
+        $roleMap2[$row['role']] ?? ucfirst($row['role']),
+        $row['joined'] ?? '',
+    ];
+}
+if (empty($userDetailRows)) {
+    $userDetailRows[] = ['No users found', '', '', ''];
+}
+$pdf->DataTable($userDetailHeaders, $userDetailRows, $userDetailWidths);
 
 // ── Output ──────────────────────────────────────────────────
 $pdf->Output('I', 'SilentSignal_Admin_Report_' . date('Ymd_His') . '.pdf');

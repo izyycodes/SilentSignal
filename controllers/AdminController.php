@@ -845,5 +845,37 @@ class AdminController {
         $pageTitle = "FSL Resources - Silent Signal";
         require_once VIEW_PATH . 'fsl-resources.php';
     }
+
+    /**
+     * AJAX: Return filtered chart data as JSON
+     * GET ?action=admin-chart-data&period=daily|weekly|monthly|yearly
+     */
+    public function getChartData() {
+        $this->requireAdmin();
+        header('Content-Type: application/json');
+
+        $allowed = ['daily', 'weekly', 'monthly', 'yearly'];
+        $period  = isset($_GET['period']) && in_array($_GET['period'], $allowed)
+                   ? $_GET['period']
+                   : 'monthly';
+
+        try {
+            require_once MODEL_PATH . 'AdminDashboard.php';
+            $dash = new AdminDashboard();
+
+            echo json_encode([
+                'success'        => true,
+                'period'         => $period,
+                'activity'       => $dash->getFilteredActivityChart($period),
+                'alertStatus'    => $dash->getFilteredAlertStatus($period),
+                'msgCategories'  => $dash->getFilteredMsgCategories($period),
+                'userRoles'      => $dash->getUserRoleBreakdown(),
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit();
+    }
 }
 ?>

@@ -616,6 +616,74 @@
     font-size: 17px;
 }
 
+/* Charts Header Right — filter + pdf button group */
+.charts-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Period Filter Pills */
+.chart-period-filter {
+    display: flex;
+    gap: 4px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.period-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: #64748b;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.period-btn:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.period-btn.active {
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+}
+
+/* Chart loading overlay */
+.chart-card.loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.7);
+    border-radius: 16px;
+    z-index: 5;
+    animation: chartPulse 1s infinite;
+}
+.chart-card { position: relative; }
+
+@keyframes chartPulse {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1;   }
+}
+
+[data-theme="dark"] .chart-period-filter {
+    background: #1e293b;
+    border-color: #334155;
+}
+[data-theme="dark"] .period-btn        { color: #94a3b8; }
+[data-theme="dark"] .period-btn:hover  { background: #334155; color: #e2e8f0; }
+[data-theme="dark"] .period-btn.active { background: #2563eb; color: #fff; }
+[data-theme="dark"] .chart-card.loading::after { background: rgba(15,23,42,0.7); }
+
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -751,6 +819,14 @@
         flex-direction: column;
         align-items: flex-start;
     }
+    .charts-header-right {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .chart-period-filter {
+        justify-content: space-between;
+    }
     .btn-print-pdf {
         width: 100%;
         justify-content: center;
@@ -824,3 +900,142 @@
 [data-theme="dark"] .chart-badge.red   { background: rgba(220,38,38,0.15); color: #fca5a5; }
 [data-theme="dark"] .chart-badge.green { background: rgba(22,163,74,0.15);  color: #86efac; }
 [data-theme="dark"] .chart-badge.orange { background: rgba(194,65,12,0.15); color: #fb923c; }
+/* ── SMS Broadcast Panel ──────────────────────────────────── */
+.sms-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #dcfce7;
+    color: #16a34a;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.sms-broadcast-panel {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sms-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sms-form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sms-form-group label i { color: #3b82f6; }
+
+#smsCharCount {
+    margin-left: auto;
+    font-weight: 400;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.sms-form-group input,
+.sms-form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #0f172a;
+    background: #fff;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.sms-form-group input:focus,
+.sms-form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+.sms-form-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-sms-send {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 3px 10px rgba(22,163,74,0.3);
+}
+
+.btn-sms-send:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(22,163,74,0.4);
+}
+
+.btn-sms-send:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.btn-sms-clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-sms-clear:hover { background: #e2e8f0; }
+
+.sms-result {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.sms-result-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.sms-result-error   { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+
+/* Dark mode SMS panel */
+[data-theme="dark"] .sms-broadcast-panel {
+    background: var(--bg-card-alt);
+    border-color: var(--border-light);
+}
+[data-theme="dark"] .sms-form-group input,
+[data-theme="dark"] .sms-form-group textarea {
+    background: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+[data-theme="dark"] .sms-form-group label { color: var(--text-muted); }
+[data-theme="dark"] .sms-badge { background: rgba(22,163,74,0.15); color: #86efac; }
+[data-theme="dark"] .btn-sms-clear { background: var(--bg-card); color: var(--text-muted); border-color: var(--border-light); }
