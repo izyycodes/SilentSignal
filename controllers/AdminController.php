@@ -1,5 +1,5 @@
 <?php
-// controllers/AdminController.phps
+// controllers/AdminController.php
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -819,8 +819,17 @@ class AdminController {
         $this->exportCSV('silent_signal_disaster_alerts_' . date('Ymd_His') . '.csv', $headers, $rows);
     }
 
-    public function helpCenter()
-    {
+    /**
+     * Print Admin Analytics PDF Report (FPDF)
+     */
+    public function printPdf() {
+        $this->requireAdmin();
+        if (ob_get_length()) ob_end_clean();
+        require_once VIEW_PATH . 'admin-print-pdf.php';
+        exit();
+    }
+
+    public function helpCenter()    {
         $pageTitle = "Help Center - Silent Signal";
         require_once VIEW_PATH . 'help-center.php';
     }

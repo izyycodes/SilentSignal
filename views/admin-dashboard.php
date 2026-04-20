@@ -147,7 +147,12 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 
     <!-- Charts Section -->
     <div class="charts-section">
-        <h2><i class="ri-bar-chart-2-line"></i> Analytics Overview</h2>
+        <div class="charts-section-header">
+            <h2><i class="ri-bar-chart-2-line"></i> Analytics Overview</h2>
+            <a href="<?php echo BASE_URL; ?>index.php?action=admin-print-pdf" target="_blank" class="btn-print-pdf">
+                <i class="ri-file-pdf-2-line"></i> Print PDF Report
+            </a>
+        </div>
         <div class="charts-grid">
 
             <!-- User Role Breakdown Doughnut -->
@@ -197,7 +202,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     </div>
                     <span class="chart-badge orange">By Category</span>
                 </div>
-                <div class="chart-wrap" style="height:200px;">
+                <div class="chart-wrap">
                     <canvas id="msgCategoriesChart"></canvas>
                 </div>
             </div>

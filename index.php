@@ -361,6 +361,12 @@ switch ($action) {
         $controller->exportDisasterAlerts();
         break;
 
+    case 'admin-print-pdf':
+        require_once CONTROLLER_PATH . 'AdminController.php';
+        $controller = new AdminController();
+        $controller->printPdf();
+        break;
+
     case 'admin-alerts-api':
         require_once CONTROLLER_PATH . 'AdminController.php';
         $controller = new AdminController();

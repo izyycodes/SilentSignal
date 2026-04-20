@@ -559,37 +559,84 @@
     margin-bottom: 32px;
 }
 
-.charts-section > h2 {
+.charts-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.charts-section > h2,
+.charts-section-header h2 {
     font-size: 22px;
     font-weight: 700;
     color: #0f172a;
-    margin-bottom: 24px;
+    margin: 0;
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.charts-section > h2 i {
+.charts-section > h2 i,
+.charts-section-header h2 i {
     color: #3b82f6;
     font-size: 24px;
+}
+
+/* Print PDF Button */
+.btn-print-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-print-pdf:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(37,99,235,0.45);
+    color: #fff;
+    text-decoration: none;
+}
+
+.btn-print-pdf i {
+    font-size: 17px;
 }
 
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+    gap: 28px;
 }
 
+/* Each chart card is clearly separated */
 .chart-card {
     background: var(--bg-card);
     border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    transition: box-shadow 0.3s ease;
+    padding: 28px 24px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1.5px solid #e8edf5;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .chart-card:hover {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+    transform: translateY(-3px);
 }
 
 .chart-card-wide {
@@ -600,7 +647,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 6px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #f1f5f9;
 }
 
 .chart-card-title {
@@ -620,7 +669,7 @@
 .chart-badge {
     font-size: 11px;
     font-weight: 600;
-    padding: 3px 10px;
+    padding: 4px 12px;
     border-radius: 999px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -629,18 +678,19 @@
 .chart-badge.blue  { background: #eff6ff; color: #2563eb; }
 .chart-badge.red   { background: #fef2f2; color: #dc2626; }
 .chart-badge.green { background: #f0fdf4; color: #16a34a; }
+.chart-badge.orange { background: #fff7ed; color: #c2410c; }
 
 .chart-wrap {
     position: relative;
-    height: 240px;
+    height: 250px;
+    flex: 1;
+    margin-top: 12px;
 }
 
 .chart-wrap canvas {
     width: 100% !important;
     height: 100% !important;
 }
-
-.chart-badge.orange { background: #fff7ed; color: #c2410c; }
 
 @keyframes pulse {
     0%, 100% {
@@ -696,6 +746,14 @@
     }
     .chart-wrap {
         height: 200px;
+    }
+    .charts-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .btn-print-pdf {
+        width: 100%;
+        justify-content: center;
     }
 }
 
@@ -757,9 +815,11 @@
 [data-theme="dark"] .activity-desc,
 [data-theme="dark"] .activity-time { color: var(--text-muted); }
 
-[data-theme="dark"] .chart-card        { background: var(--bg-card); }
+[data-theme="dark"] .chart-card        { background: var(--bg-card); border-color: var(--border-light); }
 [data-theme="dark"] .chart-card-title  { color: var(--text-primary); }
-[data-theme="dark"] .charts-section > h2 { color: var(--text-primary); }
+[data-theme="dark"] .chart-card-header { border-bottom-color: var(--border-light); }
+[data-theme="dark"] .charts-section > h2,
+[data-theme="dark"] .charts-section-header h2 { color: var(--text-primary); }
 [data-theme="dark"] .chart-badge.blue  { background: rgba(37,99,235,0.15); color: #93c5fd; }
 [data-theme="dark"] .chart-badge.red   { background: rgba(220,38,38,0.15); color: #fca5a5; }
 [data-theme="dark"] .chart-badge.green { background: rgba(22,163,74,0.15);  color: #86efac; }
