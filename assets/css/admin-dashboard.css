@@ -687,19 +687,14 @@
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 28px;
+    gap: 16px;
 }
 
 /* Each chart card is clearly separated */
 .chart-card {
     background: var(--bg-card);
-    border-radius: 16px;
-    padding: 28px 24px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    border: 1.5px solid #e8edf5;
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-    display: flex;
-    flex-direction: column;
+    border-radius: 14px;
+    padding: 16px 16px 12px;
 }
 
 .chart-card:hover {
@@ -750,9 +745,9 @@
 
 .chart-wrap {
     position: relative;
-    height: 250px;
+    height: 200px;
     flex: 1;
-    margin-top: 12px;
+    margin-top: 10px;
 }
 
 .chart-wrap canvas {
