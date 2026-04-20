@@ -194,7 +194,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <div class="chart-card chart-card-wide">
                 <div class="chart-card-header">
                     <div class="chart-card-title">
-                        <i class="ri-bar-chart-line"></i> Monthly Activity
+                    <i class="ri-bar-chart-line"></i> <span id="activityChartTitle">Activity Overview</span>
                     </div>
                     <span class="chart-badge green">Alerts vs Messages</span>
                 </div>

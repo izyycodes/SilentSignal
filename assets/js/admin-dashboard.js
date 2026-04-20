@@ -66,6 +66,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Draw Activity Bar Chart ──────────────────────────────
     function drawActivityChart(data, period) {
+        const titleEl = document.getElementById('activityChartTitle');
+            if (titleEl) {
+                const titles = {
+                    daily:   'Daily Activity',
+                    weekly:  'Weekly Activity',
+                    monthly: 'Monthly Activity',
+                    yearly:  'Yearly Activity'
+                };
+                titleEl.textContent = titles[period] || 'Activity Overview';
+            }
+            
         const ctx = document.getElementById('monthlyActivityChart');
         if (!ctx || !data) return;
         if (charts.monthlyActivity) charts.monthlyActivity.destroy();
