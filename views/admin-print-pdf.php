@@ -8,8 +8,10 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
     exit();
 }
 
-// Clean any output buffer before PDF output
-if (ob_get_length()) ob_end_clean();
+// Drain ALL output buffer levels before FPDF sends headers
+while (ob_get_level() > 0) {
+    ob_end_clean();
+}
 
 require_once BASE_PATH . 'assets/fsl/fpdf/fpdf.php';
 require_once BASE_PATH . 'config/Database.php';

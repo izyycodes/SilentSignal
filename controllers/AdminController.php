@@ -824,8 +824,26 @@ class AdminController {
      */
     public function printPdf() {
         $this->requireAdmin();
-        if (ob_get_length()) ob_end_clean();
-        require_once VIEW_PATH . 'admin-print-pdf.php';
+        // Drain ALL output buffer levels so FPDF can send headers cleanly
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        try {
+            require_once VIEW_PATH . 'admin-print-pdf.php';
+        } catch (Throwable $e) {
+            error_log('[SilentSignal] PDF generation error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            if (!headers_sent()) {
+                header('Content-Type: text/html; charset=utf-8');
+            }
+            http_response_code(500);
+            echo '<!DOCTYPE html><html><head><title>PDF Error - Silent Signal</title>
+            <style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f1f5f9;margin:0}
+            .box{background:#fff;border-radius:16px;padding:40px;text-align:center;max-width:480px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+            h2{color:#ef4444;margin:0 0 12px}p{color:#64748b;margin:0 0 24px}a{color:#2563eb;font-weight:600;text-decoration:none}</style></head>
+            <body><div class="box"><h2>&#9888; PDF Generation Failed</h2>
+            <p>Could not generate the report. Please check that all data is available and try again.</p>
+            <a href="' . BASE_URL . 'index.php?action=admin-dashboard">&#8592; Return to Dashboard</a></div></body></html>';
+        }
         exit();
     }
 
