@@ -40,7 +40,7 @@ $chartAlertStatus = $dashModel->getAlertStatusChart();
 // Recent Alerts — limit 8
 $recentAlertsData = $db->query("
     SELECT ea.alert_type, ea.status, ea.created_at,
-           CONCAT(u.first_name, ' ', u.last_name) AS user_name
+           CONCAT(u.fname, ' ', u.lname) AS user_name
     FROM emergency_alerts ea
     LEFT JOIN users u ON ea.user_id = u.id
     ORDER BY ea.created_at DESC
@@ -49,7 +49,7 @@ $recentAlertsData = $db->query("
 
 // Recent Users — limit 8
 $recentUsersData = $db->query("
-    SELECT CONCAT(first_name, ' ', last_name) AS full_name,
+    SELECT CONCAT(fname, ' ', lname) AS full_name,
            email, role,
            DATE_FORMAT(created_at, '%b %d, %Y') AS joined
     FROM users
