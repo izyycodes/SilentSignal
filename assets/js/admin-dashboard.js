@@ -46,20 +46,58 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Draw Alert Status Doughnut ───────────────────────────
     function drawAlertStatus(data) {
         const ctx = document.getElementById('alertStatusChart');
-        if (!ctx || !data || !data.length) return;
-        if (charts.alertStatus) charts.alertStatus.destroy();
+        if (!ctx) return;
+
+        // Destroy existing chart before redrawing
+        if (charts.alertStatus) {
+            charts.alertStatus.destroy();
+            charts.alertStatus = null;
+        }
+
+        // Show empty state if no data
+        if (!data || !data.length) {
+            const parent = ctx.closest('.chart-wrap');
+            if (parent) parent.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;font-size:13px;">No data for this period</div>';
+            return;
+        }
+
         const { labelColor, borderCol } = getThemeVars();
-        const labelMap = { active: 'Active', resolved: 'Resolved', false_alarm: 'False Alarm', pending: 'Pending' };
-        const colors   = ['#ef4444', '#10b981', '#f59e0b', '#94a3b8'];
+        const labelMap = {
+            active:       'Active',
+            resolved:     'Resolved',
+            false_alarm:  'False Alarm',
+            pending:      'Pending',
+            acknowledged: 'Acknowledged',
+            responded:    'Responded',
+            cancelled:    'Cancelled',
+        };
+        const colors = ['#ef4444', '#10b981', '#f59e0b', '#94a3b8', '#3b82f6', '#8b5cf6', '#ec4899'];
+        const labels = data.map(d => labelMap[d.status] || d.status);
+        const values = data.map(d => parseInt(d.count));
+
         charts.alertStatus = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels:   data.map(d => labelMap[d.status] || d.status),
-                datasets: [{ data: data.map(d => parseInt(d.count)), backgroundColor: colors.slice(0, data.length), borderWidth: 2, borderColor: borderCol, hoverOffset: 8 }]
+                labels,
+                datasets: [{
+                    data:            values,
+                    backgroundColor: colors.slice(0, values.length),
+                    borderWidth:     2,
+                    borderColor:     borderCol,
+                    hoverOffset:     8,
+                }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false, cutout: '65%',
-                plugins: { legend: { position: 'bottom', labels: { color: labelColor, padding: 16, font: { size: 12 } } }, tooltip: { mode: 'index' } }
+                responsive:          true,
+                maintainAspectRatio: false,
+                cutout:              '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels:   { color: labelColor, padding: 16, font: { size: 12 } }
+                    },
+                    tooltip: { mode: 'index' }
+                }
             }
         });
     }
@@ -76,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
                 titleEl.textContent = titles[period] || 'Activity Overview';
             }
-            
+
         const ctx = document.getElementById('monthlyActivityChart');
         if (!ctx || !data) return;
         if (charts.monthlyActivity) charts.monthlyActivity.destroy();

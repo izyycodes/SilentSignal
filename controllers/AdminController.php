@@ -243,9 +243,9 @@ class AdminController {
         $dashboardModel = new AdminDashboard();
 
         $chartUserRoles       = json_encode($dashboardModel->getUserRoleBreakdown());
-        $chartAlertStatus     = json_encode($dashboardModel->getAlertStatusChart());
-        $chartMonthlyActivity = json_encode($dashboardModel->getMonthlyActivityChart());
-        $chartMsgCategories   = json_encode($dashboardModel->getMessageCategoriesChart());
+        $chartAlertStatus     = json_encode($dashboardModel->getFilteredAlertStatus('monthly'));
+        $chartMonthlyActivity = json_encode($dashboardModel->getFilteredActivityChart('monthly'));
+        $chartMsgCategories   = json_encode($dashboardModel->getFilteredMsgCategories('monthly'));
         
         require_once VIEW_PATH . 'admin-dashboard.php';
     }
