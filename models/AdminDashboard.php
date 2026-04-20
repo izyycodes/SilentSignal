@@ -88,26 +88,29 @@ class AdminDashboard {
      */
     public function getFilteredActivityChart(string $period = 'monthly') {
         switch ($period) {
-            case 'daily':
-                $interval  = '30 DAY';
-                $fmt       = '%b %d';
-                $groupBy   = "DATE(created_at)";
-                break;
-            case 'weekly':
-                $interval  = '12 WEEK';
-                $fmt       = 'Wk %v \'%y';
-                $groupBy   = "YEARWEEK(created_at, 1)";
-                break;
-            case 'yearly':
-                $interval  = '5 YEAR';
-                $fmt       = '%Y';
-                $groupBy   = "YEAR(created_at)";
-                break;
-            default: // monthly
-                $interval  = '6 MONTH';
-                $fmt       = '%b \'%y';
-                $groupBy   = "DATE_FORMAT(created_at, '%Y-%m')";
-                break;
+          case 'daily':
+            $interval  = '30 DAY';
+            $fmt       = '%b %d';       // Mar 22 — fine, no quotes
+            $groupBy   = "DATE(created_at)";
+            break;
+
+         case 'weekly':
+            $interval  = '12 WEEK';
+            $fmt       = '%b %d';       // Mar 22 — use date of week start, no quotes
+            $groupBy   = "YEARWEEK(created_at, 1)";
+            break;
+
+        case 'yearly':
+            $interval  = '5 YEAR';
+            $fmt       = '%Y';          // 2026 — fine, no quotes
+            $groupBy   = "YEAR(created_at)";
+            break;
+
+        default: // monthly
+             $interval  = '6 MONTH';
+             $fmt       = '%b %Y';       // Mar 2026 — fine, no quotes
+            $groupBy   = "DATE_FORMAT(created_at, '%Y-%m')";
+             break;
         }
 
         $sql = "
