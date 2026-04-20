@@ -151,12 +151,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const BASE = (typeof BASE_URL !== 'undefined') ? BASE_URL : '/';
             fetch(`${BASE}index.php?action=admin-chart-data&period=${period}`)
-                .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
-                .then(json => {
+               .then(res => res.json())
+               .then(json => {
+                    console.log('Chart data received:', json); // ← add this
                     if (!json.success) throw new Error(json.error || 'Unknown error');
-                    drawAlertStatus(json.alertStatus);
-                    drawActivityChart(json.activity, period);
-                    drawMsgCategories(json.msgCategories);
+                    try { drawAlertStatus(json.alertStatus); } catch(e) { console.error('alertStatus error:', e); }
+                    try { drawActivityChart(json.activity, period); } catch(e) { console.error('activity error:', e); }
+                    try { drawMsgCategories(json.msgCategories); } catch(e) { console.error('msgCategories error:', e); }
                 })
                 .catch(err => {
                     console.error('Chart filter error:', err);
