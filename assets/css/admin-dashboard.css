@@ -551,6 +551,97 @@
     background: #ef4444;
 }
 
+/* ============================================================
+   CHARTS SECTION
+   ============================================================ */
+
+.charts-section {
+    margin-bottom: 32px;
+}
+
+.charts-section > h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.charts-section > h2 i {
+    color: #3b82f6;
+    font-size: 24px;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.chart-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.chart-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.chart-card-wide {
+    grid-column: 1 / -1;
+}
+
+.chart-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.chart-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-card-title i {
+    font-size: 18px;
+    color: #64748b;
+}
+
+.chart-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chart-badge.blue  { background: #eff6ff; color: #2563eb; }
+.chart-badge.red   { background: #fef2f2; color: #dc2626; }
+.chart-badge.green { background: #f0fdf4; color: #16a34a; }
+
+.chart-wrap {
+    position: relative;
+    height: 240px;
+}
+
+.chart-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-badge.orange { background: #fff7ed; color: #c2410c; }
+
 @keyframes pulse {
     0%, 100% {
         opacity: 0.3;
@@ -595,6 +686,16 @@
     
     .health-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    .chart-card-wide {
+        grid-column: 1;
+    }
+    .chart-wrap {
+        height: 200px;
     }
 }
 
@@ -655,3 +756,11 @@
 [data-theme="dark"] .activity-title { color: var(--text-primary); }
 [data-theme="dark"] .activity-desc,
 [data-theme="dark"] .activity-time { color: var(--text-muted); }
+
+[data-theme="dark"] .chart-card        { background: var(--bg-card); }
+[data-theme="dark"] .chart-card-title  { color: var(--text-primary); }
+[data-theme="dark"] .charts-section > h2 { color: var(--text-primary); }
+[data-theme="dark"] .chart-badge.blue  { background: rgba(37,99,235,0.15); color: #93c5fd; }
+[data-theme="dark"] .chart-badge.red   { background: rgba(220,38,38,0.15); color: #fca5a5; }
+[data-theme="dark"] .chart-badge.green { background: rgba(22,163,74,0.15);  color: #86efac; }
+[data-theme="dark"] .chart-badge.orange { background: rgba(194,65,12,0.15); color: #fb923c; }

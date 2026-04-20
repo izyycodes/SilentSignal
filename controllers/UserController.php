@@ -743,22 +743,22 @@ class UserController
             [
                 'title' => 'Emergency Preparedness Guide',
                 'desc'  => 'FSL illustrated guide for disaster preparation',
-                'file'  => 'fsl-emergency-preparedness.pdf',
+                'file'  => 'fsl-emergency-preparedness',
             ],
             [
                 'title' => 'Evacuation Instructions',
                 'desc'  => 'Step-by-step FSL evacuation procedures',
-                'file'  => 'fsl-evacuation-instructions.pdf',
+                'file'  => 'fsl-evacuation-instructions',
             ],
             [
                 'title' => 'First Aid in FSL',
                 'desc'  => 'Basic first aid instructions in FSL',
-                'file'  => 'fsl-first-aid.pdf',
+                'file'  => 'fsl-first-aid',
             ],
             [
                 'title' => 'Disaster Communication Signs',
                 'desc'  => 'Common disaster-related FSL signs and phrases',
-                'file'  => 'fsl-disaster-communication.pdf',
+                'file'  => 'fsl-disaster-communication',
             ],
         ];
 

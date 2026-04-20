@@ -145,6 +145,66 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         </div>
     </div>
 
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <h2><i class="ri-bar-chart-2-line"></i> Analytics Overview</h2>
+        <div class="charts-grid">
+
+            <!-- User Role Breakdown Doughnut -->
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">
+                        <i class="ri-group-line"></i> User Role Breakdown
+                    </div>
+                    <span class="chart-badge blue">By Role</span>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="userRolesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Alert Status Doughnut -->
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">
+                        <i class="ri-alarm-warning-line"></i> Alert Status
+                    </div>
+                    <span class="chart-badge red">Breakdown</span>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="alertStatusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Monthly Activity Bar Chart -->
+            <div class="chart-card chart-card-wide">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">
+                        <i class="ri-bar-chart-line"></i> Monthly Activity
+                    </div>
+                    <span class="chart-badge green">Alerts vs Messages</span>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="monthlyActivityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Message Categories Doughnut -->
+            <div class="chart-card chart-card-wide">
+                <div class="chart-card-header">
+                    <div class="chart-card-title">
+                        <i class="ri-message-3-line"></i> Message Inquiry Categories
+                    </div>
+                    <span class="chart-badge orange">By Category</span>
+                </div>
+                <div class="chart-wrap" style="height:200px;">
+                    <canvas id="msgCategoriesChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <!-- System Health -->
     <div class="dashboard-section">
         <div class="section-header">
@@ -179,5 +239,16 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     </div>
 
 </div>
+
+<!-- Pass chart data to JS -->
+<script>
+const chartUserRoles       = <?php echo $chartUserRoles; ?>;
+const chartAlertStatus     = <?php echo $chartAlertStatus; ?>;
+const chartMonthlyActivity = <?php echo $chartMonthlyActivity; ?>;
+const chartMsgCategories   = <?php echo $chartMsgCategories; ?>;
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/admin-dashboard.js"></script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>

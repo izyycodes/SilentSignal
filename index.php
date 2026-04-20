@@ -378,6 +378,24 @@ switch ($action) {
         $controller = new ChatbotController();
         $controller->proxy();
         break;
+
+   case 'download-fsl':
+        $file = $_GET['file'] ?? '';
+        $allowed = [
+            'fsl-emergency-preparedness',
+            'fsl-evacuation-instructions',
+            'fsl-first-aid',
+            'fsl-disaster-communication',
+        ];
+        if (!in_array($file, $allowed)) {
+            http_response_code(404);
+            exit('File not found.');
+        }
+        // Clean any buffered output before PDF headers
+        if (ob_get_length()) ob_end_clean();
+        require_once BASE_PATH . 'assets/fsl/' . $file . '.php';
+        exit();
+        break;
         
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';
