@@ -6,8 +6,7 @@ $pageStyles = [BASE_URL . 'assets/css/family-dashboard.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <div class="family-dashboard-container">
 
@@ -336,7 +335,7 @@ const pwdMembersData = <?php echo $pwdMembersJson; ?>;
 </script>
 
 <!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPeM=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/family-dashboard.js"></script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>

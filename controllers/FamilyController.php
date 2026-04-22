@@ -250,7 +250,16 @@ class FamilyController {
         ];
 
         // Pass PWD list to JS for "send message" / "view profile" buttons
-        $pwdMembersJson = json_encode(array_map(fn($p) => ['id'=>$p['id'],'name'=>$p['name'],'phone'=>$p['phone']], $pwdMembers));
+        // ✅ Fixed — include latitude, longitude, battery, status
+        $pwdMembersJson = json_encode(array_map(fn($p) => [
+            'id'        => $p['id'],
+            'name'      => $p['name'],
+            'phone'     => $p['phone'],
+            'latitude'  => $p['latitude'],
+            'longitude' => $p['longitude'],
+            'battery'   => $p['battery'],
+            'status'    => $p['status'],
+        ], $pwdMembers));
 
         require_once VIEW_PATH . 'family-dashboard.php';
     }
