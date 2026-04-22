@@ -3,9 +3,7 @@
 // AI Chatbot — floating widget injected into both home and dashboard footers
 ?>
 
-
 <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/chatbot.css">
-
 
 <!-- SILENT Signara CHATBOT WIDGET -->
 <div id="ssChatBtn" class="ss-chat-fab" onclick="ssChatToggle()" title="Ask AI Assistant">
@@ -13,7 +11,6 @@
     <i class="ri-close-line ss-chat-fab-close" style="display:none;"></i>
     <span class="ss-chat-fab-pulse"></span>
 </div>
-
 
 <div id="ssChatWindow" class="ss-chat-window" style="display:none;">
     <div class="ss-chat-header">
@@ -36,7 +33,6 @@
         </div>
     </div>
 
-
     <div class="ss-chat-messages" id="ssChatMessages">
         <div class="ss-chat-welcome">
             <div class="ss-chat-welcome-icon"><i class="ri-sparkling-2-fill"></i></div>
@@ -53,7 +49,6 @@
         </div>
     </div>
 
-
     <div class="ss-chat-input-row">
         <textarea
             id="ssChatInput"
@@ -67,13 +62,11 @@
             <i class="ri-send-plane-fill"></i>
         </button>
     </div>
-    <div class="ss-chat-footer-note">Powered by Gemini AI · For emergencies call 911</div>
+    <div class="ss-chat-footer-note">Powered by Llama AI · For emergencies call 911</div>
 </div>
-
 
 <script>
     // Make BASE_URL available to chatbot.js
     const BASE_URL = <?php echo json_encode(BASE_URL); ?>;
 </script>
 <script src="<?php echo BASE_URL; ?>assets/js/chatbot.js"></script>
-

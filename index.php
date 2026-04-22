@@ -2,6 +2,17 @@
 // index.php - Main entry point
 
 session_start();
+
+// Load .env
+if (file_exists(__DIR__ . '/.env')) {
+    $lines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (str_starts_with(trim($line), '#')) continue;
+        [$key, $value] = explode('=', $line, 2);
+        $_ENV[trim($key)] = trim($value);
+    }
+}
+
 require_once 'config/config.php';
 
 // ── Global error / exception handler ────────────────────────

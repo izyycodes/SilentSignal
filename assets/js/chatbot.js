@@ -3,6 +3,7 @@
 // ============================================================
 
 // OFFLINE KNOWLEDGE BASE
+// These are ONLY used when the user has no internet connection
 const SS_KNOWLEDGE = [
     {
         keywords: ['sos', 'emergency', 'help', 'alert'],
@@ -39,29 +40,65 @@ const SS_KNOWLEDGE = [
     }
 ];
 
-// OFFLINE MATCHING
+// OFFLINE MATCHING — only called when navigator.onLine is false
 function ssGetOfflineResponse(message) {
     const msg = message.toLowerCase();
-
     for (let item of SS_KNOWLEDGE) {
         for (let keyword of item.keywords) {
-            if (msg.includes(keyword)) {
-                return item.response;
-            }
+            if (msg.includes(keyword)) return item.response;
         }
     }
-    return null;
+    return `I'm currently offline. Try asking about SOS, flood, earthquake, or profile setup when you're back online.`;
 }
 
 // COOLDOWN (ANTI-SPAM)
 let lastRequestTime = 0;
 
-
 // ============================================================
-// ORIGINAL CODE (MODIFIED BELOW)
+// SYSTEM PROMPT FOR SIGNARA
 // ============================================================
+const SS_SYSTEM_PROMPT = `You are Signara, the friendly assistant for Silent Signal — a disaster preparedness and emergency communication app designed specifically for deaf and mute PWD (Persons with Disability) users in the Philippines.
 
-const SS_SYSTEM_PROMPT = `You are Signara, the friendly assistant for Silent Signal...`;
+
+You help users with:
+1. HOW TO USE SILENT SIGNAL
+   - Sending SOS alerts (tap the red SOS button on the Dashboard/Emergency Alert page; it sends GPS location + medical profile via SMS to all emergency contacts)
+   - Setting up the Medical Profile (blood type, conditions, allergies, medications, emergency contacts)
+   - Using the Communication Hub (visual icon cards to communicate needs without speaking; customizable cards)
+   - Family Check-In system (tap "I'm Safe" to notify family; family members get live status updates)
+   - Disaster Monitoring (real-time PAGASA/NDRRMC alerts based on your registered location)
+   - Emergency Alert page (allow GPS location, send alert with location to contacts)
+   - Forgot password / account recovery
+
+
+2. PWD EMERGENCY TIPS
+   - Always keep Medical Profile updated — it is sent automatically with every SOS
+   - Pre-load the Communication Hub page while online so it works offline
+   - Keep phone charged; enable vibration alerts for silent environments
+   - Share your PWD ID and blood type with emergency responders using the Communication Hub
+   - Download FSL (Filipino Sign Language) resources from the Communication Hub for offline use
+
+
+3. APP TROUBLESHOOTING
+   - SOS not sending: check internet/data connection and browser location permissions
+   - Not receiving notifications: enable browser notifications in device settings
+   - Location not detected: use a device with GPS hardware; allow location in browser settings
+   - Page not loading: clear browser cache; use Chrome, Firefox, Safari, or Edge
+   - Forgot password: use the Forgot Password link on the Login page
+   - Family member not linked: ensure they registered using the same phone number you linked
+
+
+4. GENERAL DISASTER PREPAREDNESS (Philippines context)
+   - Typhoon: move to higher ground, avoid flood-prone areas, follow PAGASA advisories
+   - Earthquake: Drop-Cover-Hold On; move away from windows and heavy furniture
+   - Flood: never walk through floodwater; evacuate early before roads are impassable
+   - Fire: crawl low under smoke; never use elevators; meet at designated assembly point
+   - Prepare a Go Bag: water, food, medicines, documents, flashlight, whistle, phone charger
+   
+
+Tone: Warm, calm, clear, and concise. Use short sentences. Bullet points when listing steps.
+Language: Respond in the same language the user writes in (English or Filipino/Tagalog).
+Limits: You are NOT a substitute for emergency services. If someone describes an active emergency, always remind users to call 911 or local emergency numbers for life-threatening situations immediately in addition to using the app. Keep responses under 120 words unless the user asks for more detail. Never provide medical diagnoses.`;
 
 let ssChatHistory = [];
 let ssChatOpen    = false;
@@ -125,21 +162,20 @@ function ssChatSend() {
     ssSubmitMessage(text);
 }
 
-
-// MAIN FUNCTION (UPDATED)
+// MAIN FUNCTION
 function ssSubmitMessage(text) {
     ssAppendMessage('user', text);
     ssChatHistory.push({ role: 'user', content: text });
 
-    // OFFLINE FIRST
-    const offlineReply = ssGetOfflineResponse(text);
-
-    if (offlineReply) {
-        ssAppendMessage('assistant', offlineReply);
+    // ── OFFLINE MODE — use local knowledge base only ───────────
+    if (!navigator.onLine) {
+        const offlineReply = ssGetOfflineResponse(text);
+        ssChatHistory.push({ role: 'assistant', content: offlineReply });
+        ssAppendMessage('assistant', offlineReply, true);
         return;
     }
 
-    // API FALLBACK
+    // ── ONLINE MODE — always send to Llama AI via Groq ─────────
     ssShowTyping();
     ssChatLoading = true;
     document.getElementById('ssChatSendBtn').disabled = true;
@@ -151,23 +187,23 @@ function ssSubmitMessage(text) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             system: SS_SYSTEM_PROMPT,
-            messages: ssChatHistory.slice(-6) // limit history
+            messages: ssChatHistory.slice(-6)
         })
     })
     .then(r => r.json())
     .then(data => {
         ssRemoveTyping();
-        const reply = data?.content?.[0]?.text || 
-            'I’m not sure about that yet. Try asking about SOS or disaster tips.';
+        const reply = data?.content?.[0]?.text ||
+            "I'm not sure about that yet. Try asking about SOS or disaster tips.";
         ssChatHistory.push({ role: 'assistant', content: reply });
         ssAppendMessage('assistant', reply);
     })
     .catch(() => {
+        // fetch failed mid-request — fall back to offline knowledge base
         ssRemoveTyping();
-        ssAppendMessage('assistant', 
-            'Offline mode active. Try asking about SOS, flood, earthquake, or profile setup.', 
-            true
-        );
+        const fallback = ssGetOfflineResponse(text);
+        ssChatHistory.push({ role: 'assistant', content: fallback });
+        ssAppendMessage('assistant', fallback, true);
     })
     .finally(() => {
         ssChatLoading = false;
@@ -176,9 +212,8 @@ function ssSubmitMessage(text) {
     });
 }
 
-
 // ============================================================
-// REMAINING FUNCTIONS (UNCHANGED)
+// UI HELPERS (UNCHANGED)
 // ============================================================
 
 function ssAppendMessage(role, text, isError) {
@@ -246,6 +281,6 @@ function ssFormatText(text) {
         }
     });
 
-    if (inList) out += '</ul';
+    if (inList) out += '</ul>';
     return out.replace(/<br>$/, '');
 }
