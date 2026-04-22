@@ -306,6 +306,131 @@
     color: #c62828;
 }
 
+/* ── Change password form ─────────────────────────────────── */
+.settings-change-password {
+    margin: 0 24px 16px;
+    padding: 18px;
+    background: var(--bg-card-alt);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cpw-group { display: flex; flex-direction: column; gap: 5px; }
+
+.cpw-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.cpw-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cpw-input-wrap input {
+    width: 100%;
+    padding: 10px 40px 10px 12px;
+    border: 1.5px solid var(--border-medium);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.cpw-input-wrap input:focus { border-color: #7b1fa2; }
+
+.cpw-eye {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 16px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+.cpw-eye:hover { color: #7b1fa2; }
+
+.cpw-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.btn-cpw-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #1A4D7F, #2361a0);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.btn-cpw-save:hover    { opacity: 0.88; }
+.btn-cpw-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-cpw-cancel {
+    padding: 10px 16px;
+    border: 1.5px solid var(--border-medium);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+.btn-cpw-cancel:hover { border-color: #ef4444; color: #ef4444; }
+
+.cpw-status { font-size: 12.5px; min-height: 20px; }
+.cpw-success { color: #388e3c; display: flex; align-items: center; gap: 5px; }
+.cpw-error   { color: #c62828; display: flex; align-items: center; gap: 5px; }
+
+/* ── Settings outline button ─────────────────────────────── */
+.btn-settings-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1.5px solid var(--border-medium);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.btn-settings-outline:hover {
+    background: #1A4D7F;
+    color: #fff;
+    border-color: #1A4D7F;
+}
+
 /* ── Mobile ──────────────────────────────────────────────── */
 @media (max-width: 600px) {
     .settings-layout { gap: 14px; }

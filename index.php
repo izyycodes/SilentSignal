@@ -442,6 +442,12 @@ switch ($action) {
         require_once BASE_PATH . 'assets/fsl/' . $file . '.php';
         exit();
         break;
+
+    case 'change-password':
+        require_once CONTROLLER_PATH . 'UserController.php';
+        $controller = new UserController();
+        $controller->changePassword();
+        break;
         
     default:
         require_once CONTROLLER_PATH . 'HomeController.php';

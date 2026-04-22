@@ -203,10 +203,50 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         </div>
                     </div>
                 </div>
-                <div class="settings-actions">
-                    <a href="<?php echo BASE_URL; ?>index.php?action=forgot-password" class="btn-settings-link">
-                        <i class="ri-lock-password-line"></i> Change Password
-                    </a>
+                <!-- Change Password Row -->
+                <div class="settings-row">
+                    <div class="settings-row-info">
+                        <div class="settings-row-icon purple"><i class="ri-lock-password-line"></i></div>
+                        <div>
+                            <h4>Password</h4>
+                            <p>Update your account password</p>
+                        </div>
+                    </div>
+                    <button class="btn-settings-outline" onclick="toggleChangePassword()">
+                        <i class="ri-edit-line"></i> Change
+                    </button>
+                </div>
+
+                <!-- Inline Change Password Form -->
+                <div class="settings-change-password" id="changePasswordForm" style="display:none;">
+                    <div class="cpw-group">
+                        <label>Current Password</label>
+                        <div class="cpw-input-wrap">
+                            <input type="password" id="cpwCurrent" placeholder="Enter current password" autocomplete="current-password">
+                            <button type="button" class="cpw-eye" onclick="toggleCpwEye('cpwCurrent', this)"><i class="ri-eye-line"></i></button>
+                        </div>
+                    </div>
+                    <div class="cpw-group">
+                        <label>New Password</label>
+                        <div class="cpw-input-wrap">
+                            <input type="password" id="cpwNew" placeholder="Min 6 characters" autocomplete="new-password">
+                            <button type="button" class="cpw-eye" onclick="toggleCpwEye('cpwNew', this)"><i class="ri-eye-line"></i></button>
+                        </div>
+                    </div>
+                    <div class="cpw-group">
+                        <label>Confirm New Password</label>
+                        <div class="cpw-input-wrap">
+                            <input type="password" id="cpwConfirm" placeholder="Repeat new password" autocomplete="new-password">
+                            <button type="button" class="cpw-eye" onclick="toggleCpwEye('cpwConfirm', this)"><i class="ri-eye-line"></i></button>
+                        </div>
+                    </div>
+                    <div class="cpw-actions">
+                        <button class="btn-cpw-save" id="btnChangePassword" onclick="submitChangePassword()">
+                            <i class="ri-save-line"></i> Update Password
+                        </button>
+                        <button class="btn-cpw-cancel" onclick="toggleChangePassword()">Cancel</button>
+                    </div>
+                    <div class="cpw-status" id="cpwStatus"></div>
                 </div>
             </div>
         </section>
@@ -224,8 +264,8 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 
 <!-- Hidden values passed to JS -->
 <script>
-const BASE_URL              = <?php echo json_encode(BASE_URL); ?>;
-const initialCountdown      = <?php echo (int)$userSettings['sos_countdown_seconds']; ?>;
+const BASE_URL         = <?php echo json_encode(BASE_URL); ?>;
+const initialCountdown = <?php echo (int)$userSettings['sos_countdown_seconds']; ?>;
 </script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>

@@ -1481,4 +1481,52 @@ HTML;
         ]);
         exit();
     }
+
+    /**
+     * AJAX: Change password
+     */
+    public function changePassword() {
+        $this->requireLogin();
+        header('Content-Type: application/json');
+
+        $userId          = $_SESSION['user_id'];
+        $currentPassword = trim($_POST['current_password'] ?? '');
+        $newPassword     = trim($_POST['new_password']     ?? '');
+        $confirmPassword = trim($_POST['confirm_password'] ?? '');
+
+        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+            echo json_encode(['success' => false, 'message' => 'All fields are required.']);
+            exit();
+        }
+        if (strlen($newPassword) < 6) {
+            echo json_encode(['success' => false, 'message' => 'New password must be at least 6 characters.']);
+            exit();
+        }
+        if ($newPassword !== $confirmPassword) {
+            echo json_encode(['success' => false, 'message' => 'Passwords do not match.']);
+            exit();
+        }
+
+        require_once CONFIG_PATH . 'Database.php';
+        $db = (new Database())->getConnection();
+
+        $stmt = $db->prepare("SELECT password FROM users WHERE id = :id");
+        $stmt->execute([':id' => $userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user || !password_verify($currentPassword, $user['password'])) {
+            echo json_encode(['success' => false, 'message' => 'Current password is incorrect.']);
+            exit();
+        }
+
+        $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
+        $update = $db->prepare("UPDATE users SET password = :pw WHERE id = :id");
+        $ok     = $update->execute([':pw' => $hashed, ':id' => $userId]);
+
+        echo json_encode([
+            'success' => $ok,
+            'message' => $ok ? 'Password updated successfully.' : 'Failed to update password.',
+        ]);
+        exit();
+    }
 }

@@ -282,5 +282,5 @@ if (empty($userDetailRows)) {
 $pdf->DataTable($userDetailHeaders, $userDetailRows, $userDetailWidths);
 
 // ── Output ──────────────────────────────────────────────────
-$pdf->Output('I', 'SilentSignal_Admin_Report_' . date('Ymd_His') . '.pdf');
+$pdf->Output('D', 'SilentSignal_Admin_Report_' . date('Ymd_His') . '.pdf');
 exit();
