@@ -6,6 +6,8 @@ $pageStyles = [BASE_URL . 'assets/css/family-dashboard.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
 <div class="family-dashboard-container">
 
@@ -49,7 +51,13 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <i class="ri-user-heart-line"></i>
                 <h2>PWD Members Under Your Care</h2>
             </div>
-            <span class="section-badge"><?php echo count($pwdMembers); ?> Member<?php echo count($pwdMembers) !== 1 ? 's' : ''; ?></span>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <button class="map-all-btn" onclick="viewLocation(0, 0, null)" title="View all PWD members on map">
+                    <i class="ri-map-2-line"></i>
+                    <span>View All on Map</span>
+                </button>
+                <span class="section-badge"><?php echo count($pwdMembers); ?> Member<?php echo count($pwdMembers) !== 1 ? 's' : ''; ?></span>
+            </div>
         </div>
 
         <?php if (empty($pwdMembers)): ?>
@@ -116,8 +124,8 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                 <!-- Quick Actions -->
                 <div class="pwd-quick-actions">
                     <button class="pwd-action-btn" onclick="viewLocation(<?php echo (float)$pwd['latitude']; ?>, <?php echo (float)$pwd['longitude']; ?>, '<?php echo htmlspecialchars(addslashes($pwd['name'])); ?>')">
-                        <i class="ri-map-pin-2-line"></i>
-                        <span>View Location</span>
+                        <i class="ri-map-2-line"></i>
+                        <span>View on Map</span>
                     </button>
                     <button class="pwd-action-btn" onclick="sendMessage(<?php echo (int)$pwd['id']; ?>, '<?php echo htmlspecialchars(addslashes($pwd['name'])); ?>')">
                         <i class="ri-message-2-line"></i>
@@ -278,28 +286,34 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         <?php endif; ?>
     </div>
 
-    <!-- Emergency FAB -->
-    <div class="emergency-fab">
-        <button class="fab-button" onclick="triggerEmergencyActions()">
-            <i class="ri-alarm-warning-line"></i>
-        </button>
-        <div class="fab-menu" style="display:none;">
-            <button class="fab-menu-item" onclick="callEmergencyServices()">
-                <i class="ri-phone-line"></i>
-                <span>Call 911</span>
-            </button>
-            <button class="fab-menu-item" onclick="alertAllFamily()">
-                <i class="ri-notification-3-line"></i>
-                <span>Alert All Family</span>
-            </button>
-            <button class="fab-menu-item" onclick="viewEmergencyContacts()">
-                <i class="ri-contacts-line"></i>
-                <span>Emergency Contacts</span>
-            </button>
-        </div>
-    </div>
-
 </div><!-- /family-dashboard-container -->
+
+<!-- ═══════════════════════════════════════════════
+     LEAFLET MAP MODAL — shows ALL connected PWDs
+     ═══════════════════════════════════════════════ -->
+<div class="modal-overlay leaflet-modal-overlay" id="leafletMapModal" style="display:none;" onclick="closeLeafletMap()">
+    <div class="leaflet-modal-box" onclick="event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="leaflet-modal-header">
+            <div class="leaflet-modal-title">
+                <i class="ri-map-2-line"></i>
+                <span>PWD Members Map</span>
+            </div>
+            <div class="leaflet-modal-header-right">
+                <div class="map-legend" id="mapLegend"></div>
+                <button onclick="closeLeafletMap()" class="modal-close"><i class="ri-close-line"></i></button>
+            </div>
+        </div>
+
+        <!-- Notice bar (shown when no GPS data) -->
+        <div class="map-notice" id="mapNotice" style="display:none;"></div>
+
+        <!-- Map container -->
+        <div id="leafletMapContainer"></div>
+
+    </div>
+</div>
 
 <!-- PWD Profile Modal -->
 <div class="modal-overlay" id="profileModal" style="display:none;" onclick="closeModal('profileModal')">
@@ -321,6 +335,8 @@ const BASE_URL = <?php echo json_encode(BASE_URL); ?>;
 const pwdMembersData = <?php echo $pwdMembersJson; ?>;
 </script>
 
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPeM=" crossorigin=""></script>
 <script src="<?php echo BASE_URL; ?>assets/js/family-dashboard.js"></script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>

@@ -7,6 +7,10 @@ let dashRefreshTimer = null;
 let currentLat   = null;
 let currentLng   = null;
 
+// Leaflet map instance (kept alive between opens)
+let _leafletMap     = null;
+let _leafletMarkers = [];
+
 // ── Init ──
 document.addEventListener('DOMContentLoaded', function () {
     startGPS();
@@ -36,18 +40,209 @@ function handleEmergencyCall() {
     }
 }
 
-// ── View PWD Location (opens Google Maps) ──
-function viewLocation(lat, lng, name) {
-    if (!lat && !lng) {
-        showToast('📍 No GPS coordinates available for ' + name, '#d84315');
+// ── View PWD Location — Leaflet map showing ALL connected PWDs ──
+function viewLocation(focusLat, focusLng, focusName) {
+    const modal = document.getElementById('leafletMapModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+
+    // Give the DOM a tick to show before initialising Leaflet
+    requestAnimationFrame(() => {
+        _initOrRefreshLeafletMap(focusLat, focusLng, focusName);
+    });
+}
+
+function _initOrRefreshLeafletMap(focusLat, focusLng, focusName) {
+    const container = document.getElementById('leafletMapContainer');
+    if (!container) return;
+
+    // Build the list of all PWD members with valid coordinates
+    const validPwds = (pwdMembersData || []).filter(p =>
+        p.latitude && p.longitude &&
+        parseFloat(p.latitude) !== 0 && parseFloat(p.longitude) !== 0
+    );
+
+    // --- First-time initialisation ---
+    if (!_leafletMap) {
+        _leafletMap = L.map('leafletMapContainer', {
+            zoomControl: true,
+            attributionControl: true,
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+        }).addTo(_leafletMap);
+    } else {
+        // Clear existing markers
+        _leafletMarkers.forEach(m => _leafletMap.removeLayer(m));
+        _leafletMarkers = [];
+    }
+
+    // Notify Leaflet that its container may have changed size
+    _leafletMap.invalidateSize();
+
+    if (validPwds.length === 0) {
+        // No GPS data — show a world view and a notice
+        _leafletMap.setView([14.0, 121.0], 6); // Default: Philippines
+        _showMapNotice('No GPS coordinates available yet for any PWD member.');
+        _updateMapLegend([]);
         return;
     }
-    window.open('https://www.google.com/maps?q=' + lat + ',' + lng, '_blank');
+
+    _hideMapNotice();
+
+    // Status colour mapping
+    const statusColors = {
+        safe:             '#4caf50',
+        danger:           '#f44336',
+        needs_assistance: '#ff9800',
+        unknown:          '#9e9e9e',
+    };
+
+    const bounds = [];
+
+    validPwds.forEach(pwd => {
+        const lat    = parseFloat(pwd.latitude);
+        const lng    = parseFloat(pwd.longitude);
+        const status = pwd.status || 'unknown';
+        const color  = statusColors[status] || '#9e9e9e';
+        const isFocus = (pwd.name === focusName);
+
+        // Custom SVG pin marker
+        const svgIcon = L.divIcon({
+            className: '',
+            html: `
+                <div class="pwd-map-pin ${isFocus ? 'pwd-map-pin--focus' : ''}" style="--pin-color:${color};">
+                    <div class="pwd-map-pin__bubble">
+                        <span class="pwd-map-pin__initials">${_initials(pwd.name)}</span>
+                    </div>
+                    <div class="pwd-map-pin__tail"></div>
+                    ${isFocus ? '<div class="pwd-map-pin__pulse"></div>' : ''}
+                </div>`,
+            iconSize:   [44, 56],
+            iconAnchor: [22, 56],
+            popupAnchor:[0, -58],
+        });
+
+        const statusLabel = {
+            safe:             'Safe',
+            danger:           'Danger',
+            needs_assistance: 'Needs Help',
+            unknown:          'Unknown',
+        }[status] || 'Unknown';
+
+        const batteryText = pwd.battery != null && pwd.battery !== '' && pwd.battery !== '—'
+            ? `${pwd.battery}%` : '—';
+
+        const popupHtml = `
+            <div class="pwd-map-popup">
+                <div class="pwd-map-popup__header" style="background:${color};">
+                    <span class="pwd-map-popup__name">${escHtml(pwd.name)}</span>
+                    <span class="pwd-map-popup__status">${statusLabel}</span>
+                </div>
+                <div class="pwd-map-popup__body">
+                    <div class="pwd-map-popup__row">
+                        <i class="ri-map-pin-line"></i>
+                        <span>${lat.toFixed(5)}, ${lng.toFixed(5)}</span>
+                    </div>
+                    <div class="pwd-map-popup__row">
+                        <i class="ri-battery-2-charge-line"></i>
+                        <span>Battery: ${batteryText}</span>
+                    </div>
+                    <div class="pwd-map-popup__actions">
+                        <a class="pwd-map-popup__btn" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" rel="noopener">
+                            <i class="ri-navigation-line"></i> Directions
+                        </a>
+                        <button class="pwd-map-popup__btn" onclick="sendMessage(${pwd.id}, '${escHtml(pwd.name).replace(/'/g,"\\'")}')">
+                            <i class="ri-message-2-line"></i> Message
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+
+        const marker = L.marker([lat, lng], { icon: svgIcon })
+            .addTo(_leafletMap)
+            .bindPopup(popupHtml, { maxWidth: 240, className: 'pwd-leaflet-popup' });
+
+        // Open popup on the focused PWD immediately
+        if (isFocus) {
+            marker.openPopup();
+        }
+
+        _leafletMarkers.push(marker);
+        bounds.push([lat, lng]);
+    });
+
+    // Fit all markers into view, or zoom to the focused one
+    if (focusLat && focusLng && parseFloat(focusLat) !== 0) {
+        _leafletMap.setView([focusLat, focusLng], 15);
+    } else if (bounds.length === 1) {
+        _leafletMap.setView(bounds[0], 15);
+    } else if (bounds.length > 1) {
+        _leafletMap.fitBounds(bounds, { padding: [40, 40] });
+    }
+
+    // Add viewer's own location marker if available
+    if (currentLat && currentLng) {
+        const youIcon = L.divIcon({
+            className: '',
+            html: `<div class="you-map-pin"><i class="ri-map-pin-user-fill"></i></div>`,
+            iconSize:   [36, 36],
+            iconAnchor: [18, 36],
+        });
+        const youMarker = L.marker([currentLat, currentLng], { icon: youIcon })
+            .addTo(_leafletMap)
+            .bindPopup('<div style="font-weight:600;font-size:13px;">📍 Your Location</div>');
+        _leafletMarkers.push(youMarker);
+    }
+
+    _updateMapLegend(validPwds);
+}
+
+// ── Map legend ──
+function _updateMapLegend(pwds) {
+    const legend = document.getElementById('mapLegend');
+    if (!legend) return;
+
+    const statusColors = { safe:'#4caf50', danger:'#f44336', needs_assistance:'#ff9800', unknown:'#9e9e9e' };
+    const statusLabels = { safe:'Safe', danger:'Danger', needs_assistance:'Needs Help', unknown:'Unknown' };
+
+    if (pwds.length === 0) {
+        legend.innerHTML = '<span class="map-legend__item"><span class="map-legend__dot" style="background:#ccc;"></span>No data</span>';
+        return;
+    }
+
+    // Count statuses
+    const counts = {};
+    pwds.forEach(p => { const s = p.status || 'unknown'; counts[s] = (counts[s] || 0) + 1; });
+
+    legend.innerHTML = Object.entries(counts).map(([s, n]) =>
+        `<span class="map-legend__item">
+            <span class="map-legend__dot" style="background:${statusColors[s]||'#9e9e9e'};"></span>
+            ${statusLabels[s]||s} (${n})
+        </span>`
+    ).join('') +
+    (currentLat ? `<span class="map-legend__item"><span class="map-legend__dot you-dot"></span> You</span>` : '');
+}
+
+function _showMapNotice(msg) {
+    const el = document.getElementById('mapNotice');
+    if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+function _hideMapNotice() {
+    const el = document.getElementById('mapNotice');
+    if (el) el.style.display = 'none';
+}
+
+// ── Close Leaflet Map Modal ──
+function closeLeafletMap() {
+    const modal = document.getElementById('leafletMapModal');
+    if (modal) modal.style.display = 'none';
 }
 
 // ── Send Message (opens SMS app) ──
 function sendMessage(pwdId, name) {
-    // Get the PWD's phone number from pwdMembersData
     const pwd = pwdMembersData.find(p => p.id == pwdId);
     const phone = pwd?.phone || pwd?.phone_number || '';
 
@@ -126,7 +321,7 @@ function callMember(phone) {
     }
 }
 
-// ── Message a co-family member (link to communication hub) ──
+// ── Message a co-family member ──
 function messageMember(memberId, name) {
     showToast('💬 Opening communication for ' + name + '…', '#1976d2');
     setTimeout(() => {
@@ -157,7 +352,6 @@ function respondToAlert(alertId, responseStatus) {
     .then(data => {
         if (data.success) {
             showToast('✅ Response recorded: ' + (labelMap[responseStatus] || responseStatus), '#2e7d32');
-            // Hide the response buttons for this alert
             const alertEl = document.getElementById('alert-' + alertId);
             if (alertEl) {
                 const actions = alertEl.querySelector('.alert-response-actions');
@@ -182,7 +376,6 @@ function refreshDashboard(btn, silent = false) {
             if (btn) btn.querySelector('i').classList.remove('ri-spin');
             if (!data.success) return;
 
-            // Update each PWD card's status
             data.pwdStatuses.forEach(p => {
                 const card = document.getElementById('pwd-card-' + p.id);
                 if (!card) return;
@@ -190,18 +383,25 @@ function refreshDashboard(btn, silent = false) {
                 const statusLabels = {safe:'SAFE',danger:'DANGER',needs_assistance:'NEEDS HELP',unknown:'UNKNOWN'};
                 const statusCSS    = {safe:'safe',danger:'danger',needs_assistance:'danger',unknown:'unknown'};
 
-                const banner   = card.querySelector('.pwd-status-banner');
-                const lblEl    = card.querySelector('.pwd-status-label');
-                const updEl    = card.querySelector('.pwd-last-updated');
-                const locEl    = card.querySelector('.pwd-location');
+                const banner = card.querySelector('.pwd-status-banner');
+                const lblEl  = card.querySelector('.pwd-status-label');
+                const updEl  = card.querySelector('.pwd-last-updated');
+                const locEl  = card.querySelector('.pwd-location');
 
-                if (banner) {
-                    banner.className = 'pwd-status-banner status-' + (statusCSS[p.status] || 'unknown');
-                }
+                if (banner) banner.className = 'pwd-status-banner status-' + (statusCSS[p.status] || 'unknown');
                 if (lblEl)  lblEl.textContent  = statusLabels[p.status] || 'UNKNOWN';
                 if (updEl)  updEl.textContent  = p.time_ago;
                 if (locEl && p.latitude) {
                     locEl.textContent = 'Lat: ' + parseFloat(p.latitude).toFixed(4) + ', Lng: ' + parseFloat(p.longitude).toFixed(4);
+                }
+
+                // Sync pwdMembersData for the map
+                const idx = pwdMembersData.findIndex(x => x.id == p.id);
+                if (idx !== -1) {
+                    pwdMembersData[idx].status    = p.status;
+                    pwdMembersData[idx].latitude  = p.latitude;
+                    pwdMembersData[idx].longitude = p.longitude;
+                    pwdMembersData[idx].battery   = p.battery;
                 }
             });
 
@@ -254,7 +454,6 @@ function alertAllFamily() {
 }
 
 function viewEmergencyContacts() {
-    // Scroll to the PWD members section where emergency contacts are shown
     const section = document.getElementById('pwdMembers');
     if (section) {
         section.scrollIntoView({ behavior: 'smooth' });
@@ -275,7 +474,7 @@ let _toastTimer;
 function showToast(msg, bg) {
     const t = document.getElementById('toast');
     if (!t) return;
-    t.textContent    = msg;
+    t.textContent      = msg;
     t.style.background = bg;
     t.classList.add('show');
     clearTimeout(_toastTimer);
@@ -286,4 +485,11 @@ function showToast(msg, bg) {
 function escHtml(str) {
     if (str == null) return '';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Helper: initials from full name ──
+function _initials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
 }
