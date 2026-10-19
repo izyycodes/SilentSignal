@@ -35,7 +35,7 @@ if ($isLocal) {
     
     // HelioHost Database Settings
     // Format: servername.heliohost.org (tommy, johnny, morty, or ricky)
-    define('DB_HOST', 'morty.heliohost.org'); // Change to your server
+    define('DB_HOST', 'johnny.heliohost.org'); // Change to your server
     
     // IMPORTANT: Add your username prefix!
     define('DB_USER', 'rgdioma_admin'); 
