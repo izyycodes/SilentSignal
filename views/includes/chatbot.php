@@ -62,7 +62,7 @@
             <i class="ri-send-plane-fill"></i>
         </button>
     </div>
-    <div class="ss-chat-footer-note">Powered by Llama AI · For emergencies call 911</div>
+    <div class="ss-chat-footer-note">Powered by AI · For emergencies call 911</div>
 </div>
 
 <script>
