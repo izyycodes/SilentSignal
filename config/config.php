@@ -1,6 +1,6 @@
 <?php
 // config/config.php - Environment-Based Configuration
-// Works automatically on both localhost and HelioHost
+// Works automatically on both localhost and HelioHost agi
 
 // Detect environment based on server name (safe check)
 $httpHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
