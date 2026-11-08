@@ -2,9 +2,11 @@
 // views/emergency-alert.php
 // Emergency Alert System - Data is passed from UserController
 
-$pageStyles = [BASE_URL . 'assets/css/emergency-alert.css'];
+$pageStyles = [BASE_URL . 'assets/css/emergency-alert.css', BASE_URL . 'assets/css/geo-map.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 
 <div class="page-container">
@@ -57,6 +59,25 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <a href="#" id="locationLink" class="btn btn-small" style="display: none;" target="_blank">
                 <i class="ri-external-link-line"></i> View on Map
             </a>
+        </div>
+
+        <!-- Live map (Leaflet + Geoapify tiles) -->
+        <div class="sos-map-wrap">
+            <div id="sosMap" class="sos-map"></div>
+            <div class="sos-map-msg" id="sosMapMsg"><i class="ri-map-pin-time-line"></i> Waiting for your location…</div>
+        </div>
+
+        <!-- Route to the selected place (Geoapify Routing) -->
+        <div class="geo-route" id="sosRoute" hidden></div>
+
+        <!-- Nearby hospitals, clinics, police, fire stations (Geoapify Places) -->
+        <div class="sos-nearby">
+            <div class="geo-panel__head">
+                <span class="geo-panel__title"><i class="ri-hospital-line"></i> Nearby help</span>
+                <span class="geo-panel__sub">within 5 km</span>
+            </div>
+            <div class="geo-chips" id="sosChips"></div>
+            <div class="geo-list" id="sosList"><div class="geo-empty">Nearby places show up once your location is found.</div></div>
         </div>
     </div>
     
@@ -197,9 +218,12 @@ const userInfoData          = {
     medications: <?php echo json_encode($userData['medications'] ?? ''); ?>,
     conditions:  <?php echo json_encode($userData['conditions']  ?? ''); ?>
 };
+window.GEOAPIFY_KEY = <?php echo json_encode(defined('GEOAPIFY_API_KEY') ? GEOAPIFY_API_KEY : ''); ?>;
 </script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/geoapify.js"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/emergency-alert.js"></script>
 </body>
 </html>

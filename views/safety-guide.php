@@ -1,5 +1,7 @@
-<?php <?php $pageStyles = [BASE_URL . 'assets/css/support-pages.css']; ?>
-require_once VIEW_PATH . 'includes/home-header.php'; ?>
+<?php
+$pageStyles = [BASE_URL . 'assets/css/support-pages.css'];
+require_once VIEW_PATH . 'includes/home-header.php';
+?>
 
 
 <!-- Page Hero -->

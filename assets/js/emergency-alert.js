@@ -7,6 +7,15 @@ let isAlertActive      = false;
 let shakeEnabled       = false;
 let sosCountdownSeconds = 10; // default; overridden by user settings on load
 
+// Map + nearby help (Leaflet + Geoapify, see assets/js/geoapify.js)
+let sosMap          = null;
+let sosMeMarker     = null;
+let sosAccCircle    = null;
+let sosNearby       = null;
+let sosNearbyOrigin = null;
+let sosAutoRouted   = false;
+let lastGeocoded    = null;   // { lat, lng, short, full }
+
 document.addEventListener('DOMContentLoaded', function() {
     
     // ================================
@@ -99,14 +108,17 @@ function updateLocation() {
             };
             updateLocationDisplay('Location acquired', userLocation.lat, userLocation.lng);
             reverseGeocode(userLocation.lat, userLocation.lng);
+            updateSosMap(userLocation);
         },
         (error) => {
             console.error('Geolocation error:', error.message);
             if (error.code === error.PERMISSION_DENIED) {
                 updateLocationDisplay('Location blocked', null, null);
                 showAllowLocationBtn(true);
+                setSosMapMessage('Turn on location to see the map and nearby help.');
             } else {
                 updateLocationDisplay('Unable to get location', null, null);
+                if (!sosMap) setSosMapMessage('Can’t get your location right now.');
             }
         },
         options
@@ -226,20 +238,90 @@ function showLocationBlockedGuide() {
     setTimeout(() => notice.remove(), 15000);
 }
 
+// Coordinates -> street address (Geoapify, falls back to Nominatim inside SSGeo)
 function reverseGeocode(lat, lng) {
-    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-        .then(r => r.json())
-        .then(data => {
-            if (data.display_name) {
-                const addressDisplay = document.getElementById('locationAddress');
-                if (addressDisplay) {
-                    const parts = data.display_name.split(',');
-                    addressDisplay.textContent = parts.slice(0, 3).join(',');
-                }
-                if (userLocation) userLocation.address = data.display_name;
+    const show = (short, full) => {
+        const addressDisplay = document.getElementById('locationAddress');
+        if (addressDisplay) addressDisplay.textContent = short;
+        if (userLocation) userLocation.address = full;
+    };
+
+    // Barely moved (GPS jitter): reuse the last address instead of calling the API again
+    if (lastGeocoded && window.SSGeo && SSGeo.distanceM(lat, lng, lastGeocoded.lat, lastGeocoded.lng) < 40) {
+        show(lastGeocoded.short, lastGeocoded.full);
+        return;
+    }
+
+    if (!window.SSGeo) {
+        // Old behaviour if geoapify.js didn't load
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+            .then(r => r.json())
+            .then(data => { if (data.display_name) show(data.display_name.split(',').slice(0, 3).join(','), data.display_name); })
+            .catch(err => console.log('Reverse geocode error:', err));
+        return;
+    }
+
+    SSGeo.reverse(lat, lng).then(a => {
+        if (!a) return;
+        lastGeocoded = { lat, lng, short: a.short, full: a.full };
+        show(a.short, a.full);
+    });
+}
+
+// ================================
+// MAP + NEARBY HELP
+// ================================
+function setSosMapMessage(text) {
+    const msg = document.getElementById('sosMapMsg');
+    if (!msg) return;
+    msg.innerHTML = '<i class="ri-map-pin-line"></i> ' + text;
+    msg.style.display = sosMap ? 'none' : 'flex';
+}
+
+function updateSosMap(loc) {
+    if (!loc || !window.L || !window.SSGeo) return;
+    const el = document.getElementById('sosMap');
+    if (!el) return;
+    const here = [loc.lat, loc.lng];
+    const acc  = Math.min(loc.accuracy || 0, 500);
+
+    if (!sosMap) {
+        sosMap = L.map(el, { zoomControl: true, attributionControl: true }).setView(here, 15);
+        SSGeo.addTiles(sosMap);
+
+        sosNearby = new SSGeo.NearbyPanel({
+            map:      sosMap,
+            chipsEl:  document.getElementById('sosChips'),
+            listEl:   document.getElementById('sosList'),
+            routeEl:  document.getElementById('sosRoute'),
+            showCall: false,
+            maxList:  20,
+        });
+
+        sosAccCircle = L.circle(here, { radius: acc, color: '#c62828', weight: 1, fillColor: '#c62828', fillOpacity: 0.08 }).addTo(sosMap);
+        sosMeMarker  = L.marker(here, { icon: SSGeo.personIcon('You', '#c62828'), zIndexOffset: 1000 })
+            .addTo(sosMap)
+            .bindPopup('<strong>You are here</strong>');
+
+        const msg = document.getElementById('sosMapMsg');
+        if (msg) msg.style.display = 'none';
+        setTimeout(() => sosMap.invalidateSize(), 250);
+    } else {
+        sosMeMarker.setLatLng(here);
+        sosAccCircle.setLatLng(here).setRadius(acc);
+    }
+
+    // Look up nearby places again only after moving ~300 m
+    if (!sosNearbyOrigin || SSGeo.distanceM(loc.lat, loc.lng, sosNearbyOrigin.lat, sosNearbyOrigin.lng) > 300) {
+        sosNearbyOrigin = { lat: loc.lat, lng: loc.lng };
+        sosNearby.load(loc.lat, loc.lng, 'you').then(() => {
+            // First time: show the way to the nearest hospital right away
+            if (!sosAutoRouted) {
+                const h = sosNearby.nearest('hospital');
+                if (h) { sosAutoRouted = true; sosNearby.routeToPlace(h.id); }
             }
-        })
-        .catch(err => console.log('Reverse geocode error:', err));
+        });
+    }
 }
 
 // ================================
@@ -400,12 +482,18 @@ function refreshLocation() {
                 if (!settled) {
                     settled = true;
                     clearTimeout(fallback);
+                    const prev = userLocation;
                     userLocation = {
                         lat:       position.coords.latitude,
                         lng:       position.coords.longitude,
                         accuracy:  position.coords.accuracy,
                         timestamp: new Date().toISOString()
                     };
+                    // Keep the street address for the SOS text if we haven't really moved
+                    if (prev && prev.address && window.SSGeo &&
+                        SSGeo.distanceM(prev.lat, prev.lng, userLocation.lat, userLocation.lng) < 150) {
+                        userLocation.address = prev.address;
+                    }
                     resolve(userLocation);
                 }
             },

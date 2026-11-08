@@ -231,6 +231,8 @@ class FamilyController {
                 'title'       => ucfirst(str_replace('_',' ',$a['alert_type'])) . ' Alert',
                 'description' => !empty($a['message']) ? $a['message'] : ($a['fname'] . ' triggered an alert'),
                 'location'    => $a['latitude'] ? 'Lat: '.number_format((float)$a['latitude'],4).', Lng: '.number_format((float)$a['longitude'],4) : '—',
+                'latitude'    => (float)($a['latitude']  ?? 0),
+                'longitude'   => (float)($a['longitude'] ?? 0),
                 'time'        => $timeAgo,
                 'status'      => $a['status'] ?? 'active',
                 'statusLabel' => $statusSet['label'],

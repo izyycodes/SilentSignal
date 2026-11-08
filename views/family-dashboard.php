@@ -2,7 +2,7 @@
 // views/family-dashboard.php
 // Family Member Dashboard – all data from FamilyController
 
-$pageStyles = [BASE_URL . 'assets/css/family-dashboard.css'];
+$pageStyles = [BASE_URL . 'assets/css/family-dashboard.css', BASE_URL . 'assets/css/geo-map.css'];
 require_once VIEW_PATH . 'includes/dashboard-header.php';
 ?>
 
@@ -94,7 +94,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                         <i class="ri-map-pin-line"></i>
                         <div class="detail-content">
                             <span class="detail-label">Location</span>
-                            <span class="detail-value pwd-location"><?php echo htmlspecialchars($pwd['location']); ?></span>
+                            <span class="detail-value pwd-location" data-geo-lat="<?php echo (float)$pwd['latitude']; ?>" data-geo-lng="<?php echo (float)$pwd['longitude']; ?>"><?php echo htmlspecialchars($pwd['location']); ?></span>
                         </div>
                     </div>
                     <div class="detail-item">
@@ -259,7 +259,7 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
                     </div>
                     <p class="alert-description"><?php echo htmlspecialchars($alert['description']); ?></p>
                     <div class="alert-meta">
-                        <span class="alert-location"><i class="ri-map-pin-line"></i> <?php echo htmlspecialchars($alert['location']); ?></span>
+                        <span class="alert-location" data-geo-lat="<?php echo (float)($alert['latitude'] ?? 0); ?>" data-geo-lng="<?php echo (float)($alert['longitude'] ?? 0); ?>"><i class="ri-map-pin-line"></i> <span class="geo-addr-text"><?php echo htmlspecialchars($alert['location']); ?></span></span>
                         <span class="alert-time"><i class="ri-time-line"></i> <?php echo htmlspecialchars($alert['time']); ?></span>
                         <?php if ($alert['respondedBy']): ?>
                         <span class="alert-responder"><i class="ri-user-line"></i> Responded by <?php echo htmlspecialchars($alert['respondedBy']); ?></span>
@@ -311,6 +311,17 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
         <!-- Map container -->
         <div id="leafletMapContainer"></div>
 
+        <!-- Nearby help (Geoapify Places) + route bar (Geoapify Routing) -->
+        <div class="geo-panel">
+            <div class="geo-route" id="familyRoute" hidden></div>
+            <div class="geo-panel__head">
+                <span class="geo-panel__title"><i class="ri-hospital-line"></i> <span id="familyNearbyTitle">Nearby help</span></span>
+                <span class="geo-panel__sub">within 5 km</span>
+            </div>
+            <div class="geo-chips" id="familyChips"></div>
+            <div class="geo-list" id="familyList"></div>
+        </div>
+
     </div>
 </div>
 
@@ -332,10 +343,12 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 <script>
 const BASE_URL = <?php echo json_encode(BASE_URL); ?>;
 const pwdMembersData = <?php echo $pwdMembersJson; ?>;
+window.GEOAPIFY_KEY = <?php echo json_encode(defined('GEOAPIFY_API_KEY') ? GEOAPIFY_API_KEY : ''); ?>;
 </script>
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/geoapify.js"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/family-dashboard.js"></script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>

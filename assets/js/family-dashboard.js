@@ -10,10 +10,12 @@ let currentLng   = null;
 // Leaflet map instance (kept alive between opens)
 let _leafletMap     = null;
 let _leafletMarkers = [];
+let _nearbyPanel    = null;   // Geoapify nearby places + routes (assets/js/geoapify.js)
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', function () {
     startGPS();
+    fillAddresses(document);   // turn PWD + alert coordinates into street addresses
     // Auto-refresh dashboard every 60 seconds
     dashRefreshTimer = setInterval(() => refreshDashboard(null, true), 60000);
 });
@@ -45,6 +47,7 @@ function viewLocation(focusLat, focusLng, focusName) {
     const modal = document.getElementById('leafletMapModal');
     if (!modal) return;
     modal.style.display = 'flex';
+    document.body.classList.add('map-open');
 
     // Give the DOM a tick to show before initialising Leaflet
     requestAnimationFrame(() => {
@@ -69,14 +72,21 @@ function _initOrRefreshLeafletMap(focusLat, focusLng, focusName) {
             attributionControl: true,
         });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19,
-        }).addTo(_leafletMap);
+        // Map tiles from Geoapify (falls back to OpenStreetMap if the key is missing)
+        SSGeo.addTiles(_leafletMap);
+
+        _nearbyPanel = new SSGeo.NearbyPanel({
+            map:      _leafletMap,
+            chipsEl:  document.getElementById('familyChips'),
+            listEl:   document.getElementById('familyList'),
+            routeEl:  document.getElementById('familyRoute'),
+            showCall: true,
+        });
     } else {
         // Clear existing markers
         _leafletMarkers.forEach(m => _leafletMap.removeLayer(m));
         _leafletMarkers = [];
+        _nearbyPanel.clearRoute();
     }
 
     // Notify Leaflet that its container may have changed size
@@ -135,7 +145,8 @@ function _initOrRefreshLeafletMap(focusLat, focusLng, focusName) {
         const batteryText = pwd.battery != null && pwd.battery !== '' && pwd.battery !== '—'
             ? `${pwd.battery}%` : '—';
 
-        const popupHtml = `
+        // Popup is built each time it opens so it always shows the latest address
+        const popupHtml = () => `
             <div class="pwd-map-popup">
                 <div class="pwd-map-popup__header" style="background:${color};">
                     <span class="pwd-map-popup__name">${escHtml(pwd.name)}</span>
@@ -144,16 +155,19 @@ function _initOrRefreshLeafletMap(focusLat, focusLng, focusName) {
                 <div class="pwd-map-popup__body">
                     <div class="pwd-map-popup__row">
                         <i class="ri-map-pin-line"></i>
-                        <span>${lat.toFixed(5)}, ${lng.toFixed(5)}</span>
+                        <span id="pwd-addr-${pwd.id}" title="${lat.toFixed(5)}, ${lng.toFixed(5)}">${escHtml(_pwdAddr[pwd.id] || (lat.toFixed(5) + ', ' + lng.toFixed(5)))}</span>
                     </div>
                     <div class="pwd-map-popup__row">
                         <i class="ri-battery-2-charge-line"></i>
                         <span>Battery: ${batteryText}</span>
                     </div>
                     <div class="pwd-map-popup__actions">
-                        <a class="pwd-map-popup__btn" href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" rel="noopener">
-                            <i class="ri-navigation-line"></i> Directions
-                        </a>
+                        <button class="pwd-map-popup__btn" onclick="routeToPwd(${pwd.id})">
+                            <i class="ri-route-line"></i> Route
+                        </button>
+                        <button class="pwd-map-popup__btn" onclick="showNearbyFor(${pwd.id})">
+                            <i class="ri-hospital-line"></i> Nearby
+                        </button>
                         <button class="pwd-map-popup__btn" onclick="sendMessage(${pwd.id}, '${escHtml(pwd.name).replace(/'/g,"\\'")}')">
                             <i class="ri-message-2-line"></i> Message
                         </button>
@@ -161,9 +175,19 @@ function _initOrRefreshLeafletMap(focusLat, focusLng, focusName) {
                 </div>
             </div>`;
 
-        const marker = L.marker([lat, lng], { icon: svgIcon })
+        const marker = L.marker([lat, lng], { icon: svgIcon, zIndexOffset: 1000 })
             .addTo(_leafletMap)
-            .bindPopup(popupHtml, { maxWidth: 240, className: 'pwd-leaflet-popup' });
+            .bindPopup(popupHtml, { maxWidth: 260, className: 'pwd-leaflet-popup' });
+
+        // Fill in the street address (Geoapify reverse geocoding) when the popup opens
+        marker.on('popupopen', () => {
+            SSGeo.reverse(lat, lng).then(a => {
+                if (!a) return;
+                _pwdAddr[pwd.id] = a.short;
+                const el = document.getElementById('pwd-addr-' + pwd.id);
+                if (el) el.textContent = a.short;
+            });
+        });
 
         // Open popup on the focused PWD immediately
         if (isFocus) {
@@ -183,6 +207,11 @@ function _initOrRefreshLeafletMap(focusLat, focusLng, focusName) {
         _leafletMap.fitBounds(bounds, { padding: [40, 40] });
     }
 
+    // Nearby hospitals, clinics, police and fire stations around the focused PWD
+    // (or the first PWD when showing everyone)
+    const nearbyPwd = validPwds.find(p => p.name === focusName) || validPwds[0];
+    _loadNearbyFor(nearbyPwd);
+
     // Add viewer's own location marker if available
     if (currentLat && currentLng) {
         const youIcon = L.divIcon({
@@ -198,6 +227,67 @@ function _initOrRefreshLeafletMap(focusLat, focusLng, focusName) {
     }
 
     _updateMapLegend(validPwds);
+}
+
+// ── Nearby help + routes (Geoapify) ──
+const _pwdAddr = {};
+
+function _firstName(name) {
+    return String(name || '').trim().split(/\s+/)[0] || 'them';
+}
+
+function _loadNearbyFor(pwd) {
+    if (!pwd || !_nearbyPanel) return;
+    const title = document.getElementById('familyNearbyTitle');
+    if (title) title.textContent = 'Nearby help · ' + _firstName(pwd.name);
+    _nearbyPanel.clearRoute();
+    _nearbyPanel.load(pwd.latitude, pwd.longitude, _firstName(pwd.name));
+}
+
+// "Nearby" button in a PWD popup
+function showNearbyFor(pwdId) {
+    const pwd = (pwdMembersData || []).find(p => p.id == pwdId);
+    if (!pwd || !_leafletMap) return;
+    _leafletMap.closePopup();
+    _leafletMap.setView([parseFloat(pwd.latitude), parseFloat(pwd.longitude)], 14);
+    _loadNearbyFor(pwd);
+}
+
+// "Route" button in a PWD popup: road route from you to the PWD
+function routeToPwd(pwdId) {
+    const pwd = (pwdMembersData || []).find(p => p.id == pwdId);
+    if (!pwd || !_nearbyPanel) return;
+    _leafletMap.closePopup();
+    if (currentLat == null || currentLng == null) {
+        showToast('📍 Turn on your location to see the route to ' + _firstName(pwd.name), '#d84315');
+        return;
+    }
+    _nearbyPanel.routeBetween(
+        { lat: currentLat, lng: currentLng },
+        { lat: parseFloat(pwd.latitude), lng: parseFloat(pwd.longitude) },
+        _firstName(pwd.name)
+    );
+}
+
+// Replace "Lat/Lng" text with a street address on any element that has
+// data-geo-lat / data-geo-lng (PWD cards and alerts)
+function fillAddresses(root) {
+    if (!window.SSGeo) return;
+    (root || document).querySelectorAll('[data-geo-lat]').forEach(el => {
+        const lat = parseFloat(el.dataset.geoLat), lng = parseFloat(el.dataset.geoLng);
+        if (!lat || !lng) return;
+        const key = lat.toFixed(5) + ',' + lng.toFixed(5);
+        if (el.dataset.geoDone === key) return;
+        SSGeo.reverse(lat, lng).then(a => {
+            if (!a) return;
+            // Skip if the coordinates changed while we were waiting
+            if (parseFloat(el.dataset.geoLat).toFixed(5) + ',' + parseFloat(el.dataset.geoLng).toFixed(5) !== key) return;
+            const target = el.querySelector('.geo-addr-text') || el;
+            target.textContent = a.short;
+            el.title = a.full + ' (' + key.replace(',', ', ') + ')';
+            el.dataset.geoDone = key;
+        });
+    });
 }
 
 // ── Map legend ──
@@ -239,6 +329,7 @@ function _hideMapNotice() {
 function closeLeafletMap() {
     const modal = document.getElementById('leafletMapModal');
     if (modal) modal.style.display = 'none';
+    document.body.classList.remove('map-open');
 }
 
 // ── Send Message (opens SMS app) ──
@@ -295,6 +386,7 @@ function viewProfile(pwdId, name) {
   <div class="profile-section">
     <h4><i class="ri-map-pin-line"></i> Current Status</h4>
     <div class="profile-row"><span>Status</span><strong>${escHtml(statusLabels[p.current_status] || 'Unknown')}</strong></div>
+    <div class="profile-row"><span>Location</span><strong id="profileAddr">${p.latitude ? '…' : '—'}</strong></div>
     <div class="profile-row"><span>Coordinates</span><strong>${p.latitude ? parseFloat(p.latitude).toFixed(4)+', '+parseFloat(p.longitude).toFixed(4) : '—'}</strong></div>
     <div class="profile-row"><span>Battery</span><strong>${p.battery_level != null ? p.battery_level+'%' : '—'}</strong></div>
   </div>
@@ -304,6 +396,12 @@ function viewProfile(pwdId, name) {
     ${p.emergency_contacts.map(c => `<div class="profile-row"><span>${escHtml(c.relationship||'Contact')}</span><strong>${escHtml(c.name)} — ${escHtml(c.phone)} ${c.is_registered ? '<span style="color:#43a047;font-size:10px">✓ Registered</span>' : '<span style="color:#e65100;font-size:10px">Not registered</span>'}</strong></div>`).join('')}
   </div>` : ''}
 </div>`;
+            if (p.latitude && window.SSGeo) {
+                SSGeo.reverse(p.latitude, p.longitude).then(a => {
+                    const el = document.getElementById('profileAddr');
+                    if (el) el.textContent = a ? a.short : parseFloat(p.latitude).toFixed(4) + ', ' + parseFloat(p.longitude).toFixed(4);
+                });
+            }
         })
         .catch(() => {
             body.innerHTML = '<p class="modal-error">Network error loading profile.</p>';
@@ -392,7 +490,16 @@ function refreshDashboard(btn, silent = false) {
                 if (lblEl)  lblEl.textContent  = statusLabels[p.status] || 'UNKNOWN';
                 if (updEl)  updEl.textContent  = p.time_ago;
                 if (locEl && p.latitude) {
-                    locEl.textContent = 'Lat: ' + parseFloat(p.latitude).toFixed(4) + ', Lng: ' + parseFloat(p.longitude).toFixed(4);
+                    const key = parseFloat(p.latitude).toFixed(5) + ',' + parseFloat(p.longitude).toFixed(5);
+                    if (locEl.dataset.geoDone !== key) {
+                        // Moved: show coordinates for a moment, then swap in the new address
+                        locEl.dataset.geoLat = p.latitude;
+                        locEl.dataset.geoLng = p.longitude;
+                        if (locEl.dataset.geoDone) {
+                            locEl.textContent = 'Lat: ' + parseFloat(p.latitude).toFixed(4) + ', Lng: ' + parseFloat(p.longitude).toFixed(4);
+                        }
+                        fillAddresses(card);
+                    }
                 }
 
                 // Sync pwdMembersData for the map

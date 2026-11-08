@@ -827,3 +827,52 @@
     font-weight: 500;
 }
 .countdown-settings-hint a:hover { text-decoration: underline; }
+
+/* ================================
+   LIVE MAP + NEARBY HELP (Leaflet + Geoapify)
+   ================================ */
+.sos-map-wrap {
+    position: relative;
+    margin-top: 14px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border-light, #eee);
+    background: #e8f0f6;
+}
+.sos-map {
+    height: 260px;
+    width: 100%;
+    z-index: 0;
+}
+.sos-map-msg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5b6b7a;
+    background: #eef3f8;
+    z-index: 500;
+}
+.location-card .geo-route {
+    margin-top: 10px;
+}
+.sos-nearby {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.sos-nearby .geo-list {
+    max-height: 230px;
+}
+[data-theme="dark"] .sos-map-msg { background: var(--bg-card-alt); color: var(--text-muted); }
+
+@media (max-width: 600px) {
+    .sos-map { height: 220px; }
+}

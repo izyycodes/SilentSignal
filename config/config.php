@@ -1,6 +1,6 @@
 <?php
 // config/config.php - Environment-Based Configuration
-// Works automatically on both localhost and HelioHost agi
+// Works automatically on both localhost and HelioHost
 
 // Detect environment based on server name (safe check)
 $httpHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
@@ -51,6 +51,9 @@ define('CONTACT_WEBSITE', 'silentsignal.helioho.st');
 
 // PhilSMS API
 define('PHILSMS_TOKEN', '1850|4FW8etOLDfVP9BiNhnW93yo7eJzMvm1NYqe6yIOM72c7b5f9');
+
+// Geoapify API (map tiles, addresses, nearby places, routes)
+define('GEOAPIFY_API_KEY', '180f3bce3b664fa78f41af8e833817a8');
 
 // Gemini API Key
 define('GEMINI_API_KEY', 'AIzaSyBDnXXn9vc9zfR3pm3FNhyBVAVTRHN2GbE');
