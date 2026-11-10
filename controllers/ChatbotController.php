@@ -9,8 +9,8 @@ class ChatbotController {
             exit();
         }
 
-        // Load API key from environment (.env file)
-        $apiKey = $_ENV['GROQ_API_KEY'] ?? '';
+        // Groq API key: config/config.php first, then .env as a backup
+        $apiKey = defined('GROQ_API_KEY') ? GROQ_API_KEY : ($_ENV['GROQ_API_KEY'] ?? '');
         if (empty($apiKey)) {
             echo json_encode(['content' => [['type' => 'text', 'text' => 'API key not configured.']]]);
             exit();
@@ -30,7 +30,7 @@ class ChatbotController {
         // Groq shut down all Llama models on Aug 16, 2026 (llama-3.3-70b-versatile included).
         // openai/gpt-oss-120b is Groq's recommended replacement.
         // To switch models later, set GROQ_MODEL in .env instead of editing this file.
-        $model = $_ENV['GROQ_MODEL'] ?? 'openai/gpt-oss-120b';
+        $model = defined('GROQ_MODEL') ? GROQ_MODEL : ($_ENV['GROQ_MODEL'] ?? 'openai/gpt-oss-120b');
 
         $payload = json_encode([
             'model'                 => $model,
