@@ -21,7 +21,7 @@ if ($isLocal) {
     define('BASE_URL', 'http://localhost/SilentSignal/');
     
     // Local Database
-    define('DB_HOST', 'localhost');
+    define('DB_HOST', 'localhost'); 
     define('DB_USER', 'root');
     define('DB_PASS', '');
     define('DB_NAME', 'silent_signal');
@@ -49,14 +49,13 @@ define('CONTACT_EMAIL', 'ssilentsignal@gmail.com');
 define('CONTACT_ADDRESS', 'Bacolod City, Philippines');
 define('CONTACT_WEBSITE', 'silentsignal.helioho.st');
 
-// PhilSMS API
-define('PHILSMS_TOKEN', '1850|4FW8etOLDfVP9BiNhnW93yo7eJzMvm1NYqe6yIOM72c7b5f9');
+// API keys
+define('GROQ_API_KEY', $_ENV['GROQ_API_KEY'] ?? '');
+define('GROQ_MODEL',   $_ENV['GROQ_MODEL']   ?? 'openai/gpt-oss-120b');
 
-// Geoapify API (map tiles, addresses, nearby places, routes)
-define('GEOAPIFY_API_KEY', '180f3bce3b664fa78f41af8e833817a8');
+define('PHILSMS_TOKEN', $_ENV['PHILSMS_TOKEN'] ?? '');
 
-// Gemini API Key
-define('GEMINI_API_KEY', 'AIzaSyBDnXXn9vc9zfR3pm3FNhyBVAVTRHN2GbE');
+define('GEOAPIFY_API_KEY', $_ENV['GEOAPIFY_API_KEY'] ?? '');
 
 // Paths (same for both environments)
 define('BASE_PATH', __DIR__ . '/../'); 
