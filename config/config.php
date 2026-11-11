@@ -55,8 +55,8 @@ define('PHILSMS_TOKEN', '1850|4FW8etOLDfVP9BiNhnW93yo7eJzMvm1NYqe6yIOM72c7b5f9')
 // Geoapify API (map tiles, addresses, nearby places, routes)
 define('GEOAPIFY_API_KEY', '180f3bce3b664fa78f41af8e833817a8');
 
-// Groq (Signara AI assistant)
-define('GROQ_API_KEY', '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');
+// Gemini API Key
+define('GEMINI_API_KEY', 'AIzaSyBDnXXn9vc9zfR3pm3FNhyBVAVTRHN2GbE');
 
 // Paths (same for both environments)
 define('BASE_PATH', __DIR__ . '/../'); 
