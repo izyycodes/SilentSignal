@@ -66,6 +66,9 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             <div id="sosMap" class="sos-map"></div>
             <div class="sos-map-msg" id="sosMapMsg"><i class="ri-map-pin-time-line"></i> Waiting for your location…</div>
         </div>
+        <button class="sos-map-fullscreen-btn" onclick="openSosMapFullscreen()">
+            <i class="ri-fullscreen-line"></i> Open Full Screen
+        </button>
 
         <!-- Route to the selected place (Geoapify Routing) -->
         <div class="geo-route" id="sosRoute" hidden></div>
@@ -204,6 +207,14 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
     </div>
 </div>
 
+<div class="sos-map-overlay" id="sosMapOverlay">
+    <div class="sos-map-overlay-header">
+        <span class="sos-map-overlay-title"><i class="ri-map-2-line"></i> Nearby Emergency Help</span>
+        <button class="sos-map-overlay-close" onclick="closeSosMapFullscreen()"><i class="ri-close-line"></i></button>
+    </div>
+    <div id="sosMapFullscreen"></div>
+</div>
+
 <!-- Pass PHP data to JavaScript -->
 <script>
 const BASE_URL              = <?php echo json_encode(BASE_URL); ?>;
@@ -219,6 +230,47 @@ const userInfoData          = {
     conditions:  <?php echo json_encode($userData['conditions']  ?? ''); ?>
 };
 window.GEOAPIFY_KEY = <?php echo json_encode(defined('GEOAPIFY_API_KEY') ? GEOAPIFY_API_KEY : ''); ?>;
+
+let fsMap = null;
+
+function openSosMapFullscreen() {
+    const overlay = document.getElementById('sosMapOverlay');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    if (!fsMap) {
+        fsMap = L.map('sosMapFullscreen').setView(
+            sosMap.getCenter(), sosMap.getZoom()
+        );
+        L.tileLayer('https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=' + GEOAPIFY_KEY, {
+            attribution: '© <a href="https://www.geoapify.com">Geoapify</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 18
+        }).addTo(fsMap);
+    }
+
+    setTimeout(() => {
+        fsMap.setView(sosMap.getCenter(), sosMap.getZoom());
+        fsMap.invalidateSize();
+        // Copy markers from the main map
+        sosMap.eachLayer(layer => {
+            if (layer instanceof L.Marker || layer instanceof L.Circle) {
+                const clone = layer instanceof L.Marker
+                    ? L.marker(layer.getLatLng(), { icon: layer.options.icon })
+                    : L.circle(layer.getLatLng(), { radius: layer.getRadius(), ...layer.options });
+                clone.addTo(fsMap);
+            }
+        });
+    }, 100);
+}
+
+function closeSosMapFullscreen() {
+    document.getElementById('sosMapOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeSosMapFullscreen();
+});
 </script>
 
 <?php require_once VIEW_PATH . 'includes/dashboard-footer.php'; ?>

@@ -301,6 +301,9 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
             </div>
             <div class="leaflet-modal-header-right">
                 <div class="map-legend" id="mapLegend"></div>
+                <button class="map-fullscreen-btn" id="mapFsBtn" onclick="toggleMapFullscreen()" title="Toggle fullscreen">
+                    <i class="ri-fullscreen-line" id="mapFsIcon"></i>
+                </button>
                 <button onclick="closeLeafletMap()" class="modal-close"><i class="ri-close-line"></i></button>
             </div>
         </div>
@@ -344,6 +347,30 @@ require_once VIEW_PATH . 'includes/dashboard-header.php';
 const BASE_URL = <?php echo json_encode(BASE_URL); ?>;
 const pwdMembersData = <?php echo $pwdMembersJson; ?>;
 window.GEOAPIFY_KEY = <?php echo json_encode(defined('GEOAPIFY_API_KEY') ? GEOAPIFY_API_KEY : ''); ?>;
+
+let mapIsFullscreen = false;
+
+function toggleMapFullscreen() {
+    const box = document.querySelector('.leaflet-modal-box');
+    const icon = document.getElementById('mapFsIcon');
+    mapIsFullscreen = !mapIsFullscreen;
+    box.classList.toggle('map-is-fullscreen', mapIsFullscreen);
+    icon.className = mapIsFullscreen ? 'ri-fullscreen-exit-line' : 'ri-fullscreen-line';
+    // Let Leaflet know the container resized
+    setTimeout(() => {
+        if (window.leafletMap) window.leafletMap.invalidateSize();
+    }, 150);
+}
+
+// Also exit fullscreen when the modal is closed
+const _origCloseMap = window.closeLeafletMap;
+window.closeLeafletMap = function() {
+    if (mapIsFullscreen) {
+        document.querySelector('.leaflet-modal-box').classList.remove('map-is-fullscreen');
+        mapIsFullscreen = false;
+    }
+    if (_origCloseMap) _origCloseMap();
+};
 </script>
 
 <!-- Leaflet JS -->
