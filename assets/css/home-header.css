@@ -49,6 +49,11 @@ body {
     height: 40px;
 }
 
+.logo .logo-icon {
+    width: 48px;
+    height: 48px;
+}
+
 .logo-text {
     color: var(--header-text);
     font-size: 20px;
@@ -281,9 +286,9 @@ body {
         font-size: 16px;
     }
     
-    .logo-icon {
-        width: 35px;
-        height: 35px;
+    .logo .logo-icon {
+        width: 40px;
+        height: 40px;
     }
     
     .nav-container {
